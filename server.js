@@ -659,10 +659,10 @@ function selectDiversifiedPool(movies, limit) {
 
 function assignRarity(rank, total) {
   const percentile = total ? (rank + 1) / total : 1;
-  if (percentile <= 0.008) return 'Legendary';
-  if (percentile <= 0.034) return 'Epic';
-  if (percentile <= 0.14) return 'Rare';
-  if (percentile <= 0.42) return 'Uncommon';
+  if (percentile <= 0.009) return 'Legendary';
+  if (percentile <= 0.038) return 'Epic';
+  if (percentile <= 0.155) return 'Rare';
+  if (percentile <= 0.46) return 'Uncommon';
   return 'Common';
 }
 

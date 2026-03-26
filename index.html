@@ -494,6 +494,14 @@ button, a, select { font: inherit; }
   text-transform: uppercase;
 }
 
+.reward-choice-grid.is-committing .reward-pack-caption,
+.reward-pack-option.is-selected.is-committing .reward-pack-caption,
+.reward-pack-option.is-dismissed .reward-pack-caption {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+
 .carousel-wrap {
   display: grid;
   grid-template-rows: 24px 468px 52px;
@@ -2139,7 +2147,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: render-speed-1</div>
+  <div class="sub">Build: reward-speed-1</div>
 </div>
 
 <div class="nav">
@@ -2464,6 +2472,7 @@ button, a, select { font: inherit; }
   const RECENT_PULL_MEMORY = 90;
   const RECENT_PULL_HARD_EXCLUDE = 54;
   const LIVE_DRAW_REFRESH_INTERVAL = 3;
+  const THEME_POOL_LIMIT = 900;
   const SAMPLE_MOVIES = [
     { title: 'Jaws', rarity: 'Common', genre: 'Thriller', desc: 'Shark terrorizes a beach town.', packs: ['all', 'horror'] },
     { title: 'Ferris Bueller\'s Day Off', rarity: 'Common', genre: 'Comedy', desc: 'A perfect skip day through Chicago.', packs: ['all'] },
@@ -2916,8 +2925,14 @@ button, a, select { font: inherit; }
   function proxied(url) {
     if (!url) return null;
     if (url.indexOf('data:image') === 0) return url;
+    if (window.location.protocol !== 'file:') return url;
     if (url.indexOf(TMDB_BACKEND_BASE + '/api/image-proxy') === 0) return url;
     return TMDB_BACKEND_BASE + '/api/image-proxy?url=' + encodeURIComponent(url);
+  }
+
+  function cardImageAttrs(priority) {
+    const isPriority = priority === 'high';
+    return ' loading="' + (isPriority ? 'eager' : 'lazy') + '" decoding="async" fetchpriority="' + (isPriority ? 'high' : 'low') + '"';
   }
 
   function backendFetchOptions() {
@@ -2958,7 +2973,7 @@ button, a, select { font: inherit; }
   }
 
   async function fetchThemedDynamicCardPool(themeKey, forceRefresh) {
-    const params = '/api/card-pool?limit=' + CARD_POOL_LIMIT + backendThemeParam(themeKey) + (forceRefresh ? '&refresh=1' : '');
+    const params = '/api/card-pool?limit=' + THEME_POOL_LIMIT + backendThemeParam(themeKey) + (forceRefresh ? '&refresh=1' : '');
     const data = await fetchBackendJson(params);
     if (!data || !Array.isArray(data.movies) || data.movies.length < 50) return false;
     replaceMoviePool(data.movies, data.sourceLabel || 'TMDB');
@@ -3556,7 +3571,7 @@ button, a, select { font: inherit; }
       return '<div class="card person-card ' + personClass + ' ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
         + '<div class="card-frame"></div>'
         + '<div class="person-header"><div class="person-role-badge">' + escapeHtml(roleLabelForDisplay(movie)) + '</div><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div></div>'
-        + '<div class="card-img-wrap person-portrait-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
+        + '<div class="card-img-wrap person-portrait-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait"' + cardImageAttrs('low') + ' data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
         + '<div class="person-bottom"><div class="person-name">' + escapeHtml(movie.title) + '</div><div class="person-role-line">' + escapeHtml(bottomLine) + '</div>' + (movie.character ? '<div class="person-source-line">' + escapeHtml(movie.character) + '</div>' : '') + '</div>'
         + '</div>';
     }
@@ -3567,7 +3582,7 @@ button, a, select { font: inherit; }
     return '<div class="card ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
       + '<div class="card-frame"></div>'
       + '<div class="card-header"><div class="card-title-meta"><div class="card-title">' + escapeHtml(movie.title) + '</div></div><div class="card-side-meta"><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div>' + (movie.year ? '<div class="card-year">' + escapeHtml(movie.year) + '</div>' : '') + '</div></div>'
-      + '<div class="card-img-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' artwork" data-poster="' + escapeHtml(movie.poster || '') + '" data-still="' + escapeHtml(movie.still || '') + '" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre) + '">' + (movie.directorName ? '<div class="card-director-overlay">Dir. ' + escapeHtml(movie.directorName) + '</div>' : '') + '</div>'
+      + '<div class="card-img-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' artwork"' + cardImageAttrs('low') + ' data-poster="' + escapeHtml(movie.poster || '') + '" data-still="' + escapeHtml(movie.still || '') + '" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre) + '">' + (movie.directorName ? '<div class="card-director-overlay">Dir. ' + escapeHtml(movie.directorName) + '</div>' : '') + '</div>'
       + '<div class="card-body"><div class="chips">' + chips.join('') + '</div><div class="desc">' + escapeHtml(movie.desc) + '</div>' + quoteMarkup + '</div>'
       + '</div>';
   }
@@ -3900,11 +3915,14 @@ button, a, select { font: inherit; }
       if (dataSourceLabel.indexOf('TMDB') !== -1) {
         if (rewardChoice === 'gold') {
           currentPackTheme = 'gold';
-          await fetchDynamicCardPool(false).catch(function () { return false; });
+          activeReelSeenTitles = new Set();
           needsPoolRestoreAfterReward = selectedPackMode !== 'all-packs';
         } else {
           currentPackTheme = resolvedFeaturedTheme || 'horror';
-          await fetchThemedDynamicCardPool(currentPackTheme, false).catch(function () { return false; });
+          if (getPackPool(currentPackTheme).length < Math.max(PACK_SIZE * 10, 80)) {
+            await fetchThemedDynamicCardPool(currentPackTheme, false).catch(function () { return false; });
+          }
+          activeReelSeenTitles = new Set();
           needsPoolRestoreAfterReward = selectedPackMode === 'all-packs' || selectedPackMode !== currentPackTheme;
         }
       } else {
