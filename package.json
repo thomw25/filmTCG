@@ -1,0 +1,9 @@
+{
+  "name": "filmtcg",
+  "private": true,
+  "version": "0.1.0",
+  "description": "filmTCG prototype with a TMDB-backed live card pool",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

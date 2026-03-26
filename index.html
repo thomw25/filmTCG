@@ -1,0 +1,4439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>filmTCG</title>
+<style>
+:root {
+  --bg: #0b0c10;
+  --panel: #12141b;
+  --panel-2: #181b24;
+  --text: #f5f5f5;
+  --muted: #a1a1aa;
+  --border: rgba(255,255,255,0.12);
+  --shadow: 0 20px 40px rgba(0,0,0,0.4);
+  --card-shell: #0f1218;
+  --card-base: #171b24;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(124,58,237,.12), transparent 28%),
+    radial-gradient(circle at 80% 10%, rgba(245,158,11,.08), transparent 24%),
+    var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+button, a, select { font: inherit; }
+
+.header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.18);
+  backdrop-filter: blur(10px);
+}
+
+.title {
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.sub {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin-top: 4px;
+}
+
+.nav {
+  display: flex;
+  gap: 10px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(11,12,16,0.84);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.nav button,
+.back-btn,
+.arrow,
+.filter-select,
+.modal-close,
+.collection-controls button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  background: #1f2937;
+  color: white;
+  cursor: pointer;
+}
+
+.nav button.active {
+  background: linear-gradient(135deg, #4f46e5, #9333ea);
+}
+
+.filter-select {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+}
+
+.arrow {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 1.35rem;
+  box-shadow: 0 8px 20px rgba(0,0,0,.25);
+}
+
+.page {
+  display: none;
+  padding: 20px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.page.active { display: block; }
+
+.collection-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.collection-stats {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.collection-stat { min-width: 90px; }
+
+.collection-stat-label {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.collection-stat-value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.collection-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.view-toggle {
+  display: inline-flex;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+}
+
+.view-toggle button {
+  border: none;
+  border-radius: 9px;
+  padding: 8px 12px;
+  background: transparent;
+  color: rgba(255,255,255,.76);
+  cursor: pointer;
+}
+
+.view-toggle button.is-active {
+  background: rgba(255,255,255,.1);
+  color: #fff;
+}
+
+.pack-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  min-height: 520px;
+  justify-content: center;
+}
+
+.pack, .card {
+  width: 300px;
+  height: 430px;
+  border-radius: 20px;
+  flex: 0 0 auto;
+}
+
+.pack {
+  background:
+    radial-gradient(circle at 25% 20%, rgba(255,255,255,0.22), transparent 22%),
+    linear-gradient(135deg, var(--pack-a, #4338ca) 0%, var(--pack-b, #6d28d9) 48%, var(--pack-c, #9333ea) 100%);
+  border: 2px solid rgba(255,255,255,0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  padding: 20px;
+  isolation: isolate;
+  transform-style: preserve-3d;
+  animation: packPulse 2.1s ease-in-out infinite;
+  color: var(--pack-ink, #f8fafc);
+}
+
+.pack.opening { animation: packBeat .22s ease-in-out 2; }
+.pack.is-shuffling {
+  animation: packShuffle 900ms cubic-bezier(.2,.85,.2,1) forwards;
+}
+
+.pack.is-loading {
+  cursor: wait;
+  animation: packHover 1.45s ease-in-out infinite;
+  opacity: 0.96;
+  filter: saturate(1.08);
+}
+
+.pack::after {
+  content: "CLICK TO OPEN";
+  position: absolute;
+  bottom: 14px;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  color: var(--pack-cta-ink, rgba(255,255,255,.86));
+  opacity: 0.8;
+}
+
+.pack.is-loading::after {
+  content: "LOADING REEL";
+}
+
+.pack.is-loading .pack-glint {
+  animation: packLoadingSweep 1.8s linear infinite;
+  opacity: 0.42;
+}
+
+.pack.is-loading .pack-glow {
+  animation: packGlowPulse 1.5s ease-in-out infinite;
+}
+
+.pack-foil,
+.pack-top-seal,
+.pack-spine,
+.pack-glint {
+  position: absolute;
+  pointer-events: none;
+}
+
+.pack-foil {
+  inset: 0;
+  background:
+    linear-gradient(115deg, transparent 0%, transparent 28%, rgba(255,255,255,.18) 39%, rgba(255,255,255,.04) 48%, transparent 58%),
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.03) 28%, rgba(0,0,0,.16) 100%);
+  z-index: 0;
+}
+
+.pack-glow {
+  position: absolute;
+  inset: auto auto -80px -70px;
+  width: 220px;
+  height: 220px;
+  border-radius: 999px;
+  background: var(--pack-glow, rgba(255,255,255,0.16));
+  filter: blur(10px);
+  opacity: 0.95;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.pack-glint {
+  top: 24px;
+  right: 28px;
+  width: 84px;
+  height: 220px;
+  background: linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,0));
+  opacity: 0.25;
+  transform: rotate(20deg);
+  filter: blur(2px);
+  z-index: 1;
+}
+
+.pack-top-seal {
+  left: 0;
+  width: 100%;
+  height: 26px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.22) 0 8px, rgba(255,255,255,.08) 8px 16px),
+    linear-gradient(180deg, rgba(0,0,0,.18), rgba(255,255,255,.06));
+  z-index: 2;
+}
+
+.pack-top-seal {
+  top: 0;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,.18);
+}
+
+.pack-spine {
+  top: 24px;
+  bottom: 24px;
+  left: 14px;
+  width: 18px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.05));
+  opacity: 0.55;
+  z-index: 1;
+}
+
+.pack-title {
+  font-size: 2rem;
+  letter-spacing: -0.04em;
+  position: relative;
+  z-index: 1;
+}
+
+.pack-sub {
+  font-size: 0.82rem;
+  opacity: 1;
+  color: var(--pack-sub-ink, rgba(248,250,252,.84));
+  position: relative;
+  z-index: 1;
+  max-width: 180px;
+}
+
+.pack-tier {
+  position: relative;
+  z-index: 1;
+  margin-top: 14px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pack-tier-ink, rgba(255,255,255,.82));
+  border: 1px solid var(--pack-tier-border, rgba(255,255,255,.16));
+  background: var(--pack-tier-bg, rgba(8,10,15,.32));
+}
+
+.status-line {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+  max-width: 760px;
+  min-height: 1.35em;
+  transition: opacity 180ms ease, transform 220ms ease;
+}
+
+.status-line.is-live {
+  color: #dbeafe;
+}
+
+.status-line.is-loading {
+  color: #e5e7eb;
+}
+
+.status-line.is-loading::after {
+  content: " ...";
+  display: inline-block;
+  width: 2.2em;
+  overflow: hidden;
+  vertical-align: bottom;
+  animation: loadingDots 1.1s steps(4, end) infinite;
+}
+
+.status-line.is-fading {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.pack-hook {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.78);
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+}
+
+.pack-hook strong {
+  color: #fbbf24;
+}
+
+.reward-choice-wrap {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  width: 100%;
+}
+
+.reward-choice-copy {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.88rem;
+  max-width: 34ch;
+  transition: opacity 180ms ease, transform 220ms ease;
+}
+
+.reward-choice-copy.is-fading {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.reward-choice-grid {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+}
+
+.reward-pack-option {
+  position: relative;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 340ms cubic-bezier(.2,.85,.2,1), opacity 260ms ease, filter 260ms ease;
+}
+
+.reward-pack-option .pack {
+  width: 238px;
+  height: 342px;
+  animation: none;
+}
+
+.reward-pack-option .pack.is-loading {
+  animation: packHover 1.45s ease-in-out infinite;
+}
+
+.reward-pack-option .pack::after {
+  content: "TAP TO CHOOSE";
+}
+
+.reward-pack-option:hover {
+  transform: translateY(-6px);
+}
+
+.reward-pack-option.is-selected {
+  transform: translateY(-8px) scale(1.06);
+  z-index: 3;
+}
+
+.reward-pack-option.is-dismissed {
+  opacity: 0;
+  transform: translateX(var(--reward-dismiss-x, 0)) translateY(12px) scale(0.92) rotate(var(--reward-dismiss-rot, 0deg));
+  pointer-events: none;
+  filter: blur(1px);
+}
+
+.reward-pack-option.is-left {
+  --reward-dismiss-x: -72px;
+  --reward-dismiss-rot: -8deg;
+  --reward-commit-x: 28px;
+  --reward-commit-y: -6px;
+}
+
+.reward-pack-option.is-right {
+  --reward-dismiss-x: 72px;
+  --reward-dismiss-rot: 8deg;
+  --reward-commit-x: -28px;
+  --reward-commit-y: -6px;
+}
+
+.reward-choice-grid.is-committing .reward-pack-option {
+  pointer-events: none;
+}
+
+.reward-pack-option.is-selected.is-committing {
+  transform: translateX(var(--reward-commit-x, 0)) translateY(var(--reward-commit-y, -6px)) scale(1.26) rotate(0deg);
+  z-index: 5;
+}
+
+.reward-pack-option.is-selected.is-committing .pack {
+  animation: packHover 0.95s ease-in-out infinite;
+}
+
+.reward-pack-caption {
+  margin-top: 10px;
+  text-align: center;
+  color: rgba(255,255,255,.86);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.carousel-wrap {
+  display: grid;
+  grid-template-rows: 24px 468px 52px;
+  justify-items: center;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+}
+
+.carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.overlap-stack {
+  position: relative;
+  width: 100%;
+  min-height: 468px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  --stack-arrow-offset: clamp(10px, calc(50% - 182px), 136px);
+}
+
+.overlap-ghost {
+  position: absolute;
+  width: 300px;
+  height: 430px;
+  border-radius: 20px;
+  pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(160deg, #1a1f2b 0%, #10141c 100%);
+  border: 3px solid rgba(255,255,255,.16);
+  box-shadow: 0 18px 30px rgba(0,0,0,.24);
+  opacity: 1;
+  z-index: 1;
+}
+
+.overlap-ghost-core {
+  position: absolute;
+  inset: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background:
+    radial-gradient(circle at top, rgba(255,255,255,.1), transparent 32%),
+    linear-gradient(180deg, #232939 0%, #121722 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.overlap-ghost-rarity {
+  position: absolute;
+  top: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #f8fafc;
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 8px 22px rgba(0,0,0,.28);
+  z-index: 2;
+}
+
+.overlap-ghost.is-left-1 .overlap-ghost-rarity,
+.overlap-ghost.is-left-2 .overlap-ghost-rarity {
+  left: 12px;
+}
+
+.overlap-ghost.is-right-1 .overlap-ghost-rarity,
+.overlap-ghost.is-right-2 .overlap-ghost-rarity {
+  right: 12px;
+}
+
+.overlap-ghost-title {
+  max-width: 68%;
+  font-size: 0.9rem;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.overlap-ghost-meta {
+  max-width: 72%;
+  font-size: 0.68rem;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.overlap-ghost::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0)),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.03) 0 10px, rgba(255,255,255,0) 10px 20px);
+}
+
+.overlap-ghost.is-left-1 { transform: translateX(-34px) translateY(6px) rotate(-2deg); }
+.overlap-ghost.is-left-2 { transform: translateX(-58px) translateY(12px) rotate(-4deg); }
+.overlap-ghost.is-right-1 { transform: translateX(34px) translateY(6px) rotate(2deg); }
+.overlap-ghost.is-right-2 { transform: translateX(58px) translateY(12px) rotate(4deg); }
+
+.overlap-count {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  min-width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  background: rgba(12,13,18,.88);
+  border: 1px solid rgba(255,255,255,.14);
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 800;
+  z-index: 4;
+}
+
+.peel-card-wrap {
+  position: relative;
+  width: 300px;
+  height: 430px;
+  z-index: 3;
+}
+
+.peel-card-wrap.is-interactive {
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.peel-card-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top, rgba(255,255,255,.08), transparent 30%),
+    linear-gradient(180deg, #1c2230, #0f1218);
+  box-shadow: var(--shadow);
+  z-index: 0;
+}
+
+.peel-card-wrap.is-peeling-out { animation: peelOut 280ms ease forwards; }
+.peel-card-wrap.is-peeling-in { animation: peelIn 320ms ease forwards; }
+
+.stack-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 6;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(12,16,24,.52);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 12px 26px rgba(0,0,0,.28);
+}
+
+.stack-arrow.is-left {
+  left: var(--stack-arrow-offset);
+  transform: translateY(-50%);
+}
+
+.stack-arrow.is-right {
+  right: var(--stack-arrow-offset);
+  transform: translateY(-50%);
+}
+
+.card {
+  padding: 10px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015)),
+    linear-gradient(180deg, var(--card-base), var(--card-shell));
+  border: 3px solid #6b7280;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 232px 1fr;
+  transition: transform 260ms ease, box-shadow 260ms ease;
+  isolation: isolate;
+  color: #fff;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,.14), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  z-index: 0;
+}
+
+.card > * { position: relative; z-index: 1; }
+.card:hover { transform: translateY(-6px) rotate(0.6deg); }
+
+.card.epic { animation: epicGlow 2.4s ease-in-out infinite; }
+.card.legendary { animation: legendaryGlow 2.4s ease-in-out infinite; }
+
+.card.epic::after,
+.card.legendary::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(100deg, transparent 25%, rgba(255,255,255,.08) 45%, rgba(255,255,255,.35) 50%, rgba(255,255,255,.08) 55%, transparent 75%);
+  pointer-events: none;
+  animation: shimmer 2.8s linear infinite;
+  z-index: 3;
+}
+
+.card-frame {
+  position: absolute;
+  inset: 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 10px 10px 6px;
+  font-weight: 800;
+  min-height: 58px;
+}
+
+.card-title {
+  line-height: 1.16;
+  font-size: 1.02rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 2.32em;
+  width: 100%;
+}
+
+.card-title-meta {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 2.32em;
+  overflow: hidden;
+}
+
+.card-side-meta {
+  display: grid;
+  align-content: center;
+  justify-items: end;
+  gap: 3px;
+  flex: 0 0 68px;
+  width: 68px;
+  text-align: right;
+}
+
+.card-year {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.66);
+}
+
+.card-rarity {
+  font-size: 0.82rem;
+  opacity: 0.9;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+
+.card-img-wrap {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid rgba(255,255,255,.1);
+  height: 232px;
+}
+
+.bookmark-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 7;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  background: rgba(9,12,18,.56);
+  color: rgba(255,255,255,.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.bookmark-btn:hover {
+  transform: scale(1.04);
+  color: #fff;
+}
+
+.bookmark-btn.is-bookmarked {
+  background: rgba(251,191,36,.2);
+  border-color: rgba(251,191,36,.42);
+  color: #fbbf24;
+}
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.person-card {
+  grid-template-rows: auto 1fr auto;
+  padding: 10px;
+}
+
+.person-card.person-actor {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.015)),
+    linear-gradient(180deg, #2e1d17 0%, #170f0d 100%);
+}
+
+.person-card.person-director {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.015)),
+    linear-gradient(180deg, #172733 0%, #0d151b 100%);
+}
+
+.person-card.person-crew {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.015)),
+    linear-gradient(180deg, #20262f 0%, #12171e 100%);
+}
+
+.person-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 4px 10px;
+}
+
+.person-role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.88);
+  background: rgba(8,10,16,.42);
+  border: 1px solid rgba(255,255,255,.14);
+}
+
+.person-portrait-wrap {
+  height: 252px;
+}
+
+.person-actor .person-portrait-wrap::after,
+.person-director .person-portrait-wrap::after,
+.person-crew .person-portrait-wrap::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 48%;
+  background: linear-gradient(180deg, rgba(0,0,0,0), rgba(5,8,14,.92));
+  pointer-events: none;
+}
+
+.person-actor .person-role-badge {
+  background: rgba(249,115,22,.18);
+  border-color: rgba(249,115,22,.28);
+}
+
+.person-director .person-role-badge {
+  background: rgba(56,189,248,.18);
+  border-color: rgba(56,189,248,.28);
+}
+
+.person-crew .person-role-badge {
+  background: rgba(148,163,184,.16);
+  border-color: rgba(148,163,184,.26);
+}
+
+.person-bottom {
+  margin-top: 8px;
+  padding: 4px 8px 10px;
+  display: grid;
+  gap: 6px;
+  min-height: 0;
+  overflow: hidden;
+  align-content: start;
+}
+
+.person-name {
+  font-size: 1.02rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.person-role-line {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,.88);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.person-source-line {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,.7);
+  line-height: 1.28;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-body {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 0 10px 12px;
+  align-content: start;
+  min-width: 0;
+}
+
+.card-body > * {
+  min-width: 0;
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-height: 46px;
+  overflow: hidden;
+  align-items: flex-start;
+}
+
+.chip {
+  font-size: 0.68rem;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #222;
+  border: 1px solid var(--border);
+}
+
+.chip.is-director {
+  background: rgba(255,255,255,.09);
+  border-color: rgba(255,255,255,.18);
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+.card-director-overlay {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  max-width: calc(100% - 20px);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  line-height: 1;
+  color: #fff;
+  background: rgba(10,12,18,.72);
+  border: 1px solid rgba(255,255,255,.16);
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.desc {
+  font-size: 0.8rem;
+  color: #ddd;
+  line-height: 1.32;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 4px 2px 0;
+  min-height: 0;
+  max-height: 4em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.quote {
+  font-size: 0.74rem;
+  line-height: 1.3;
+  color: rgba(255,255,255,0.72);
+  font-style: italic;
+  padding: 0 4px 2px 0;
+  min-height: 0;
+  max-height: 2.6em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.progress {
+  color: var(--muted);
+  font-size: 0.85rem;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.collection-shell { display: grid; gap: 18px; }
+
+.showcase-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
+  border: 1px solid var(--border);
+  content-visibility: auto;
+  contain-intrinsic-size: 360px;
+}
+
+.showcase-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.showcase-head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.showcase-title {
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.showcase-title-icon {
+  margin-right: 8px;
+  opacity: 0.92;
+}
+
+.showcase-sub {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 250px);
+  gap: 24px;
+  justify-content: center;
+  align-items: start;
+}
+
+.showcase-slot,
+.showcase-card {
+  --showcase-scale: 0.82;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 250px;
+  height: calc(430px * var(--showcase-scale));
+  min-width: 0;
+  padding: 0;
+  box-sizing: border-box;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.showcase-slot {
+  text-align: center;
+  border-radius: 22px;
+  overflow: hidden;
+  background: rgba(255,255,255,.03);
+  border: 1px dashed rgba(255,255,255,.1);
+}
+
+.showcase-slot::before { content: none; }
+
+.showcase-slot-label {
+  position: relative;
+  z-index: 1;
+  color: rgba(255,255,255,.46);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.showcase-card {
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  color: var(--text);
+}
+
+.showcase-panel.is-editing .showcase-card {
+  cursor: default;
+}
+
+.showcase-card[draggable="true"] {
+  cursor: grab;
+}
+
+.showcase-card.is-dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+}
+
+.showcase-card.is-drop-target {
+  border-color: rgba(96,165,250,.5);
+  box-shadow: 0 0 0 2px rgba(96,165,250,.22), 0 18px 30px rgba(0,0,0,.25);
+}
+
+.showcase-card:hover {
+  transform: translateY(-4px);
+  box-shadow: none;
+}
+
+.showcase-remove-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(9,11,16,.72);
+  color: rgba(255,255,255,.82);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 160ms ease, transform 160ms ease, background 160ms ease, color 160ms ease;
+  z-index: 6;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+.showcase-remove-btn:hover {
+  background: rgba(220,38,38,.24);
+  color: #fff;
+}
+
+@media (hover:hover) and (pointer:fine) {
+  .showcase-card:hover .showcase-remove-btn,
+  .showcase-card:focus-within .showcase-remove-btn {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+}
+
+.showcase-panel.is-editing .showcase-remove-btn {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.showcase-edit-btn {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(9,11,16,.56);
+  color: rgba(255,255,255,.82);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.showcase-edit-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.08);
+  color: #fff;
+}
+
+.showcase-edit-btn.is-active {
+  background: rgba(96,165,250,.18);
+  border-color: rgba(96,165,250,.34);
+  color: #dbeafe;
+}
+
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 176px);
+  gap: 20px 18px;
+  justify-content: center;
+  align-items: start;
+}
+
+.collection-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: 176px;
+  min-width: 0;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-sizing: border-box;
+  transition: transform 180ms ease;
+  cursor: pointer;
+  isolation: isolate;
+  color: var(--text);
+  content-visibility: auto;
+  contain-intrinsic-size: 260px;
+}
+
+.collection-card:hover {
+  transform: translateY(-4px);
+  box-shadow: none;
+}
+
+.collection-rarity-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  border-radius: 16px 0 0 16px;
+}
+
+.collection-card-preview,
+.showcase-card-preview {
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(20px * var(--preview-scale, 0.56));
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collection-card-preview {
+  --preview-scale: 0.5733;
+  width: calc(300px * var(--preview-scale));
+  height: calc(430px * var(--preview-scale));
+  aspect-ratio: auto;
+  flex: 0 0 auto;
+  overflow: visible;
+  border-radius: 0;
+}
+
+.showcase-card-preview {
+  --preview-scale: var(--showcase-scale);
+  width: calc(300px * var(--preview-scale));
+  height: calc(430px * var(--preview-scale));
+  aspect-ratio: auto;
+  flex: 0 0 auto;
+}
+
+.collection-card-preview .card,
+.showcase-card-preview .card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 300px;
+  height: 430px;
+  transform-origin: top left;
+  transform: scale(var(--preview-scale));
+  pointer-events: none;
+  box-shadow: 0 14px 26px rgba(0,0,0,.26);
+  border-radius: 20px;
+}
+
+.collection-card-preview .card {
+  box-shadow: none;
+}
+
+.collection-card-preview .card:hover,
+.showcase-card-preview .card:hover {
+  transform: scale(var(--preview-scale));
+}
+
+.collection-card-preview .card.rare,
+.showcase-card-preview .card.rare {
+  animation: rareGlow 2.8s ease-in-out infinite;
+}
+
+.collection-card-preview .card.rare::after,
+.showcase-card-preview .card.rare::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(100deg, transparent 28%, rgba(255,255,255,.05) 44%, rgba(255,255,255,.22) 50%, rgba(255,255,255,.05) 56%, transparent 72%);
+  pointer-events: none;
+  animation: shimmer 3.2s linear infinite;
+  z-index: 3;
+}
+
+.collection-card-preview .bookmark-btn,
+.showcase-card-preview .bookmark-btn {
+  display: none;
+}
+
+.collection-card-preview .showcase-btn,
+.showcase-card-preview .showcase-btn {
+  display: none;
+}
+
+.lb-badge {
+  font-size: 0.66rem;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #1f2937;
+  color: #d1d5db;
+  border: 1px solid var(--border);
+}
+
+.lb-badge.is-rarity { color: #fff; }
+
+.showcase-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(9,11,16,.68);
+  color: rgba(255,255,255,.7);
+  display: grid;
+  place-items: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.bookmark-btn {
+  min-width: 34px;
+}
+
+.showcase-btn:hover {
+  transform: scale(1.04);
+  color: #fff;
+}
+
+.showcase-btn.is-active {
+  background: rgba(96,165,250,.2);
+  border-color: rgba(96,165,250,.42);
+  color: #bfdbfe;
+}
+
+.app-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%) translateY(12px);
+  max-width: min(92vw, 420px);
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(18,20,27,.94);
+  color: #f8fafc;
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 18px 40px rgba(0,0,0,.34);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+  z-index: 70;
+  text-align: center;
+}
+
+.app-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.collection-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px;
+  width: 100%;
+}
+
+.collection-card-actions-right {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.collection-card-actions .bookmark-btn,
+.collection-list-item .bookmark-btn,
+.collection-card-actions .showcase-btn,
+.collection-list-item .showcase-btn {
+  position: static;
+  top: auto;
+  right: auto;
+  z-index: auto;
+  flex: 0 0 auto;
+}
+
+.collection-list {
+  display: grid;
+  gap: 10px;
+}
+
+.collection-search-row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.collection-search {
+  width: min(100%, 420px);
+  height: 46px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  color: #fff;
+  font: inherit;
+}
+
+.collection-search::placeholder {
+  color: rgba(255,255,255,.46);
+}
+
+.collection-list-item {
+  display: grid;
+  gap: 12px;
+  align-items: center;
+}
+
+.collection-list-item.is-film {
+  grid-template-columns: minmax(0, 2.8fr) minmax(0, 1.45fr) auto auto auto;
+}
+
+.collection-list-item.is-person {
+  grid-template-columns: minmax(0, 2.8fr) minmax(0, 1.45fr) auto auto auto;
+}
+
+.collection-kind {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.collection-titleline {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.collection-kind-icon {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.06);
+}
+
+.collection-kind-icon::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.collection-kind-icon.is-film::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f8fafc' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='6' width='18' height='12' rx='2'/%3E%3Ccircle cx='8' cy='9' r='1.1' fill='%23f8fafc' stroke='none'/%3E%3Ccircle cx='12' cy='9' r='1.1' fill='%23f8fafc' stroke='none'/%3E%3Ccircle cx='16' cy='9' r='1.1' fill='%23f8fafc' stroke='none'/%3E%3C/svg%3E");
+}
+
+.collection-kind-icon.is-person::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f8fafc' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='3.2'/%3E%3Cpath d='M6.8 18.5c1.4-2.7 3.3-4 5.2-4s3.8 1.3 5.2 4'/%3E%3C/svg%3E");
+}
+
+.collection-list-item {
+  padding: 14px 20px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--shell-bg-top, rgba(255,255,255,.05)), var(--shell-bg-bottom, rgba(255,255,255,.02)));
+  border: 1px solid var(--shell-border, var(--border));
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 16px 28px rgba(0,0,0,.12);
+  content-visibility: auto;
+  contain-intrinsic-size: 72px;
+}
+
+.collection-list-item .lb-badge.is-rarity,
+.collection-card-actions .lb-badge.is-rarity {
+  width: 32px;
+  height: 32px;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+  display: inline-flex;
+}
+
+.collection-list-item:hover {
+  transform: translateY(-3px);
+  border-color: var(--shell-border-strong, rgba(255,255,255,.18));
+  box-shadow: 0 16px 28px rgba(0,0,0,.24), 0 0 0 1px var(--shell-border-soft, rgba(255,255,255,.12));
+}
+
+.collection-list-title {
+  font-size: 0.96rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.collection-list-secondary,
+.collection-list-year,
+.collection-list-role {
+  color: rgba(255,255,255,.76);
+  font-size: 0.88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  justify-self: start;
+  text-align: left;
+}
+
+.collection-list-year {
+  flex: 0 0 auto;
+  color: rgba(255,255,255,.62);
+}
+
+.collection-list-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.collection-list-actions-right {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.72);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 28px;
+  overflow-y: auto;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal-shell {
+  width: min(100%, 860px);
+  max-height: calc(100vh - 56px);
+  background: linear-gradient(180deg, rgba(32,36,49,.96), rgba(18,20,27,.98));
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.45);
+  overflow: auto;
+}
+
+.modal-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.modal-media {
+  padding: 10px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.modal-poster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 18px;
+  display: block;
+  background: #222;
+}
+
+.modal-meta {
+  display: grid;
+  gap: 16px;
+}
+
+.modal-kicker {
+  color: rgba(255,255,255,.56);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.modal-panel {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.modal-title {
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+}
+
+.modal-sub {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.modal-note {
+  color: rgba(255,255,255,.7);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modal-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #1f2937;
+  color: white;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.modal-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,.18);
+  background: #273244;
+}
+
+.empty-state {
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  color: var(--muted);
+}
+
+@keyframes packPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+  50% { transform: scale(1.018); box-shadow: 0 26px 54px rgba(79,70,229,0.28); }
+}
+
+@keyframes packBeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.055); }
+}
+
+@keyframes packShuffle {
+  0% { transform: scale(1) rotate(0deg); filter: saturate(1); }
+  24% { transform: scale(1.04) rotate(-1.6deg) translateY(-6px); }
+  52% { transform: scale(0.99) rotate(1.4deg) translateY(2px); }
+  72% { transform: scale(1.03) rotate(-0.8deg); }
+  100% { transform: scale(1) rotate(0deg); filter: saturate(1.12); }
+}
+
+@keyframes packHover {
+  0%, 100% { transform: translateY(0) rotate(-0.5deg) scale(1); }
+  50% { transform: translateY(-8px) rotate(0.5deg) scale(1.01); }
+}
+
+@keyframes packGlowPulse {
+  0%, 100% { transform: scale(1); opacity: 0.82; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+
+@keyframes packLoadingSweep {
+  0% { transform: translateX(0) rotate(20deg); opacity: 0.12; }
+  50% { transform: translateX(-56px) rotate(20deg); opacity: 0.5; }
+  100% { transform: translateX(-112px) rotate(20deg); opacity: 0.12; }
+}
+
+@keyframes loadingDots {
+  0% { width: 0; }
+  100% { width: 2.2em; }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-160%) rotate(12deg); opacity: 0; }
+  20% { opacity: .65; }
+  100% { transform: translateX(240%) rotate(12deg); opacity: 0; }
+}
+
+@keyframes rareGlow {
+  0%, 100% { box-shadow: 0 14px 26px rgba(0,0,0,.2), 0 0 0 rgba(96,165,250,0); }
+  50% { box-shadow: 0 14px 26px rgba(0,0,0,.2), 0 0 16px rgba(96,165,250,.24); }
+}
+
+@keyframes epicGlow {
+  0%, 100% { box-shadow: 0 20px 40px rgba(0,0,0,.4), 0 0 0 rgba(147,51,234,0); }
+  50% { box-shadow: 0 20px 40px rgba(0,0,0,.4), 0 0 26px rgba(147,51,234,.35); }
+}
+
+@keyframes legendaryGlow {
+  0%, 100% { box-shadow: 0 20px 40px rgba(0,0,0,.4), 0 0 0 rgba(245,158,11,0); }
+  50% { box-shadow: 0 20px 40px rgba(0,0,0,.4), 0 0 34px rgba(245,158,11,.42); }
+}
+
+@keyframes peelOut {
+  0% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translateX(-84px) translateY(-10px) rotate(-7deg) scale(0.98); opacity: 1; }
+}
+
+@keyframes peelIn {
+  0% { transform: translateX(52px) translateY(6px) rotate(5deg) scale(0.985); opacity: 1; }
+  100% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+@media (max-width: 780px) {
+  .pack-area {
+    min-height: 0;
+    justify-content: flex-start;
+    gap: 16px;
+  }
+  .page {
+    padding: 14px 12px 18px;
+  }
+  .nav {
+    padding: 10px 12px;
+  }
+  .collection-topbar {
+    padding: 12px;
+    align-items: stretch;
+  }
+  .collection-stats,
+  .collection-controls {
+    width: 100%;
+  }
+  .collection-controls > * {
+    max-width: 100%;
+  }
+  .showcase-panel {
+    padding: 14px;
+  }
+  .showcase-head {
+    align-items: start;
+  }
+  .showcase-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    justify-content: center;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+  .card, .pack { width: min(264px, calc(100vw - 132px)); }
+  .modal-grid { grid-template-columns: 1fr; }
+  .modal-overlay {
+    align-items: flex-start;
+    padding: 16px;
+  }
+  .modal-shell {
+    max-height: calc(100vh - 32px);
+    padding: 18px;
+  }
+  .collection-grid { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 12px; }
+  .collection-card { width: 100%; }
+  .collection-card-preview { --preview-scale: 0.3733; width: calc(300px * var(--preview-scale)); height: calc(430px * var(--preview-scale)); }
+  .showcase-card-preview { --preview-scale: 0.5; }
+  .showcase-slot,
+  .showcase-card {
+    --showcase-scale: 0.5;
+    width: 150px;
+    height: calc(430px * var(--showcase-scale));
+    padding: 0;
+  }
+  .showcase-card-preview { width: calc(300px * var(--preview-scale)); height: calc(430px * var(--preview-scale)); }
+  .collection-card,
+  .collection-list-item,
+  .showcase-card,
+  .showcase-panel {
+    contain: layout paint;
+  }
+  .collection-card,
+  .collection-list-item,
+  .showcase-card {
+    transition: none;
+  }
+  .collection-card:hover,
+  .collection-list-item:hover,
+  .showcase-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .collection-card-preview .card,
+  .showcase-card-preview .card {
+    box-shadow: none;
+  }
+  .collection-card-preview .card.rare,
+  .showcase-card-preview .card.rare,
+  .collection-card-preview .card.epic,
+  .showcase-card-preview .card.epic,
+  .collection-card-preview .card.legendary,
+  .showcase-card-preview .card.legendary {
+    animation: none !important;
+  }
+  .collection-card-preview .card.rare::after,
+  .showcase-card-preview .card.rare::after,
+  .collection-card-preview .card.epic::after,
+  .showcase-card-preview .card.epic::after,
+  .collection-card-preview .card.legendary::after,
+  .showcase-card-preview .card.legendary::after {
+    animation: none !important;
+    opacity: 0.18;
+  }
+  .showcase-remove-btn,
+  .showcase-edit-btn,
+  .showcase-btn,
+  .bookmark-btn {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .collection-list-item,
+  .collection-list-item.is-film,
+  .collection-list-item.is-person { grid-template-columns: minmax(0, 1fr) auto auto auto; }
+  .collection-list-secondary,
+  .collection-list-year,
+  .collection-list-role { display: none; }
+  .collection-list-item .lb-badge.is-rarity { justify-self: end; }
+  .collection-list-actions {
+    min-width: 0;
+    justify-content: flex-end;
+  }
+  .collection-list-item {
+    gap: 8px;
+    padding: 12px 14px;
+  }
+  .collection-kind {
+    gap: 10px;
+    min-width: 0;
+  }
+  .collection-titleline {
+    min-width: 0;
+  }
+  .collection-list-title {
+    font-size: 0.9rem;
+  }
+  .reward-choice-wrap {
+    gap: 16px;
+  }
+  .reward-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 10px;
+    width: 100%;
+    max-width: 392px;
+    margin: 0 auto;
+  }
+  .reward-pack-option {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    transform-origin: center center;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+  }
+  .reward-pack-option .pack {
+    width: min(176px, calc(50vw - 28px));
+    height: calc(min(176px, calc(50vw - 28px)) * 1.437);
+    margin-inline: auto;
+  }
+  .reward-pack-option .pack {
+    padding: 16px 14px 18px;
+  }
+  .reward-pack-option .pack .pack-title {
+    font-size: 1.46rem;
+    line-height: 1.06;
+    letter-spacing: -0.05em;
+  }
+  .reward-pack-option .pack .pack-sub {
+    font-size: 0.66rem;
+    line-height: 1.34;
+    max-width: 138px;
+    margin-top: 4px;
+  }
+  .reward-pack-option .pack .pack-tier {
+    margin-top: 12px;
+    padding: 6px 10px;
+    font-size: 0.62rem;
+    line-height: 1.3;
+    letter-spacing: 0.1em;
+  }
+  .reward-pack-option .pack .pack-tier .pack-tier-count {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.54rem;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    opacity: 0.68;
+  }
+  .reward-pack-option .pack::after {
+    bottom: 12px;
+    font-size: 0.6rem;
+    letter-spacing: 0.09em;
+  }
+  .reward-pack-option.is-left {
+    transform: translateY(8px);
+    z-index: 1;
+    --reward-commit-x: calc(50% + 5px);
+    --reward-commit-y: 6px;
+  }
+  .reward-pack-option.is-right {
+    transform: translateY(0);
+    z-index: 2;
+    --reward-commit-x: calc(-50% - 5px);
+    --reward-commit-y: 6px;
+  }
+  .reward-pack-option:hover.is-left {
+    transform: translateY(2px) scale(1.02);
+  }
+  .reward-pack-option:hover.is-right {
+    transform: translateY(-2px) scale(1.02);
+  }
+  .reward-pack-option.is-selected {
+    transform: translateY(2px) scale(1.08);
+    z-index: 4;
+  }
+  .reward-pack-option.is-selected.is-committing {
+    transform: translateX(var(--reward-commit-x)) translateY(var(--reward-commit-y)) scale(1.48);
+    z-index: 6;
+  }
+  .reward-pack-option.is-dismissed.is-left {
+    opacity: 0;
+    transform: translateX(-28px) translateY(18px) scale(0.94);
+  }
+  .reward-pack-option.is-dismissed.is-right {
+    opacity: 0;
+    transform: translateX(28px) translateY(18px) scale(0.94);
+  }
+  .reward-pack-caption {
+    margin-top: 8px;
+    font-size: 0.62rem;
+    line-height: 1.34;
+    max-width: 16ch;
+    margin-inline: auto;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: rgba(255,255,255,.74);
+  }
+  .carousel-wrap {
+    grid-template-rows: 22px 430px 64px;
+    gap: 14px;
+  }
+  .overlap-stack {
+    min-height: 430px;
+  }
+  .overlap-ghost.is-left-2, .overlap-ghost.is-right-2 { display: none; }
+  .overlap-ghost.is-left-1 { transform: translateX(-28px) translateY(8px) rotate(-1.5deg); }
+  .overlap-ghost.is-right-1 { transform: translateX(28px) translateY(8px) rotate(1.5deg); }
+  .overlap-stack { --stack-arrow-offset: 8px; }
+  .overlap-ghost,
+  .peel-card-wrap {
+    width: min(264px, calc(100vw - 132px));
+    height: calc(min(264px, calc(100vw - 132px)) * 1.4333);
+  }
+  .overlap-ghost-rarity {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+  }
+  .overlap-ghost-title {
+    font-size: 0.78rem;
+  }
+  .overlap-ghost-meta {
+    font-size: 0.6rem;
+  }
+  .stack-arrow {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+  .back-btn {
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.42rem;
+  }
+  .sub {
+    font-size: 0.84rem;
+  }
+  .collection-search {
+    width: 100%;
+  }
+  .collection-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .collection-card-preview {
+    --preview-scale: 0.34;
+    width: calc(300px * var(--preview-scale));
+    height: calc(430px * var(--preview-scale));
+  }
+  .collection-list-item {
+    padding: 11px 12px;
+  }
+  .collection-list-title {
+    font-size: 0.88rem;
+  }
+  .showcase-grid {
+    gap: 10px;
+  }
+  .showcase-card-preview {
+    --preview-scale: 0.44;
+  }
+  .showcase-slot,
+  .showcase-card {
+    --showcase-scale: 0.44;
+    width: 132px;
+    height: calc(430px * var(--showcase-scale));
+  }
+  .showcase-card-preview {
+    width: calc(300px * var(--preview-scale));
+    height: calc(430px * var(--preview-scale));
+  }
+}
+
+@media (max-width: 1120px) and (min-width: 781px) {
+  .collection-grid {
+    grid-template-columns: repeat(5, 176px);
+  }
+}
+
+@media (max-width: 980px) and (min-width: 781px) {
+  .showcase-grid {
+    grid-template-columns: repeat(2, 250px);
+  }
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title">filmTCG</div>
+  <div class="sub">the movie trading card game</div>
+  <div class="sub">Backend-aware artwork mode</div>
+  <div class="sub">Build: stack-rarity-1</div>
+</div>
+
+<div class="nav">
+  <button id="pullTab" class="active" type="button">Pull</button>
+  <button id="collectionTab" type="button">Collection</button>
+</div>
+
+<div id="pull" class="page active">
+  <div class="collection-topbar" style="margin-bottom:18px;">
+    <div class="collection-stats">
+      <div class="collection-stat">
+        <div class="collection-stat-label">Pack Theme</div>
+        <div class="collection-stat-value" id="packThemeLabel">All Cinema</div>
+      </div>
+      <div class="collection-stat">
+        <div class="collection-stat-label">Pool Size</div>
+        <div class="collection-stat-value" id="poolSizeValue">0</div>
+      </div>
+      <div class="collection-stat">
+        <div class="collection-stat-label">Pack Tier</div>
+        <div class="collection-stat-value" id="packSeriesValue">Common Pack</div>
+      </div>
+    </div>
+    <div class="collection-controls">
+      <select id="packTheme" class="filter-select">
+        <option value="all-packs">Pack: All Packs</option>
+        <option value="all">Pack: All Cinema</option>
+        <option value="horror">Pack: Scary Movie Night</option>
+        <option value="animation">Pack: Animation</option>
+        <option value="eighties">Pack: 80s</option>
+        <option value="noir">Pack: Film Noir</option>
+      </select>
+    </div>
+  </div>
+  <div class="pack-area" id="pullArea"></div>
+</div>
+
+<div id="collection" class="page">
+  <div class="collection-shell">
+    <h2>Your Collection</h2>
+    <div class="collection-topbar">
+      <div class="collection-stats">
+        <div class="collection-stat">
+          <div class="collection-stat-label">Cards</div>
+          <div class="collection-stat-value" id="collectionCount">0</div>
+        </div>
+        <div class="collection-stat">
+          <div class="collection-stat-label">Unique</div>
+          <div class="collection-stat-value" id="uniqueCount">0</div>
+        </div>
+        <div class="collection-stat">
+          <div class="collection-stat-label">Legendary+</div>
+          <div class="collection-stat-value" id="legendaryCount">0</div>
+        </div>
+      </div>
+      <div class="collection-controls">
+        <div class="view-toggle">
+          <button id="collectionViewList" type="button">List</button>
+          <button id="collectionViewGrid" type="button">Grid</button>
+        </div>
+        <select id="collectionSort" class="filter-select">
+          <option value="recent">Sort: Recent</option>
+          <option value="rarity">Sort: Rarity</option>
+          <option value="title">Sort: Title</option>
+        </select>
+        <select id="collectionFilter" class="filter-select">
+          <option value="all">Filter: All</option>
+          <option value="bookmarked">Bookmarked</option>
+          <option value="films">Films</option>
+          <option value="people">People</option>
+          <option value="actors">Actors</option>
+          <option value="directors">Directors</option>
+          <option value="crew">Crew</option>
+          <option value="Legendary">Legendary</option>
+          <option value="Epic">Epic</option>
+          <option value="Rare">Rare</option>
+          <option value="Uncommon">Uncommon</option>
+          <option value="Common">Common</option>
+        </select>
+      </div>
+    </div>
+    <div id="showcasePanel" class="showcase-panel"></div>
+    <div class="collection-search-row">
+      <input id="collectionSearch" class="collection-search" type="search" placeholder="Search title, director, role, or year">
+    </div>
+    <div id="collectionGrid" class="collection-grid"></div>
+  </div>
+</div>
+
+<div id="cardModal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-shell">
+    <div class="modal-topbar">
+      <div class="modal-sub">Collection Detail</div>
+      <button id="modalClose" class="modal-close" type="button" aria-label="Close">✕</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div id="appToast" class="app-toast" aria-live="polite"></div>
+
+<script src="./config.js"></script>
+<script>
+(function () {
+  const DEFAULT_BACKEND_BASE = 'http://localhost:3001';
+  const TMDB_BACKEND_BASE = resolveBackendBase();
+  const PACK_SIZE = 6;
+  const CARD_POOL_LIMIT = 1200;
+  const PACK_REFRESH_SAMPLE = 960;
+  const REEL_REFRESH_INTERVAL = 10;
+  const ALL_PACKS_ROLL = {
+    all: 100
+  };
+  const FEATURED_REWARD_THEMES = ['horror', 'animation', 'eighties', 'noir'];
+  const PACK_THEMES = {
+    all: {
+      label: 'All Cinema',
+      ribbon: 'HOUSE',
+      title: 'All Cinema',
+      blurb: 'A little bit of everything from everywhere.',
+      colors: ['#4338ca', '#6d28d9', '#9333ea'],
+      tier: 'Common Pack',
+      ink: '#f8fafc',
+      subInk: 'rgba(248,250,252,.84)',
+      tierInk: 'rgba(255,255,255,.84)',
+      tierBg: 'rgba(8,10,15,.32)',
+      tierBorder: 'rgba(255,255,255,.16)',
+      ctaInk: 'rgba(255,255,255,.84)'
+    },
+    horror: {
+      label: 'Scary Movie Night',
+      ribbon: 'SCREAM',
+      title: 'Scary Movie Night',
+      blurb: 'scary time 😱',
+      colors: ['#7f1d1d', '#991b1b', '#450a0a'],
+      tier: 'Uncommon Pack',
+      ink: '#fff7ed',
+      subInk: 'rgba(255,237,213,.9)',
+      tierInk: '#fff7ed',
+      tierBg: 'rgba(30,8,8,.34)',
+      tierBorder: 'rgba(255,237,213,.18)',
+      ctaInk: 'rgba(255,237,213,.88)'
+    },
+    animation: {
+      label: 'Animation',
+      ribbon: 'ANIMATED',
+      title: 'Animation',
+      blurb: 'are you drawn to this',
+      colors: ['#0f766e', '#2563eb', '#7c3aed'],
+      tier: 'Rare Pack',
+      ink: '#eff6ff',
+      subInk: 'rgba(239,246,255,.86)',
+      tierInk: '#eff6ff',
+      tierBg: 'rgba(9,15,26,.28)',
+      tierBorder: 'rgba(239,246,255,.16)',
+      ctaInk: 'rgba(239,246,255,.82)'
+    },
+    eighties: {
+      label: '80s',
+      ribbon: 'VHS',
+      title: '80s',
+      blurb: 'the rad pack',
+      colors: ['#db2777', '#7c3aed', '#312e81'],
+      tier: 'Rare Pack',
+      ink: '#fff7fb',
+      subInk: 'rgba(255,241,248,.9)',
+      tierInk: '#fff7fb',
+      tierBg: 'rgba(34,12,40,.28)',
+      tierBorder: 'rgba(255,241,248,.16)',
+      ctaInk: 'rgba(255,241,248,.84)'
+    },
+    noir: {
+      label: 'Film Noir',
+      ribbon: 'NOIR',
+      title: 'Film Noir',
+      blurb: 'light a cigarette NOW',
+      colors: ['#111827', '#334155', '#020617'],
+      tier: 'Epic Pack',
+      ink: '#f8fafc',
+      subInk: 'rgba(226,232,240,.84)',
+      tierInk: '#f8fafc',
+      tierBg: 'rgba(248,250,252,.08)',
+      tierBorder: 'rgba(248,250,252,.16)',
+      ctaInk: 'rgba(248,250,252,.84)'
+    },
+    gold: {
+      label: 'Gold Pack',
+      ribbon: 'REWARD',
+      title: 'Gold Pack',
+      blurb: 'Guaranteed purple or gold.',
+      colors: ['#fbbf24', '#f59e0b', '#92400e'],
+      tier: 'Reward Pack',
+      ink: '#23160a',
+      subInk: 'rgba(35,22,10,.86)',
+      tierInk: '#fff7ed',
+      tierBg: 'rgba(58,35,12,.34)',
+      tierBorder: 'rgba(255,247,237,.16)',
+      ctaInk: 'rgba(35,22,10,.82)'
+    }
+  };
+  const FEMALE_DIRECTOR_NAMES = {
+    'celine sciamma': true,
+    'claire denis': true,
+    'ida lupino': true,
+    'sofia coppola': true,
+    'agnes varda': true,
+    'jane campion': true,
+    'greta gerwig': true,
+    'mia hansen-love': true,
+    'lucrecia martel': true,
+    'sarah polley': true,
+    'karyn kusama': true,
+    'joanna hogg': true
+  };
+  const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
+  const QUOTES = {
+    'Jaws': 'You\'re gonna need a bigger boat.',
+    'Scream': 'Do you like scary movies?',
+    'Whiplash': 'Not quite my tempo.',
+    'The Social Network': 'You don\'t get to 500 million friends without making a few enemies.',
+    'Moonlight': 'In moonlight, black boys look blue.',
+    'No Country for Old Men': 'You can\'t stop what\'s coming.',
+    'Parasite': 'They are nice because they are rich.',
+    'The Godfather': 'I\'m gonna make him an offer he can\'t refuse.',
+    '2001: A Space Odyssey': 'I\'m sorry, Dave. I\'m afraid I can\'t do that.',
+    'Mad Max: Fury Road': 'What a lovely day!',
+    'The Conjuring': 'There is something horrible happening in my house.',
+    'La Haine': 'So far, so good.',
+    'Stalker': 'Let everything that\'s been planned come true.'
+  };
+  const RARITY_COLORS = { Common: '#94a3b8', Uncommon: '#10b981', Rare: '#60a5fa', Epic: '#c084fc', Legendary: '#fbbf24' };
+  const PULL_ODDS = [
+    { rarity: 'Common', weight: 87.15 },
+    { rarity: 'Uncommon', weight: 11.5 },
+    { rarity: 'Rare', weight: 1.1 },
+    { rarity: 'Epic', weight: 0.22 },
+    { rarity: 'Legendary', weight: 0.03 }
+  ];
+  const PERSON_INSERT_CHANCE = 0.34;
+  const PERSON_INSERT_CHANCE_GOLD = 0.58;
+  const PERSON_RARITY_FLOORS = {
+    'martin scorsese': 'Legendary',
+    'alfred hitchcock': 'Legendary',
+    'akira kurosawa': 'Legendary',
+    'ingmar bergman': 'Legendary',
+    'federico fellini': 'Legendary',
+    'agnes varda': 'Legendary',
+    'abbas kiarostami': 'Legendary',
+    'billy wilder': 'Legendary',
+    'david lynch': 'Legendary',
+    'edward yang': 'Legendary',
+    'francis ford coppola': 'Legendary',
+    'howard hawks': 'Legendary',
+    'jean-luc godard': 'Legendary',
+    'john ford': 'Legendary',
+    'orson welles': 'Legendary',
+    'robert bresson': 'Legendary',
+    'satyajit ray': 'Legendary',
+    'spike lee': 'Legendary',
+    'stanley kubrick': 'Legendary',
+    'andrei tarkovsky': 'Legendary',
+    'werner herzog': 'Legendary',
+    'wong kar-wai': 'Legendary',
+    'yasujiro ozu': 'Legendary',
+    'claire denis': 'Epic',
+    'chantal akerman': 'Epic',
+    'celine sciamma': 'Epic',
+    'jane campion': 'Epic',
+    'john cassavetes': 'Epic',
+    'krzysztof kieslowski': 'Epic',
+    'lucrecia martel': 'Epic',
+    'mikio naruse': 'Epic',
+    'michael haneke': 'Epic',
+    'park chan-wook': 'Epic',
+    'terrence malick': 'Epic',
+    'toni scott': 'Rare',
+    'robert de niro': 'Epic',
+    'anna karina': 'Legendary',
+    'giulietta masina': 'Legendary',
+    'ingrid bergman': 'Legendary',
+    'jeanne moreau': 'Legendary',
+    'liv ullmann': 'Legendary',
+    'marcello mastroianni': 'Legendary',
+    'setsuko hara': 'Legendary',
+    'takashi shimura': 'Legendary',
+    'toshirô mifune': 'Legendary',
+    'tatsuya nakadai': 'Epic',
+    'delphine seyrig': 'Epic',
+    'gena rowlands': 'Epic',
+    'isabelle huppert': 'Epic',
+    'maggie cheung': 'Epic',
+    'max von sydow': 'Epic',
+    'tony leung chiu-wai': 'Epic',
+    'bernard herrmann': 'Epic',
+    'ennio morricone': 'Epic',
+    'gregg toland': 'Legendary',
+    'nino rota': 'Epic',
+    'paul schrader': 'Epic',
+    'robert towne': 'Epic',
+    'roger deakins': 'Epic',
+    'sven nykvist': 'Epic',
+    'thelma schoonmaker': 'Epic'
+  };
+  const PERSON_ROLE_WEIGHTS = {
+    actor: 30,
+    director: 39,
+    writer: 10,
+    composer: 8,
+    cinematographer: 6,
+    editor: 4,
+    producer: 3
+  };
+  const PERSON_ROLE_THEME_BONUS = {
+    horror: { actor: 6, director: 4, composer: 5 },
+    animation: { actor: 5, director: 4, composer: 6 },
+    eighties: { actor: 6, director: 4, composer: 4 },
+    noir: { actor: 6, writer: 5, cinematographer: 5 },
+    all: {}
+  };
+  const RECENT_PULL_MEMORY = 90;
+  const RECENT_PULL_HARD_EXCLUDE = 54;
+  const SAMPLE_MOVIES = [
+    { title: 'Jaws', rarity: 'Common', genre: 'Thriller', desc: 'Shark terrorizes a beach town.', packs: ['all', 'horror'] },
+    { title: 'Ferris Bueller\'s Day Off', rarity: 'Common', genre: 'Comedy', desc: 'A perfect skip day through Chicago.', packs: ['all'] },
+    { title: 'Scream', rarity: 'Uncommon', genre: 'Horror', desc: 'A meta slasher classic.', packs: ['all', 'horror'] },
+    { title: 'Whiplash', rarity: 'Uncommon', genre: 'Drama', desc: 'A drummer is pushed toward greatness and collapse.', packs: ['all'] },
+    { title: 'The Conjuring', rarity: 'Uncommon', genre: 'Horror', desc: 'Paranormal investigators confront a dark presence.', packs: ['all', 'horror'] },
+    { title: 'The Social Network', rarity: 'Rare', genre: 'Drama', desc: 'Ambition and betrayal at the birth of Facebook.', packs: ['all'] },
+    { title: 'Moonlight', rarity: 'Rare', genre: 'Drama', desc: 'A young man searches for identity and tenderness.', packs: ['all'] },
+    { title: 'No Country for Old Men', rarity: 'Epic', genre: 'Crime', desc: 'Violence and fate collide in the Texas desert.', packs: ['all', 'noir'] },
+    { title: 'Parasite', rarity: 'Epic', genre: 'Thriller', desc: 'A class warfare masterpiece.', packs: ['all', 'international'] },
+    { title: 'Mad Max: Fury Road', rarity: 'Epic', genre: 'Action', desc: 'A desert chase movie turned into myth.', packs: ['all'] },
+    { title: 'The Godfather', rarity: 'Legendary', genre: 'Crime', desc: 'A mob dynasty saga.', packs: ['all', 'noir'] },
+    { title: '2001: A Space Odyssey', rarity: 'Legendary', genre: 'Sci-Fi', desc: 'A monumental journey from prehistory to deep space.', packs: ['all'] },
+    { title: 'Portrait of a Lady on Fire', rarity: 'Epic', genre: 'Drama', desc: 'A doomed romance rendered with startling precision.', packs: ['all', 'female', 'international'], originalLanguage: 'fr', directorName: 'Celine Sciamma', directorGender: 1 },
+    { title: 'Beau Travail', rarity: 'Rare', genre: 'Drama', desc: 'Foreign Legion masculinity fractures under the Djibouti sun.', packs: ['all', 'female', 'international'], originalLanguage: 'fr', directorName: 'Claire Denis', directorGender: 1 },
+    { title: 'Mildred Pierce', rarity: 'Rare', genre: 'Noir', desc: 'Maternal devotion curdles into ambition and betrayal.', packs: ['all', 'noir'] },
+    { title: 'In the Mood for Love', rarity: 'Epic', genre: 'Drama', desc: 'Desire, timing, and memory drift through narrow hallways.', packs: ['all', 'international'], originalLanguage: 'cn' },
+    { title: 'The Hitch-Hiker', rarity: 'Rare', genre: 'Noir', desc: 'A road trip nightmare from one of noir\'s sharpest directors.', packs: ['all', 'female', 'noir'], directorName: 'Ida Lupino', directorGender: 1 }
+  ];
+
+  let movies = SAMPLE_MOVIES.map(normalizeMovieRecord);
+  let collection = loadCollection();
+  let progress = loadProgress();
+  let bookmarks = loadBookmarks();
+  let showcase = loadShowcase();
+  let pack = [];
+  let index = 0;
+  let artworkStatus = 'Trying backend for live poster/still metadata.';
+  let selectedPackMode = 'all-packs';
+  let currentPackTheme = 'all';
+  let collectionSort = 'recent';
+  let collectionFilter = 'all';
+  let collectionView = loadCollectionView();
+  let collectionSearch = '';
+  let isAnimatingPeel = false;
+  let isOpeningPack = false;
+  let isPoolLoading = true;
+  let activeRewardSelection = null;
+  let needsPoolRestoreAfterReward = false;
+  let draggedShowcaseIndex = null;
+  let showcaseEditMode = false;
+  let dataSourceLabel = 'Sample Set';
+  let activeReelCycleKey = null;
+  let activeReelSeenTitles = new Set();
+  const artCache = new Map();
+
+  const pullPage = document.getElementById('pull');
+  const collectionPage = document.getElementById('collection');
+  const pullArea = document.getElementById('pullArea');
+  const collectionGrid = document.getElementById('collectionGrid');
+  const showcasePanel = document.getElementById('showcasePanel');
+  const collectionSearchEl = document.getElementById('collectionSearch');
+  const pullTab = document.getElementById('pullTab');
+  const collectionTab = document.getElementById('collectionTab');
+  const cardModal = document.getElementById('cardModal');
+  const modalBody = document.getElementById('modalBody');
+  const modalClose = document.getElementById('modalClose');
+  const appToast = document.getElementById('appToast');
+  let toastTimer = null;
+
+  function normalizeBackendBase(value) {
+    return typeof value === 'string' ? value.trim().replace(/\/+$/, '') : '';
+  }
+
+  function resolveBackendBase() {
+    const params = new URLSearchParams(window.location.search);
+    const queryValue = normalizeBackendBase(params.get('backend'));
+    const configValue = normalizeBackendBase(window.FILMTCG_CONFIG && window.FILMTCG_CONFIG.backendBase);
+    let storedValue = '';
+
+    try {
+      storedValue = normalizeBackendBase(window.localStorage.getItem('filmtcg.backendBase'));
+    } catch (error) {
+      storedValue = '';
+    }
+
+    const resolved = queryValue || configValue || storedValue || DEFAULT_BACKEND_BASE;
+
+    if (queryValue) {
+      try {
+        window.localStorage.setItem('filmtcg.backendBase', queryValue);
+      } catch (error) {
+      }
+    }
+
+    return resolved;
+  }
+
+  function loadCollection() {
+    try {
+      const stored = JSON.parse(localStorage.getItem('collection') || '[]');
+      return Array.isArray(stored) ? stored.map(normalizeMovieRecord) : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveCollection() {
+    localStorage.setItem('collection', JSON.stringify(collection));
+  }
+
+  function loadBookmarks() {
+    try {
+      const stored = JSON.parse(localStorage.getItem('filmtcg.bookmarks') || '[]');
+      return Array.isArray(stored) ? stored.filter(Boolean) : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveBookmarks() {
+    localStorage.setItem('filmtcg.bookmarks', JSON.stringify(bookmarks));
+  }
+
+  function loadShowcase() {
+    try {
+      const stored = JSON.parse(localStorage.getItem('filmtcg.showcase') || '[]');
+      return Array.isArray(stored) ? stored.filter(Boolean).slice(0, 4) : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveShowcase() {
+    showcase = Array.isArray(showcase) ? showcase.filter(Boolean).slice(0, 4) : [];
+    localStorage.setItem('filmtcg.showcase', JSON.stringify(showcase));
+  }
+
+  function loadCollectionView() {
+    try {
+      const stored = String(localStorage.getItem('filmtcg.collectionView') || '').toLowerCase();
+      return stored === 'grid' ? 'grid' : 'list';
+    } catch (error) {
+      return 'list';
+    }
+  }
+
+  function saveCollectionView() {
+    localStorage.setItem('filmtcg.collectionView', collectionView);
+  }
+
+  function cardKey(card) {
+    if (!card) return '';
+    const type = card.cardType || 'film';
+    const id = type === 'person'
+      ? (card.personId || card.title)
+      : (card.tmdbId || card.title);
+    return type + ':' + String(id || '').trim().toLowerCase();
+  }
+
+  function isBookmarked(card) {
+    const key = cardKey(card);
+    return key ? bookmarks.indexOf(key) !== -1 : false;
+  }
+
+  function isInShowcase(card) {
+    const key = cardKey(card);
+    return key ? showcase.indexOf(key) !== -1 : false;
+  }
+
+  function toggleBookmark(card) {
+    const key = cardKey(card);
+    if (!key) return false;
+    const index = bookmarks.indexOf(key);
+    if (index === -1) {
+      bookmarks.unshift(key);
+    } else {
+      bookmarks.splice(index, 1);
+    }
+    saveBookmarks();
+    return index === -1;
+  }
+
+  function showToast(message) {
+    if (!appToast) return;
+    appToast.textContent = message;
+    appToast.classList.add('is-visible');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      appToast.classList.remove('is-visible');
+    }, 2400);
+  }
+
+  function toggleShowcase(card) {
+    const key = cardKey(card);
+    if (!key) return { active: false, changed: false };
+    const existingIndex = showcase.indexOf(key);
+    if (existingIndex !== -1) {
+      showcase.splice(existingIndex, 1);
+      saveShowcase();
+      return { active: false, changed: true, removed: true };
+    }
+
+    if (showcase.length >= 4) {
+      return { active: false, changed: false, blocked: 'full' };
+    }
+
+    showcase = [key].concat(showcase.filter(function (item) { return item !== key; })).slice(0, 4);
+    saveShowcase();
+    return { active: true, changed: true, added: true };
+  }
+
+  function moveShowcaseItem(fromIndex, toIndex) {
+    const items = showcase.slice(0, 4);
+    if (fromIndex < 0 || fromIndex >= items.length || toIndex < 0 || toIndex >= items.length || fromIndex === toIndex) {
+      return;
+    }
+    const moved = items.splice(fromIndex, 1)[0];
+    items.splice(toIndex, 0, moved);
+    showcase = items;
+    saveShowcase();
+  }
+
+  function loadProgress() {
+    try {
+      const stored = JSON.parse(localStorage.getItem('filmtcg.progress') || '{}');
+      return {
+        standardPacksOpened: Number(stored.standardPacksOpened) || 0,
+        rewardChoicesAvailable: Number(stored.rewardChoicesAvailable != null ? stored.rewardChoicesAvailable : stored.goldPacksAvailable) || 0,
+        featuredRewardTheme: stored.featuredRewardTheme || null,
+        allPacksCinemaStreak: Number(stored.allPacksCinemaStreak) || 0,
+        recentPullTitles: Array.isArray(stored.recentPullTitles) ? stored.recentPullTitles.filter(Boolean).slice(0, RECENT_PULL_MEMORY) : []
+      };
+    } catch (error) {
+      return {
+        standardPacksOpened: 0,
+        rewardChoicesAvailable: 0,
+        featuredRewardTheme: null,
+        allPacksCinemaStreak: 0,
+        recentPullTitles: []
+      };
+    }
+  }
+
+  function saveProgress() {
+    progress.recentPullTitles = Array.isArray(progress.recentPullTitles)
+      ? progress.recentPullTitles.filter(Boolean).slice(0, RECENT_PULL_MEMORY)
+      : [];
+    localStorage.setItem('filmtcg.progress', JSON.stringify(progress));
+  }
+
+  function buildRecentPullSet() {
+    return new Set((progress.recentPullTitles || []).slice(0, RECENT_PULL_HARD_EXCLUDE));
+  }
+
+  function rememberPulledTitles(cards) {
+    const next = [];
+    (cards || []).forEach(function (movie) {
+      if (movie && movie.title && next.indexOf(movie.title) === -1) {
+        next.push(movie.title);
+      }
+    });
+
+    progress.recentPullTitles = next.concat(progress.recentPullTitles || []).filter(function (title, index, items) {
+      return title && items.indexOf(title) === index;
+    }).slice(0, RECENT_PULL_MEMORY);
+  }
+
+  function packsUntilGoldPack() {
+    const remainder = progress.standardPacksOpened % REEL_REFRESH_INTERVAL;
+    return remainder === 0 ? REEL_REFRESH_INTERVAL : (REEL_REFRESH_INTERVAL - remainder);
+  }
+
+  function currentReelCycleKey() {
+    return Math.floor(progress.standardPacksOpened / REEL_REFRESH_INTERVAL);
+  }
+
+  function buildPackHookMarkup() {
+    if (progress.rewardChoicesAvailable > 0) {
+      return '<div class="pack-hook"><strong>Choose 1</strong> reward pack</div>';
+    }
+
+    return '<div class="pack-hook">' + escapeHtml(String(packsUntilGoldPack())) + ' packs until <strong>gold</strong></div>';
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function extractYear(value) {
+    const match = String(value || '').match(/^(\d{4})/);
+    return match ? match[1] : null;
+  }
+
+  function inferPrimaryGenre(movie) {
+    if (movie.genre) return movie.genre;
+    if (movie.roleLabel) return movie.roleLabel;
+    if (Array.isArray(movie.genreNames) && movie.genreNames.length) return movie.genreNames[0];
+    return 'Film';
+  }
+
+  function normalizedDirectorName(name) {
+    return String(name || '').trim().toLowerCase();
+  }
+
+  function isFemaleDirected(movie) {
+    return Number(movie.directorGender) === 1 || Boolean(FEMALE_DIRECTOR_NAMES[normalizedDirectorName(movie.directorName)]);
+  }
+
+  function derivePacks(movie) {
+    const tags = new Set(['all']);
+    const names = Array.isArray(movie.genreNames) ? movie.genreNames : [];
+    const lookup = {};
+    const year = Number(movie.year) || 0;
+
+    names.forEach(function (name) {
+      lookup[String(name).toLowerCase()] = true;
+    });
+
+    if (lookup.horror || lookup.thriller) tags.add('horror');
+    if (lookup.crime || lookup.noir || lookup.thriller || lookup.mystery) tags.add('noir');
+    if (lookup.animation || lookup.family) tags.add('animation');
+    if (year >= 1980 && year <= 1989) tags.add('eighties');
+    if (movie.originalLanguage && String(movie.originalLanguage).toLowerCase() !== 'en') tags.add('international');
+    if (isFemaleDirected(movie)) tags.add('female');
+
+    return Array.from(tags);
+  }
+
+  function normalizeMovieRecord(movie) {
+    const normalized = {
+      cardType: movie.cardType || 'film',
+      title: movie.title || 'Unknown',
+      rarity: movie.rarity || 'Common',
+      genre: inferPrimaryGenre(movie),
+      genreNames: Array.isArray(movie.genreNames) ? movie.genreNames.slice() : (movie.genre ? [movie.genre] : []),
+      desc: movie.desc || movie.overview || 'No synopsis available yet.',
+      packs: Array.isArray(movie.packs) ? movie.packs.slice() : [],
+      poster: movie.poster || movie.posterUrl || null,
+      still: movie.still || movie.backdrop || movie.backdropUrl || null,
+      tmdbId: movie.tmdbId || movie.id || null,
+      year: movie.year || extractYear(movie.releaseDate || movie.release_date),
+      artMode: movie.artMode || 'generated',
+      popularity: Number(movie.popularity) || 0,
+      voteAverage: Number(movie.voteAverage != null ? movie.voteAverage : movie.vote_average) || 0,
+      voteCount: Number(movie.voteCount != null ? movie.voteCount : movie.vote_count) || 0,
+      originalLanguage: movie.originalLanguage || movie.original_language || null,
+      directorName: movie.directorName || null,
+      directorGender: movie.directorGender != null ? Number(movie.directorGender) : null,
+      personId: movie.personId || movie.tmdbPersonId || null,
+      personType: movie.personType || null,
+      roleKey: movie.roleKey || null,
+      roleLabel: movie.roleLabel || null,
+      profile: movie.profile || movie.profileUrl || null,
+      sourceTitle: movie.sourceTitle || null,
+      sourceYear: movie.sourceYear || null,
+      character: movie.character || '',
+      linkUrl: movie.linkUrl || null
+    };
+
+    if (!normalized.packs.length && normalized.cardType === 'film') normalized.packs = derivePacks(normalized);
+    if (!normalized.packs.length && normalized.cardType === 'person') normalized.packs = ['all'];
+    normalized.artMode = normalized.cardType === 'person' ? 'profile' : chooseArtMode(normalized);
+    return normalized;
+  }
+
+  function replaceMoviePool(nextMovies, sourceLabel) {
+    const normalized = Array.isArray(nextMovies) ? nextMovies.map(normalizeMovieRecord).filter(function (movie) { return movie.title; }) : [];
+    if (!normalized.length) return false;
+    movies = normalized;
+    dataSourceLabel = sourceLabel || 'Live Movie Pool';
+    return true;
+  }
+
+  function rarityColor(rarity) {
+    return RARITY_COLORS[rarity] || RARITY_COLORS.Common;
+  }
+
+  function hexToRgba(hex, alpha) {
+    const normalized = String(hex || '').replace('#', '');
+    if (normalized.length !== 6) return 'rgba(255,255,255,' + String(alpha) + ')';
+    const value = parseInt(normalized, 16);
+    const r = (value >> 16) & 255;
+    const g = (value >> 8) & 255;
+    const b = value & 255;
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+  }
+
+  function collectionShellStyle(card) {
+    const accent = rarityColor(card && card.rarity);
+    return '--shell-border:' + accent
+      + ';--shell-border-strong:' + hexToRgba(accent, 0.78)
+      + ';--shell-border-soft:' + hexToRgba(accent, 0.2)
+      + ';--shell-bg-top:' + hexToRgba(accent, 0.14)
+      + ';--shell-bg-bottom:' + hexToRgba(accent, 0.05);
+  }
+
+  function chooseArtMode(movie) {
+    if (movie.still && (movie.rarity === 'Epic' || movie.rarity === 'Legendary')) {
+      return Math.random() < 0.35 ? 'still' : 'poster';
+    }
+    if (movie.poster) return 'poster';
+    if (movie.still) return 'still';
+    return 'generated';
+  }
+
+  function makePosterDataUri(movie) {
+    const bgA = rarityColor(movie.rarity);
+    const bgB = movie.rarity === 'Legendary' ? '#92400e' : movie.rarity === 'Epic' ? '#6b21a8' : movie.rarity === 'Rare' ? '#1d4ed8' : movie.rarity === 'Uncommon' ? '#065f46' : '#475569';
+    const safeTitle = escapeHtml(movie.title).slice(0, 24);
+    const safeGenre = escapeHtml(movie.genre);
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">'
+      + '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
+      + '<stop offset="0%" stop-color="' + bgA + '"/>'
+      + '<stop offset="100%" stop-color="' + bgB + '"/>'
+      + '</linearGradient></defs>'
+      + '<rect width="300" height="450" rx="24" fill="url(#g)"/>'
+      + '<rect x="18" y="18" width="264" height="414" rx="18" fill="rgba(0,0,0,0.18)" stroke="rgba(255,255,255,0.22)"/>'
+      + '<circle cx="230" cy="96" r="84" fill="rgba(255,255,255,0.08)"/>'
+      + '<rect x="36" y="40" width="228" height="250" rx="14" fill="rgba(0,0,0,0.22)"/>'
+      + '<text x="150" y="145" text-anchor="middle" fill="rgba(255,255,255,0.14)" font-size="84">🎬</text>'
+      + '<text x="150" y="325" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="700">' + safeTitle + '</text>'
+      + '<text x="150" y="355" text-anchor="middle" fill="rgba(255,255,255,0.82)" font-family="Arial, sans-serif" font-size="15" letter-spacing="2">' + safeGenre.toUpperCase() + '</text>'
+      + '<text x="150" y="393" text-anchor="middle" fill="rgba(255,255,255,0.72)" font-family="Arial, sans-serif" font-size="12">filmTCG</text>'
+      + '</svg>';
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+  }
+
+  function makePersonDataUri(card) {
+    const roleLabel = escapeHtml(card.roleLabel || 'Film Figure');
+    const safeName = escapeHtml(card.title || card.name || 'Unknown').slice(0, 28);
+    const accent = card.personType === 'actor'
+      ? '#f97316'
+      : (card.personType === 'director' ? '#38bdf8' : '#94a3b8');
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">'
+      + '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
+      + '<stop offset="0%" stop-color="#111827"/>'
+      + '<stop offset="100%" stop-color="' + accent + '"/>'
+      + '</linearGradient></defs>'
+      + '<rect width="300" height="450" rx="24" fill="url(#g)"/>'
+      + '<rect x="16" y="16" width="268" height="418" rx="18" fill="rgba(0,0,0,0.24)" stroke="rgba(255,255,255,0.18)"/>'
+      + '<circle cx="150" cy="164" r="78" fill="rgba(255,255,255,0.08)"/>'
+      + '<text x="150" y="185" text-anchor="middle" fill="rgba(255,255,255,0.2)" font-size="84">★</text>'
+      + '<text x="150" y="328" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="700">' + safeName + '</text>'
+      + '<text x="150" y="360" text-anchor="middle" fill="rgba(255,255,255,0.82)" font-family="Arial, sans-serif" font-size="15" letter-spacing="1.5">' + roleLabel.toUpperCase() + '</text>'
+      + '</svg>';
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+  }
+
+  function proxied(url) {
+    if (!url) return null;
+    if (url.indexOf('data:image') === 0) return url;
+    if (url.indexOf(TMDB_BACKEND_BASE + '/api/image-proxy') === 0) return url;
+    return TMDB_BACKEND_BASE + '/api/image-proxy?url=' + encodeURIComponent(url);
+  }
+
+  function backendFetchOptions() {
+    const headers = { Accept: 'application/json' };
+    if (TMDB_BACKEND_BASE.indexOf('.ngrok-') !== -1 || TMDB_BACKEND_BASE.indexOf('.ngrok.') !== -1) {
+      headers['ngrok-skip-browser-warning'] = '1';
+    }
+    return { headers: headers };
+  }
+
+  async function fetchBackendJson(path) {
+    const response = await fetch(TMDB_BACKEND_BASE + path, backendFetchOptions());
+    const contentType = response.headers.get('content-type') || '';
+    const bodyText = await response.text();
+
+    if (!response.ok) {
+      throw new Error('HTTP ' + response.status + ' for ' + path + ': ' + bodyText.slice(0, 160));
+    }
+
+    if (contentType.indexOf('application/json') === -1) {
+      throw new Error('Non-JSON response for ' + path + ': ' + bodyText.slice(0, 160));
+    }
+
+    return JSON.parse(bodyText);
+  }
+
+  async function fetchDynamicCardPool(forceRefresh) {
+    const params = '/api/card-pool?limit=' + CARD_POOL_LIMIT + (forceRefresh ? '&refresh=1' : '');
+    const data = await fetchBackendJson(params);
+    if (!data || !Array.isArray(data.movies) || data.movies.length < 50) return false;
+    replaceMoviePool(data.movies, data.sourceLabel || 'TMDB');
+    artworkStatus = 'Loaded ' + data.movies.length + ' live films from ' + dataSourceLabel + '.';
+    return true;
+  }
+
+  function backendThemeParam(themeKey) {
+    return themeKey && themeKey !== 'all' && themeKey !== 'gold' ? '&theme=' + encodeURIComponent(themeKey) : '';
+  }
+
+  async function fetchThemedDynamicCardPool(themeKey, forceRefresh) {
+    const params = '/api/card-pool?limit=' + CARD_POOL_LIMIT + backendThemeParam(themeKey) + (forceRefresh ? '&refresh=1' : '');
+    const data = await fetchBackendJson(params);
+    if (!data || !Array.isArray(data.movies) || data.movies.length < 50) return false;
+    replaceMoviePool(data.movies, data.sourceLabel || 'TMDB');
+    artworkStatus = 'Loaded ' + data.movies.length + ' live films from ' + dataSourceLabel + '.';
+    return true;
+  }
+
+  async function refreshPoolForPackOpen(forceRefresh, themeKey) {
+    const params = '/api/card-pool?limit=' + CARD_POOL_LIMIT + '&sample=' + PACK_REFRESH_SAMPLE + '&shuffle=1' + backendThemeParam(themeKey) + (forceRefresh ? '&refresh=1' : '');
+    const data = await fetchBackendJson(params);
+    if (!data || !Array.isArray(data.movies) || data.movies.length < 50) return false;
+    replaceMoviePool(data.movies, (data.sourceLabel || 'TMDB') + ' Fresh Draw');
+    activeReelCycleKey = currentReelCycleKey();
+    activeReelSeenTitles = new Set();
+    artworkStatus = 'Fresh deck built from ' + data.movies.length + ' live films.';
+    return true;
+  }
+
+  async function fetchMovieArt(title) {
+    if (artCache.has(title)) return artCache.get(title);
+    const data = await fetchBackendJson('/api/movie-art?title=' + encodeURIComponent(title));
+    artCache.set(title, data);
+    return data;
+  }
+
+  async function fetchMoviePeople(movieIds) {
+    const ids = (Array.isArray(movieIds) ? movieIds : []).map(function (id) {
+      return Number(id) || 0;
+    }).filter(Boolean);
+    if (!ids.length) return [];
+    const data = await fetchBackendJson('/api/movie-people?movieIds=' + ids.join(','));
+    return data && Array.isArray(data.people) ? data.people : [];
+  }
+
+  async function hydrateMoviesFromBackend() {
+    let successCount = 0;
+    for (let i = 0; i < movies.length; i += 1) {
+      const movie = movies[i];
+      try {
+        const art = await fetchMovieArt(movie.title);
+        movie.poster = art.poster || null;
+        movie.still = art.backdrop || null;
+        movie.tmdbId = art.tmdbId || null;
+        movie.year = art.year || null;
+        movie.genreNames = Array.isArray(art.genreNames) ? art.genreNames.slice() : movie.genreNames;
+        movie.packs = Array.isArray(art.packs) && art.packs.length ? art.packs.slice() : movie.packs;
+        movie.desc = art.desc || movie.desc;
+        movie.originalLanguage = art.originalLanguage || movie.originalLanguage;
+        movie.directorName = art.directorName || movie.directorName;
+        movie.directorGender = art.directorGender != null ? Number(art.directorGender) : movie.directorGender;
+        movie.genre = inferPrimaryGenre(movie);
+        movie.artMode = chooseArtMode(movie);
+        if (movie.poster || movie.still) successCount += 1;
+      } catch (error) {
+        movie.artMode = 'generated';
+      }
+    }
+
+    artworkStatus = successCount > 0
+      ? 'Live art resolved for ' + successCount + ' films from ' + dataSourceLabel + '.'
+      : 'Backend unavailable. Falling back to generated card art.';
+  }
+
+  function resolveArt(movie) {
+    if (movie.cardType === 'person') {
+      if (movie.profile) return proxied(movie.profile);
+      return makePersonDataUri(movie);
+    }
+    if (movie.artMode === 'still' && movie.still) return proxied(movie.still);
+    if (movie.poster) return proxied(movie.poster);
+    if (movie.still) return proxied(movie.still);
+    return makePosterDataUri(movie);
+  }
+
+  function resolveCardLink(card) {
+    if (card && card.cardType === 'person') {
+      return personLetterboxdUrl(card);
+    }
+    return card.linkUrl || letterboxdUrl(card);
+  }
+
+  function computeStats(movie) {
+    const baseByRarity = { Common: 58, Uncommon: 66, Rare: 74, Epic: 84, Legendary: 94 };
+    const atkByGenre = { Horror: 10, Thriller: 8, Crime: 6, Action: 9, Drama: 1, 'Sci-Fi': 4, Comedy: 2, Film: 3 };
+    const defByGenre = { Drama: 10, 'Sci-Fi': 7, Crime: 5, Thriller: 4, Horror: 2, Action: 3, Comedy: 4, Film: 3 };
+    const base = baseByRarity[movie.rarity] || 60;
+    return {
+      atk: Math.min(99, base + (atkByGenre[movie.genre] || 2)),
+      def: Math.min(99, base + (defByGenre[movie.genre] || 3))
+    };
+  }
+
+  function getPackPool(themeKey) {
+    const selectedTheme = themeKey || currentPackTheme;
+    if (selectedTheme === 'gold') return movies.slice();
+    return movies.filter(function (movie) {
+      return selectedTheme === 'all' ? true : (movie.packs || ['all']).indexOf(selectedTheme) !== -1;
+    });
+  }
+
+  function getAvailableFeaturedRewardThemes() {
+    if (dataSourceLabel.indexOf('TMDB') !== -1) {
+      return FEATURED_REWARD_THEMES.slice();
+    }
+    const strongMatches = FEATURED_REWARD_THEMES.filter(function (themeKey) {
+      return getPackPool(themeKey).length >= PACK_SIZE;
+    });
+    if (strongMatches.length) return strongMatches;
+    return FEATURED_REWARD_THEMES.filter(function (themeKey) {
+      return getPackPool(themeKey).length > 0;
+    });
+  }
+
+  function chooseFeaturedRewardTheme(previousTheme) {
+    const availableThemes = getAvailableFeaturedRewardThemes();
+    if (!availableThemes.length) return null;
+    const filtered = availableThemes.filter(function (themeKey) { return themeKey !== previousTheme; });
+    const source = filtered.length ? filtered : availableThemes;
+    return source[Math.floor(Math.random() * source.length)];
+  }
+
+  function ensureFeaturedRewardTheme(forceNew) {
+    const needsNew = forceNew || !progress.featuredRewardTheme || getPackPool(progress.featuredRewardTheme).length < PACK_SIZE;
+    if (needsNew) {
+      progress.featuredRewardTheme = chooseFeaturedRewardTheme(progress.featuredRewardTheme);
+    }
+    return progress.featuredRewardTheme;
+  }
+
+  function resolvePackTheme(forceDifferent) {
+    if (selectedPackMode !== 'all-packs') {
+      currentPackTheme = selectedPackMode;
+      return currentPackTheme;
+    }
+
+    const availableThemes = Object.keys(ALL_PACKS_ROLL).filter(function (themeKey) {
+      return getPackPool(themeKey).length >= PACK_SIZE;
+    }).map(function (themeKey) {
+      return {
+        key: themeKey,
+        weight: ALL_PACKS_ROLL[themeKey]
+      };
+    });
+
+    if (!availableThemes.length) {
+      currentPackTheme = 'all';
+      return currentPackTheme;
+    }
+
+    let candidates = availableThemes;
+    if (progress.allPacksCinemaStreak >= 2) {
+      candidates = availableThemes.filter(function (entry) { return entry.key !== 'all'; });
+      if (!candidates.length) candidates = availableThemes;
+    }
+    if (forceDifferent && candidates.length > 1) {
+      candidates = candidates.filter(function (entry) { return entry.key !== currentPackTheme; });
+      if (!candidates.length) candidates = availableThemes;
+    }
+
+    currentPackTheme = weightedChoice(candidates).key;
+    return currentPackTheme;
+  }
+
+  function updatePackMeta() {
+    const rewardThemeKey = progress.rewardChoicesAvailable > 0 ? ensureFeaturedRewardTheme(false) : null;
+    const displayThemeKey = rewardThemeKey || currentPackTheme;
+    const pool = progress.rewardChoicesAvailable > 0
+      ? movies
+      : getPackPool(displayThemeKey === 'gold' ? 'all' : displayThemeKey);
+    const theme = PACK_THEMES[displayThemeKey] || PACK_THEMES.all;
+    document.getElementById('packThemeLabel').textContent = progress.rewardChoicesAvailable > 0 ? 'Reward Choice' : theme.label;
+    document.getElementById('poolSizeValue').textContent = String(pool.length);
+    document.getElementById('packSeriesValue').textContent = progress.rewardChoicesAvailable > 0
+      ? 'Choose 1'
+      : theme.tier;
+  }
+
+  function slugifyLetterboxd(title) {
+    return title.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+  }
+
+  function letterboxdUrl(movie) {
+    return 'https://letterboxd.com/film/' + slugifyLetterboxd(movie.title) + '/';
+  }
+
+  function slugifyLetterboxdPerson(name) {
+    return String(name || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+  }
+
+  function personLetterboxdUrl(card) {
+    const rolePath = {
+      actor: 'actor',
+      director: 'director',
+      writer: 'writer',
+      producer: 'producer',
+      editor: 'editor',
+      cinematographer: 'cinematographer',
+      composer: 'composer'
+    }[card && card.roleKey] || 'actor';
+    return 'https://letterboxd.com/' + rolePath + '/' + slugifyLetterboxdPerson(card && card.title) + '/';
+  }
+
+  function buildCardBackground(rarity) {
+    const backgrounds = {
+      Common: 'linear-gradient(180deg, #232a36 0%, #151a22 100%), linear-gradient(180deg, #8f9bab 0%, #6b7787 100%)',
+      Uncommon: 'linear-gradient(180deg, #1b332d 0%, #111a1a 100%), linear-gradient(180deg, #22c55e 0%, #0f766e 100%)',
+      Rare: 'linear-gradient(180deg, #1a2a42 0%, #111827 100%), linear-gradient(180deg, #60a5fa 0%, #4338ca 100%)',
+      Epic: 'linear-gradient(180deg, #2b1f3b 0%, #161320 100%), linear-gradient(180deg, #d8b4fe 0%, #7e22ce 100%)',
+      Legendary: 'linear-gradient(180deg, #3b2913 0%, #19140d 100%), linear-gradient(180deg, #fcd34d 0%, #d97706 100%)'
+    };
+    return backgrounds[rarity] || backgrounds.Common;
+  }
+
+  function artLabel(movie) {
+    if (movie.artMode === 'still') return 'Backdrop';
+    return '';
+  }
+
+  function movieYearNumber(movie) {
+    return Number(movie.year) || 0;
+  }
+
+  function movieHasTag(movie, tag) {
+    return Array.isArray(movie.packs) && movie.packs.indexOf(tag) !== -1;
+  }
+
+  function rarityRank(rarity) {
+    return { Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5 }[rarity] || 1;
+  }
+
+  function rarityByRank(rank) {
+    return { 1: 'Common', 2: 'Uncommon', 3: 'Rare', 4: 'Epic', 5: 'Legendary' }[Math.max(1, Math.min(5, rank))] || 'Common';
+  }
+
+  function roleLabelForDisplay(card) {
+    return card.roleLabel || card.genre || 'Film Figure';
+  }
+
+  function personKey(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  function collectionMetaLabel(card) {
+    if (card.cardType === 'person') {
+      return card.rarity + ' · ' + roleLabelForDisplay(card);
+    }
+    return card.rarity + ' · ' + card.genre + (card.year ? ' · ' + card.year : '');
+  }
+
+  function collectionSecondaryLabel(card) {
+    if (card.cardType === 'person') {
+      if (card.roleKey === 'director') return 'Dir.';
+      if (card.roleKey === 'actor') return 'Actor';
+      return '';
+    }
+    return card.directorName ? ('Dir. ' + card.directorName) : 'Dir. Unknown';
+  }
+
+  function buildCollectionKindMarkup(card) {
+    const iconClass = card.cardType === 'person' ? 'is-person' : 'is-film';
+    const inlineMeta = card.cardType === 'film'
+      ? (card.year ? '<span class="collection-list-year">' + escapeHtml(card.year) + '</span>' : '')
+      : (card.roleKey !== 'actor' && card.roleKey !== 'director'
+        ? '<span class="collection-list-year">' + escapeHtml(roleLabelForDisplay(card)) + '</span>'
+        : '');
+    return '<div class="collection-kind"><span class="collection-kind-icon ' + iconClass + '" aria-hidden="true"></span><span class="collection-titleline"><span class="collection-list-title">' + escapeHtml(card.title) + '</span>' + inlineMeta + '</span></div>';
+  }
+
+  function matchesCollectionSearch(card) {
+    const query = String(collectionSearch || '').trim().toLowerCase();
+    if (!query) return true;
+    const haystack = [
+      card.title,
+      collectionSecondaryLabel(card),
+      card.year,
+      card.rarity,
+      card.genre,
+      roleLabelForDisplay(card)
+    ].filter(Boolean).join(' ').toLowerCase();
+    return haystack.indexOf(query) !== -1;
+  }
+
+  function buildPersonRoleWeights(themeKey) {
+    const weights = Object.assign({}, PERSON_ROLE_WEIGHTS);
+    const bonus = PERSON_ROLE_THEME_BONUS[themeKey] || {};
+    Object.keys(bonus).forEach(function (key) {
+      weights[key] = (weights[key] || 0) + bonus[key];
+    });
+    return weights;
+  }
+
+  function derivePersonRarity(candidate, sourceMovie) {
+    const sourceRank = rarityRank(sourceMovie && sourceMovie.rarity);
+    const popularity = Number(candidate && candidate.popularity) || 0;
+    const explicitFloor = PERSON_RARITY_FLOORS[personKey(candidate && candidate.name)];
+    let rank = Math.max(2, sourceRank - 1);
+
+    if (candidate.personType === 'director') rank = Math.max(rank, sourceRank);
+    if (candidate.personType === 'actor') rank = Math.max(rank, sourceRank - 1);
+    if (candidate.personType === 'crew') rank = Math.max(2, sourceRank - 2);
+
+    if (candidate.roleKey === 'director') rank = Math.max(rank, 3);
+    if (candidate.roleKey === 'director' && popularity >= 10) rank = Math.max(rank, 4);
+    if (candidate.roleKey === 'actor' && popularity >= 22) rank = Math.max(rank, 3);
+    if ((candidate.roleKey === 'composer' || candidate.roleKey === 'cinematographer' || candidate.roleKey === 'writer') && popularity >= 9) rank = Math.max(rank, 3);
+    if (popularity >= 25) rank += 1;
+    if (popularity >= 45 && candidate.personType !== 'crew') rank += 1;
+    if (candidate.roleKey === 'director' && sourceRank >= 4) rank = Math.max(rank, 4);
+    if (candidate.roleKey === 'actor' && sourceRank >= 5 && popularity >= 20) rank = Math.max(rank, 4);
+    if (candidate.roleKey === 'composer' || candidate.roleKey === 'cinematographer') rank = Math.min(rank, 4);
+    if (candidate.roleKey === 'producer' || candidate.roleKey === 'editor' || candidate.roleKey === 'writer') rank = Math.min(rank, 4);
+    if (explicitFloor) rank = Math.max(rank, rarityRank(explicitFloor));
+
+    return rarityByRank(rank);
+  }
+
+  function buildPersonDescription(candidate, sourceMovie) {
+    const sourceTitle = sourceMovie && sourceMovie.title ? sourceMovie.title : 'this pull';
+    const role = candidate.roleLabel || 'Film Figure';
+    if (candidate.roleKey === 'actor' && candidate.character) {
+      return candidate.character + ' in ' + sourceTitle + '.';
+    }
+    return role + ' on ' + sourceTitle + '.';
+  }
+
+  function buildPersonCard(candidate, sourceMovie) {
+    return normalizeMovieRecord({
+      cardType: 'person',
+      title: candidate.name,
+      rarity: derivePersonRarity(candidate, sourceMovie),
+      genre: candidate.roleLabel,
+      desc: buildPersonDescription(candidate, sourceMovie),
+      packs: sourceMovie && Array.isArray(sourceMovie.packs) ? sourceMovie.packs.slice() : ['all'],
+      profile: candidate.profile,
+      roleKey: candidate.roleKey,
+      roleLabel: candidate.roleLabel,
+      personType: candidate.personType,
+      personId: candidate.personId,
+      sourceTitle: sourceMovie ? sourceMovie.title : null,
+      sourceYear: sourceMovie ? sourceMovie.year : null,
+      character: candidate.character || '',
+      linkUrl: candidate.linkUrl || null,
+      popularity: candidate.popularity || 0
+    });
+  }
+
+  function choosePersonCandidate(candidates, themeKey) {
+    const weights = buildPersonRoleWeights(themeKey);
+    const recentPulls = buildRecentPullSet();
+    const filtered = (Array.isArray(candidates) ? candidates : []).filter(function (candidate) {
+      return candidate && candidate.name && !recentPulls.has(candidate.name);
+    });
+    const source = filtered.length ? filtered : (Array.isArray(candidates) ? candidates : []);
+    if (!source.length) return null;
+    return weightedChoice(source.map(function (candidate) {
+      return {
+        weight: weights[candidate.roleKey] || 1,
+        candidate: candidate
+      };
+    })).candidate;
+  }
+
+  function shuffledCopy(items) {
+    const copy = Array.isArray(items) ? items.slice() : [];
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      const swapIndex = Math.floor(Math.random() * (i + 1));
+      const temp = copy[i];
+      copy[i] = copy[swapIndex];
+      copy[swapIndex] = temp;
+    }
+    return copy;
+  }
+
+  function buildPersonSourceMovies(themeKey, currentPackMovies) {
+    const packTitles = new Set((Array.isArray(currentPackMovies) ? currentPackMovies : []).map(function (movie) {
+      return movie && movie.title;
+    }).filter(Boolean));
+    const recentTitles = buildRecentPullSet();
+    const themedPool = getPackPool(themeKey).filter(function (movie) {
+      return movie && movie.cardType !== 'person' && movie.tmdbId && !packTitles.has(movie.title) && !recentTitles.has(movie.title) && !activeReelSeenTitles.has(movie.title);
+    });
+
+    let sourcePool = themedPool;
+    if (sourcePool.length < 8) {
+      sourcePool = sourcePool.concat(movies.filter(function (movie) {
+        return movie && movie.cardType !== 'person' && movie.tmdbId && !packTitles.has(movie.title) && !recentTitles.has(movie.title) && !activeReelSeenTitles.has(movie.title);
+      }));
+    }
+
+    const deduped = [];
+    const seenIds = new Set();
+    sourcePool.forEach(function (movie) {
+      const key = String(movie.tmdbId || movie.title || '');
+      if (!key || seenIds.has(key)) return;
+      seenIds.add(key);
+      deduped.push(movie);
+    });
+
+    return shuffledCopy(deduped).slice(0, 12);
+  }
+
+  async function maybeBuildPersonInsert(sourceMovies, themeKey, isGoldRewardPack) {
+    const insertChance = isGoldRewardPack ? PERSON_INSERT_CHANCE_GOLD : PERSON_INSERT_CHANCE;
+    if (Math.random() > insertChance) return null;
+
+    const validMovies = buildPersonSourceMovies(themeKey, sourceMovies);
+    if (!validMovies.length) return null;
+
+    const sourceById = {};
+    validMovies.forEach(function (movie) {
+      sourceById[String(movie.tmdbId)] = movie;
+    });
+
+    const candidates = await fetchMoviePeople(validMovies.map(function (movie) { return movie.tmdbId; }));
+    const picked = choosePersonCandidate(candidates, themeKey);
+    if (!picked) return null;
+
+    return buildPersonCard(picked, sourceById[String(picked.sourceMovieId)] || validMovies[0]);
+  }
+
+  function buildFlavorTags(movie) {
+    const tags = [];
+    const year = movieYearNumber(movie);
+
+    if (movie.voteAverage >= 8.0 && movie.voteCount >= 1200) tags.push('Awards Favorite');
+    if (movieHasTag(movie, 'international') && movie.voteAverage >= 7.5) tags.push('Festival Favorite');
+    if (movieHasTag(movie, 'horror') && year && year <= 2005) tags.push('Cult Classic');
+    if (movieHasTag(movie, 'horror') && movie.rarity !== 'Common') tags.push('Midnight Movie');
+    if (movieHasTag(movie, 'noir') && year && year <= 1975) tags.push('Noir Staple');
+    if (movieHasTag(movie, 'female')) tags.push('Auteur Vision');
+    if (movie.voteCount >= 2500) tags.push('Crowd Favorite');
+    if (year && year <= 1980) tags.push('Canon Pick');
+    if (movie.originalLanguage && String(movie.originalLanguage).toLowerCase() !== 'en') tags.push('World Cinema');
+
+    return tags;
+  }
+
+  function buildCardChips(movie) {
+    if (movie.cardType === 'person') {
+      return ['<div class="chip">' + escapeHtml(roleLabelForDisplay(movie)) + '</div>'];
+    }
+
+    const chips = [];
+    const artChip = artLabel(movie);
+    const flavorTags = buildFlavorTags(movie);
+
+    if (flavorTags.length) {
+      chips.push('<div class="chip">' + escapeHtml(flavorTags[0]) + '</div>');
+    } else {
+      chips.push('<div class="chip">' + escapeHtml(movie.genre) + '</div>');
+    }
+    if (flavorTags.length > 1) {
+      chips.push('<div class="chip">' + escapeHtml(flavorTags[1]) + '</div>');
+    }
+    if (!flavorTags.length && artChip) {
+      chips.push('<div class="chip">' + escapeHtml(artChip) + '</div>');
+    }
+
+    return chips;
+  }
+
+  function buildGhostMarkup(positionClass, movie) {
+    const rarity = movie ? movie.rarity : 'Common';
+    const meta = movie
+      ? (movie.cardType === 'person'
+        ? roleLabelForDisplay(movie)
+        : (movie.year || 'Film'))
+      : 'filmTCG';
+    const title = movie ? movie.title : 'filmTCG';
+    return '<div class="overlap-ghost ' + positionClass + '" style="border-color:' + escapeHtml(rarityColor(movie ? movie.rarity : 'Common')) + ';">'
+      + '<div class="overlap-ghost-core">'
+      + '<span class="overlap-ghost-rarity" style="background:' + escapeHtml(rarityColor(rarity)) + ';">' + escapeHtml(rarityShortLabel(rarity)) + '</span>'
+      + '<div class="overlap-ghost-title">' + escapeHtml(title) + '</div><div class="overlap-ghost-meta">' + escapeHtml(meta) + '</div></div>'
+      + '</div>';
+  }
+
+  function buildBookmarkButtonMarkup(card) {
+    return '<button class="bookmark-btn' + (isBookmarked(card) ? ' is-bookmarked' : '') + '" type="button" aria-label="Bookmark" data-bookmark-key="' + escapeHtml(cardKey(card)) + '">&#9733;</button>';
+  }
+
+  function rarityShortLabel(rarity) {
+    return ({ Common: 'C', Uncommon: 'U', Rare: 'R', Epic: 'E', Legendary: 'L' })[rarity] || 'C';
+  }
+
+  function buildShowcaseButtonMarkup(card) {
+    return '<button class="showcase-btn' + (isInShowcase(card) ? ' is-active' : '') + '" type="button" aria-label="Toggle Top 4 showcase" data-showcase-key="' + escapeHtml(cardKey(card)) + '">&#127942;</button>';
+  }
+
+  function buildShelfCardMarkup(card) {
+    return buildCardMarkup(card, { includeBookmark: false });
+  }
+
+  function buildPackFaceMarkup(themeKey, options) {
+    const theme = PACK_THEMES[themeKey] || PACK_THEMES.all;
+    const style = '--pack-a:' + theme.colors[0]
+      + '; --pack-b:' + theme.colors[1]
+      + '; --pack-c:' + theme.colors[2]
+      + '; --pack-ribbon-bg:rgba(255,255,255,.16)'
+      + '; --pack-glow:radial-gradient(circle, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 68%)'
+      + '; --pack-ink:' + (theme.ink || '#f8fafc')
+      + '; --pack-sub-ink:' + (theme.subInk || 'rgba(248,250,252,.84)')
+      + '; --pack-tier-ink:' + (theme.tierInk || 'rgba(255,255,255,.84)')
+      + '; --pack-tier-bg:' + (theme.tierBg || 'rgba(8,10,15,.32)')
+      + '; --pack-tier-border:' + (theme.tierBorder || 'rgba(255,255,255,.16)')
+      + '; --pack-cta-ink:' + (theme.ctaInk || 'rgba(255,255,255,.84)');
+    const config = options || {};
+    const classes = 'pack' + (config.extraClasses ? ' ' + config.extraClasses : '');
+    let attrs = ' class="' + escapeHtml(classes) + '"';
+    if (config.id) attrs += ' id="' + escapeHtml(config.id) + '"';
+    if (config.disabled) attrs += ' aria-disabled="true"';
+    if (config.buttonLike) attrs += ' role="button" tabindex="0"';
+    attrs += ' aria-label="' + escapeHtml(theme.label) + '"';
+    attrs += ' style="' + escapeHtml(style) + '"';
+    return '<div' + attrs + '>'
+      + '<div class="pack-foil"></div>'
+      + '<div class="pack-top-seal"></div>'
+      + '<div class="pack-spine"></div>'
+      + '<div class="pack-glow"></div>'
+      + '<div class="pack-glint"></div>'
+      + '<div class="pack-title">' + escapeHtml(theme.title) + '</div>'
+      + '<div class="pack-sub">' + escapeHtml(theme.blurb) + '</div>'
+      + '<div class="pack-tier">' + escapeHtml(theme.tier) + '<span class="pack-tier-count">' + PACK_SIZE + ' cards</span></div>'
+      + '</div>';
+  }
+
+  function openExternalLink(card) {
+    const href = resolveCardLink(card);
+    if (!href) return;
+    const link = document.createElement('a');
+    link.href = href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.click();
+  }
+
+  function attachPackCardInteractions(peelWrap, movie) {
+    if (!peelWrap || !movie) return;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let suppressTapUntil = 0;
+
+    peelWrap.classList.add('is-interactive');
+
+    peelWrap.addEventListener('click', function () {
+      if (Date.now() < suppressTapUntil) return;
+      openExternalLink(movie);
+    });
+
+    peelWrap.addEventListener('touchstart', function (event) {
+      const touch = event.changedTouches && event.changedTouches[0];
+      if (!touch) return;
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    }, { passive: true });
+
+    peelWrap.addEventListener('touchend', function (event) {
+      const touch = event.changedTouches && event.changedTouches[0];
+      if (!touch) return;
+
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+
+      if (Math.abs(deltaX) >= 44 && Math.abs(deltaY) <= 36) {
+        suppressTapUntil = Date.now() + 450;
+        if (deltaX < 0) {
+          nextCard();
+        } else {
+          prevCard();
+        }
+      }
+    }, { passive: true });
+  }
+
+  function buildCardMarkup(movie, options) {
+    const config = options || {};
+    const includeBookmark = config.includeBookmark !== false;
+    const bookmarkMarkup = includeBookmark ? buildBookmarkButtonMarkup(movie) : '';
+
+    if (movie.cardType === 'person') {
+      const personClass = movie.personType === 'actor' ? 'person-actor' : (movie.personType === 'director' ? 'person-director' : 'person-crew');
+      const bottomLine = roleLabelForDisplay(movie);
+      return '<div class="card person-card ' + personClass + ' ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
+        + '<div class="card-frame"></div>'
+        + '<div class="person-header"><div class="person-role-badge">' + escapeHtml(roleLabelForDisplay(movie)) + '</div><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div></div>'
+        + '<div class="card-img-wrap person-portrait-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
+        + '<div class="person-bottom"><div class="person-name">' + escapeHtml(movie.title) + '</div><div class="person-role-line">' + escapeHtml(bottomLine) + '</div>' + (movie.character ? '<div class="person-source-line">' + escapeHtml(movie.character) + '</div>' : '') + '</div>'
+        + '</div>';
+    }
+
+    const quote = QUOTES[movie.title] || '';
+    const chips = buildCardChips(movie);
+    const quoteMarkup = quote ? '<div class="quote">“' + escapeHtml(quote) + '”</div>' : '';
+    return '<div class="card ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
+      + '<div class="card-frame"></div>'
+      + '<div class="card-header"><div class="card-title-meta"><div class="card-title">' + escapeHtml(movie.title) + '</div></div><div class="card-side-meta"><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div>' + (movie.year ? '<div class="card-year">' + escapeHtml(movie.year) + '</div>' : '') + '</div></div>'
+      + '<div class="card-img-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' artwork" data-poster="' + escapeHtml(movie.poster || '') + '" data-still="' + escapeHtml(movie.still || '') + '" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre) + '">' + (movie.directorName ? '<div class="card-director-overlay">Dir. ' + escapeHtml(movie.directorName) + '</div>' : '') + '</div>'
+      + '<div class="card-body"><div class="chips">' + chips.join('') + '</div><div class="desc">' + escapeHtml(movie.desc) + '</div>' + quoteMarkup + '</div>'
+      + '</div>';
+  }
+
+  function addImageFallbacks(root) {
+    root.querySelectorAll('img').forEach(function (img) {
+      if (img.dataset.bound === 'true') return;
+      img.dataset.bound = 'true';
+      img.addEventListener('error', function () {
+        if (img.dataset.triedPoster !== 'true' && img.dataset.poster) {
+          img.dataset.triedPoster = 'true';
+          img.src = proxied(img.dataset.poster) || img.dataset.poster;
+          return;
+        }
+        if (img.dataset.triedStill !== 'true' && img.dataset.still) {
+          img.dataset.triedStill = 'true';
+          img.src = proxied(img.dataset.still) || img.dataset.still;
+          return;
+        }
+        img.src = makePosterDataUri({
+          title: img.dataset.title || 'Unknown',
+          rarity: img.dataset.rarity || 'Common',
+          genre: img.dataset.genre || 'Film'
+        });
+      });
+    });
+  }
+
+  function attachBookmarkButtons(root, resolveCard) {
+    root.querySelectorAll('.bookmark-btn').forEach(function (button) {
+      if (button.dataset.bound === 'true') return;
+      button.dataset.bound = 'true';
+      button.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const card = resolveCard(button);
+        if (!card) return;
+        const bookmarked = toggleBookmark(card);
+        button.classList.toggle('is-bookmarked', bookmarked);
+        if (collectionPage.classList.contains('active')) {
+          renderCollection();
+        }
+      });
+    });
+  }
+
+  function attachShowcaseButtons(root, resolveCard) {
+    root.querySelectorAll('.showcase-btn').forEach(function (button) {
+      if (button.dataset.bound === 'true') return;
+      button.dataset.bound = 'true';
+      button.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const card = resolveCard(button);
+        if (!card) return;
+        const result = toggleShowcase(card);
+        if (result.blocked === 'full') {
+          showToast('Showcase is full. Make a lil room on your shelf!');
+          return;
+        }
+        button.classList.toggle('is-active', result.active);
+        renderShowcase();
+        if (collectionPage.classList.contains('active')) {
+          renderCollection();
+        }
+      });
+    });
+  }
+
+  function matchesCollectionFilter(card) {
+    if (collectionFilter === 'all') return true;
+    if (collectionFilter === 'bookmarked') return isBookmarked(card);
+    if (collectionFilter === 'films') return (card.cardType || 'film') === 'film';
+    if (collectionFilter === 'people') return (card.cardType || 'film') === 'person';
+    if (collectionFilter === 'actors') return card.cardType === 'person' && card.roleKey === 'actor';
+    if (collectionFilter === 'directors') return card.cardType === 'person' && card.roleKey === 'director';
+    if (collectionFilter === 'crew') return card.cardType === 'person' && card.roleKey !== 'actor' && card.roleKey !== 'director';
+    return card.rarity === collectionFilter;
+  }
+
+  function getShowcaseCards() {
+    return showcase.map(function (key) {
+      return collection.find(function (card) { return cardKey(card) === key; }) || null;
+    }).filter(Boolean).slice(0, 4);
+  }
+
+  function renderShowcase() {
+    const cards = getShowcaseCards();
+    const slots = [];
+
+    for (let i = 0; i < 4; i += 1) {
+      const card = cards[i];
+      if (!card) {
+        slots.push('<div class="showcase-slot"><div class="showcase-slot-label">Top ' + String(i + 1) + '</div></div>');
+      } else {
+        slots.push('<div class="showcase-card" role="button" tabindex="0" draggable="' + (showcaseEditMode ? 'true' : 'false') + '" data-showcase-index="' + String(i) + '" style="' + escapeHtml(collectionShellStyle(card)) + '">'
+          + '<button class="showcase-remove-btn" type="button" aria-label="Remove from showcase" data-showcase-remove="' + String(i) + '">&#10005;</button>'
+          + '<div class="showcase-card-preview">' + buildShelfCardMarkup(card) + '</div>'
+          + '</div>');
+      }
+    }
+
+    showcasePanel.classList.toggle('is-editing', showcaseEditMode);
+    showcasePanel.innerHTML = '<div class="showcase-head"><div><div class="showcase-title"><span class="showcase-title-icon" aria-hidden="true">&#127942;</span>Top 4 Showcase</div><div class="showcase-sub">Pin favorite pulls and flex the weird stuff.</div></div><div class="showcase-head-actions"><button id="showcaseEditButton" class="showcase-edit-btn' + (showcaseEditMode ? ' is-active' : '') + '" type="button">' + (showcaseEditMode ? 'Done' : 'Edit Showcase') + '</button><div class="pack-hook">Pinned ' + String(cards.length) + ' / 4</div></div></div>'
+      + '<div class="showcase-grid">' + slots.join('') + '</div>';
+
+    addImageFallbacks(showcasePanel);
+    const showcaseEditButton = document.getElementById('showcaseEditButton');
+    if (showcaseEditButton) {
+      showcaseEditButton.addEventListener('click', function () {
+        showcaseEditMode = !showcaseEditMode;
+        renderShowcase();
+      });
+    }
+    showcasePanel.querySelectorAll('.showcase-card').forEach(function (button) {
+      button.addEventListener('click', function () {
+        if (showcaseEditMode) return;
+        const card = cards[Number(button.dataset.showcaseIndex)];
+        if (card) openCollectionModal(card);
+      });
+      button.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          if (showcaseEditMode) return;
+          const card = cards[Number(button.dataset.showcaseIndex)];
+          if (card) openCollectionModal(card);
+        }
+      });
+      button.addEventListener('dragstart', function (event) {
+        if (!showcaseEditMode) {
+          event.preventDefault();
+          return;
+        }
+        draggedShowcaseIndex = Number(button.dataset.showcaseIndex);
+        button.classList.add('is-dragging');
+        if (event.dataTransfer) {
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', String(draggedShowcaseIndex));
+        }
+      });
+      button.addEventListener('dragover', function (event) {
+        if (!showcaseEditMode) return;
+        event.preventDefault();
+        if (draggedShowcaseIndex == null) return;
+        button.classList.add('is-drop-target');
+      });
+      button.addEventListener('dragleave', function () {
+        button.classList.remove('is-drop-target');
+      });
+      button.addEventListener('drop', function (event) {
+        if (!showcaseEditMode) return;
+        event.preventDefault();
+        const targetIndex = Number(button.dataset.showcaseIndex);
+        button.classList.remove('is-drop-target');
+        if (draggedShowcaseIndex == null) return;
+        moveShowcaseItem(draggedShowcaseIndex, targetIndex);
+        draggedShowcaseIndex = null;
+        renderShowcase();
+      });
+      button.addEventListener('dragend', function () {
+        draggedShowcaseIndex = null;
+        showcasePanel.querySelectorAll('.showcase-card').forEach(function (cardButton) {
+          cardButton.classList.remove('is-dragging');
+          cardButton.classList.remove('is-drop-target');
+        });
+      });
+    });
+    showcasePanel.querySelectorAll('.showcase-remove-btn').forEach(function (button) {
+      button.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const index = Number(button.dataset.showcaseRemove);
+        const card = cards[index];
+        if (!card) return;
+        toggleShowcase(card);
+        renderShowcase();
+        if (collectionPage.classList.contains('active')) {
+          renderCollection();
+        }
+      });
+    });
+  }
+
+  function renderCollectionViewToggle() {
+    const listButton = document.getElementById('collectionViewList');
+    const gridButton = document.getElementById('collectionViewGrid');
+    if (!listButton || !gridButton) return;
+    listButton.classList.toggle('is-active', collectionView === 'list');
+    gridButton.classList.toggle('is-active', collectionView === 'grid');
+  }
+
+  function buildPackMarkup() {
+    if (progress.rewardChoicesAvailable > 0) {
+      const featuredThemeKey = ensureFeaturedRewardTheme(false) || 'horror';
+      const featuredTheme = PACK_THEMES[featuredThemeKey] || PACK_THEMES.horror;
+      return buildPackHookMarkup()
+        + '<div class="reward-choice-wrap">'
+        + '<div class="reward-choice-copy">Choose your reward pack. Pick one, watch it snap forward, then crack it open.</div>'
+        + '<div class="reward-choice-grid">'
+        + '<button class="reward-pack-option is-left" type="button" data-reward-choice="gold">' + buildPackFaceMarkup('gold') + '<div class="reward-pack-caption">Guaranteed purple or gold</div></button>'
+        + '<button class="reward-pack-option is-right" type="button" data-reward-choice="featured" data-reward-theme="' + escapeHtml(featuredThemeKey) + '">' + buildPackFaceMarkup(featuredThemeKey) + '<div class="reward-pack-caption">Featured: ' + escapeHtml(featuredTheme.label) + '</div></button>'
+        + '</div></div>'
+        + '<div class="status-line">Choose one reward pack to open.</div>';
+    }
+
+    const loadingClass = isPoolLoading ? ' is-loading' : '';
+    return buildPackHookMarkup()
+      + buildPackFaceMarkup(currentPackTheme, {
+        id: 'openPackButton',
+        extraClasses: loadingClass.trim(),
+        disabled: isPoolLoading,
+        buttonLike: !isPoolLoading
+      })
+      + '<div class="status-line' + (isPoolLoading ? ' is-loading' : '') + '">' + escapeHtml(artworkStatus) + '</div>';
+  }
+
+  function backToPacks() {
+    pullArea.innerHTML = buildPackMarkup();
+    if (progress.rewardChoicesAvailable > 0) {
+      pullArea.querySelectorAll('.reward-pack-option').forEach(function (button) {
+        button.addEventListener('click', function () {
+          chooseRewardPack(button.dataset.rewardChoice, button.dataset.rewardTheme || null, button);
+        });
+      });
+      return;
+    }
+    const button = document.getElementById('openPackButton');
+    if (isPoolLoading) return;
+    button.addEventListener('click', openPack);
+    button.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openPack();
+      }
+    });
+  }
+
+  async function restorePoolAfterReward() {
+    if (!needsPoolRestoreAfterReward || dataSourceLabel.indexOf('TMDB') === -1) {
+      needsPoolRestoreAfterReward = false;
+      resolvePackTheme(true);
+      updatePackMeta();
+      backToPacks();
+      return;
+    }
+
+    isPoolLoading = true;
+    artworkStatus = 'Restoring the pack shelf...';
+    resolvePackTheme(true);
+    updatePackMeta();
+    backToPacks();
+
+    try {
+      if (selectedPackMode !== 'all-packs') {
+        await fetchThemedDynamicCardPool(selectedPackMode, false);
+      } else {
+        await fetchDynamicCardPool(false);
+      }
+    } catch (error) {
+    }
+
+    isPoolLoading = false;
+    needsPoolRestoreAfterReward = false;
+    resolvePackTheme(true);
+    updatePackMeta();
+    backToPacks();
+  }
+
+  async function chooseRewardPack(choiceKey, themeKey, selectedButton) {
+    if (isOpeningPack || isPoolLoading) return;
+    isOpeningPack = true;
+
+    const rewardChoice = choiceKey === 'featured' ? 'featured' : 'gold';
+    const resolvedFeaturedTheme = rewardChoice === 'featured'
+      ? (themeKey || ensureFeaturedRewardTheme(false) || 'horror')
+      : null;
+
+    activeRewardSelection = rewardChoice;
+    if (resolvedFeaturedTheme) {
+      progress.featuredRewardTheme = resolvedFeaturedTheme;
+    }
+
+    const optionButtons = Array.from(pullArea.querySelectorAll('.reward-pack-option'));
+    const rewardGrid = pullArea.querySelector('.reward-choice-grid');
+    const rewardCopy = pullArea.querySelector('.reward-choice-copy');
+    optionButtons.forEach(function (button) {
+      button.disabled = true;
+      if (button === selectedButton) {
+        button.classList.add('is-selected');
+      } else {
+        button.classList.add('is-dismissed');
+      }
+    });
+    if (rewardGrid) {
+      rewardGrid.classList.add('is-committing');
+    }
+    if (rewardCopy) {
+      rewardCopy.classList.add('is-fading');
+    }
+    if (selectedButton) {
+      selectedButton.classList.add('is-committing');
+    }
+
+    const statusLine = pullArea.querySelector('.status-line');
+    if (statusLine) {
+      statusLine.classList.add('is-fading');
+    }
+
+    await new Promise(function (resolve) { setTimeout(resolve, 160); });
+
+    if (statusLine) {
+      statusLine.classList.remove('is-fading');
+      statusLine.textContent = 'Locking in your pick...';
+      statusLine.classList.add('is-loading');
+    }
+
+    const selectedPackFace = selectedButton && selectedButton.querySelector('.pack');
+    await new Promise(function (resolve) { setTimeout(resolve, 420); });
+    if (selectedPackFace) {
+      selectedPackFace.classList.add('is-loading');
+    }
+    if (statusLine) {
+      statusLine.textContent = rewardChoice === 'gold'
+        ? 'Loading your reward pack...'
+        : 'Loading your featured reward pack...';
+    }
+    await new Promise(function (resolve) { setTimeout(resolve, 180); });
+
+    try {
+      if (dataSourceLabel.indexOf('TMDB') !== -1) {
+        if (rewardChoice === 'gold') {
+          currentPackTheme = 'gold';
+          await fetchDynamicCardPool(false).catch(function () { return false; });
+          needsPoolRestoreAfterReward = selectedPackMode !== 'all-packs';
+        } else {
+          currentPackTheme = resolvedFeaturedTheme || 'horror';
+          await fetchThemedDynamicCardPool(currentPackTheme, false).catch(function () { return false; });
+          needsPoolRestoreAfterReward = selectedPackMode === 'all-packs' || selectedPackMode !== currentPackTheme;
+        }
+      } else {
+        currentPackTheme = rewardChoice === 'gold' ? 'gold' : (resolvedFeaturedTheme || 'horror');
+        needsPoolRestoreAfterReward = false;
+      }
+
+      updatePackMeta();
+      await finalizePackOpen();
+    } finally {
+      isOpeningPack = false;
+    }
+  }
+
+  function weightedChoice(entries) {
+    const total = entries.reduce(function (sum, entry) { return sum + entry.weight; }, 0);
+    let roll = Math.random() * total;
+    for (let i = 0; i < entries.length; i += 1) {
+      roll -= entries[i].weight;
+      if (roll <= 0) return entries[i];
+    }
+    return entries[entries.length - 1];
+  }
+
+  function cloneMovie(movie) {
+    return normalizeMovieRecord(movie);
+  }
+
+  function chooseCandidateWithAvoidance(candidates, excludedTitles, avoidedTitles) {
+    const excluded = excludedTitles || new Set();
+    const avoided = avoidedTitles || new Set();
+    let filtered = (candidates || []).filter(function (movie) {
+      return !excluded.has(movie.title) && !avoided.has(movie.title);
+    });
+
+    if (!filtered.length) {
+      filtered = (candidates || []).filter(function (movie) {
+        return !excluded.has(movie.title);
+      });
+    }
+
+    if (!filtered.length) filtered = (candidates || []).slice();
+    return filtered.length ? filtered[Math.floor(Math.random() * filtered.length)] : null;
+  }
+
+  function buildAvoidedTitleSet() {
+    const avoided = buildRecentPullSet();
+    activeReelSeenTitles.forEach(function (title) {
+      avoided.add(title);
+    });
+    return avoided;
+  }
+
+  function chooseMovieForPack(pool, excludedTitles, guaranteedHighRarity) {
+    const buckets = {};
+    const avoidedTitles = buildAvoidedTitleSet();
+    pool.forEach(function (movie) {
+      if (!buckets[movie.rarity]) buckets[movie.rarity] = [];
+      buckets[movie.rarity].push(movie);
+    });
+
+    if (guaranteedHighRarity) {
+      let premiumCandidates = []
+        .concat(buckets.Legendary || [])
+        .concat(buckets.Epic || []);
+
+      const premiumPick = chooseCandidateWithAvoidance(premiumCandidates, excludedTitles, avoidedTitles);
+      if (premiumPick) {
+        return cloneMovie(premiumPick);
+      }
+    }
+
+    const availableOdds = PULL_ODDS.filter(function (entry) { return buckets[entry.rarity] && buckets[entry.rarity].length; });
+    const pickedRarity = availableOdds.length ? weightedChoice(availableOdds).rarity : 'Common';
+    let pickedMovie = chooseCandidateWithAvoidance(buckets[pickedRarity] || [], excludedTitles, avoidedTitles);
+
+    if (!pickedMovie) {
+      pickedMovie = chooseCandidateWithAvoidance(pool, excludedTitles, avoidedTitles);
+    }
+
+    return cloneMovie(pickedMovie || pool[Math.floor(Math.random() * pool.length)]);
+  }
+
+  function sortPackForReveal(cards) {
+    const weights = { Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5 };
+    const sorted = cards.slice().sort(function (a, b) { return weights[a.rarity] - weights[b.rarity]; });
+    const highIndex = sorted.findIndex(function (card) { return card.rarity === 'Epic' || card.rarity === 'Legendary'; });
+    if (highIndex !== -1) {
+      const target = sorted.length >= 4 ? sorted.length - 2 : sorted.length - 1;
+      const picked = sorted.splice(highIndex, 1)[0];
+      sorted.splice(target, 0, picked);
+    }
+    return sorted;
+  }
+
+  async function openPack() {
+    if (isOpeningPack || isPoolLoading) return;
+    isOpeningPack = true;
+    const currentPack = document.getElementById('openPackButton');
+    if (currentPack) {
+      currentPack.classList.add('opening');
+      currentPack.classList.add('is-shuffling');
+      const statusLine = pullArea.querySelector('.status-line');
+      if (statusLine) {
+        statusLine.textContent = 'Cracking a fresh pack...';
+        statusLine.classList.add('is-live');
+      }
+    }
+
+    const requestedTheme = selectedPackMode !== 'all-packs' ? currentPackTheme : '';
+    const shouldRefreshReel = dataSourceLabel.indexOf('TMDB') !== -1;
+
+    if (currentPack) {
+      const statusLine = pullArea.querySelector('.status-line');
+      if (statusLine && shouldRefreshReel) {
+        statusLine.textContent = requestedTheme
+          ? 'Pulling a fresh themed pack...'
+          : 'Shuffling a fresh draw...';
+      }
+    }
+
+    const waitForAnimation = new Promise(function (resolve) {
+      setTimeout(resolve, 900);
+    });
+    const refreshPromise = shouldRefreshReel
+      ? refreshPoolForPackOpen(false, requestedTheme).catch(function () { return false; })
+      : Promise.resolve(false);
+
+    await Promise.all([waitForAnimation, refreshPromise]);
+    if (getPackPool().length < PACK_SIZE) resolvePackTheme(false);
+    updatePackMeta();
+
+    try {
+      await finalizePackOpen();
+    } finally {
+      isOpeningPack = false;
+    }
+  }
+
+  async function finalizePackOpen() {
+    const pool = getPackPool();
+    if (!pool.length) {
+      artworkStatus = 'No cards available for that pack theme yet.';
+      resolvePackTheme(true);
+      updatePackMeta();
+      backToPacks();
+      return;
+    }
+
+    pack = [];
+    const seenTitles = new Set();
+    const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
+    const isGoldRewardPack = isRewardPack && activeRewardSelection === 'gold';
+    const shouldTryPersonInsert = dataSourceLabel.indexOf('TMDB') !== -1;
+    const filmSlots = shouldTryPersonInsert ? (PACK_SIZE - 1) : PACK_SIZE;
+
+    for (let i = 0; i < filmSlots; i += 1) {
+      const movie = chooseMovieForPack(pool, seenTitles, isGoldRewardPack && i === 0);
+      pack.push(movie);
+      collection.unshift(movie);
+      if (pool.length > PACK_SIZE) seenTitles.add(movie.title);
+      activeReelSeenTitles.add(movie.title);
+    }
+
+    if (shouldTryPersonInsert) {
+      const personInsert = await maybeBuildPersonInsert(pack, currentPackTheme, isGoldRewardPack).catch(function () { return null; });
+      if (personInsert) {
+        pack.push(personInsert);
+        collection.unshift(personInsert);
+        activeReelSeenTitles.add(personInsert.title);
+      } else {
+        while (pack.length < PACK_SIZE) {
+          const fallbackMovie = chooseMovieForPack(pool, seenTitles, false);
+          pack.push(fallbackMovie);
+          collection.unshift(fallbackMovie);
+          if (pool.length > PACK_SIZE) seenTitles.add(fallbackMovie.title);
+          activeReelSeenTitles.add(fallbackMovie.title);
+        }
+      }
+    }
+
+    while (pack.length < PACK_SIZE) {
+      const movie = chooseMovieForPack(pool, seenTitles, false);
+      pack.push(movie);
+      collection.unshift(movie);
+      if (pool.length > PACK_SIZE) seenTitles.add(movie.title);
+      activeReelSeenTitles.add(movie.title);
+    }
+
+    if (isRewardPack) {
+      progress.rewardChoicesAvailable = Math.max(0, progress.rewardChoicesAvailable - 1);
+      progress.featuredRewardTheme = null;
+      progress.allPacksCinemaStreak = 0;
+      artworkStatus = isGoldRewardPack
+        ? (pack.some(function (card) { return card.cardType === 'person'; })
+          ? 'Gold pack cracked. Premium film plus a people insert delivered.'
+          : 'Gold pack cracked. Guaranteed purple or gold delivered.')
+        : (pack.some(function (card) { return card.cardType === 'person'; })
+          ? 'Featured pack cracked. Focused pull plus a people insert delivered.'
+          : 'Featured pack cracked. Focused pull delivered.');
+      activeRewardSelection = null;
+    } else {
+      progress.standardPacksOpened += 1;
+      if (selectedPackMode === 'all-packs') {
+        progress.allPacksCinemaStreak = currentPackTheme === 'all'
+          ? (progress.allPacksCinemaStreak + 1)
+          : 0;
+      } else {
+        progress.allPacksCinemaStreak = 0;
+      }
+      if (progress.standardPacksOpened % REEL_REFRESH_INTERVAL === 0) {
+        progress.rewardChoicesAvailable += 1;
+        ensureFeaturedRewardTheme(true);
+        artworkStatus = 'Reward choice unlocked. Pick gold or featured.';
+      } else if (pack.some(function (card) { return card.cardType === 'person'; })) {
+        artworkStatus = 'People insert found in the sixth slot.';
+      }
+    }
+
+    rememberPulledTitles(pack);
+    saveCollection();
+    saveProgress();
+    pack = sortPackForReveal(pack);
+    index = 0;
+    renderCarousel();
+  }
+
+  function renderCarousel() {
+    if (!pack.length) {
+      backToPacks();
+      return;
+    }
+
+    const current = pack[index];
+    const prevOne = index > 0 ? pack[index - 1] : null;
+    const prevTwo = index > 1 ? pack[index - 2] : null;
+    const nextOne = index < pack.length - 1 ? pack[index + 1] : null;
+    const nextTwo = index < pack.length - 2 ? pack[index + 2] : null;
+    const remainingAfter = Math.max(0, pack.length - index - 1);
+    const seenBefore = Math.max(0, index);
+    let ghostMarkup = '';
+
+    if (seenBefore > 1 && prevTwo) ghostMarkup += buildGhostMarkup('is-left-2', prevTwo);
+    if (seenBefore > 0 && prevOne) ghostMarkup += buildGhostMarkup('is-left-1', prevOne);
+    if (remainingAfter > 1 && nextTwo) ghostMarkup += buildGhostMarkup('is-right-2', nextTwo);
+    if (remainingAfter > 0 && nextOne) ghostMarkup += buildGhostMarkup('is-right-1', nextOne);
+
+    pullArea.innerHTML = '<div class="carousel-wrap">'
+      + '<div class="progress">Card ' + (index + 1) + ' of ' + pack.length + ' · ' + escapeHtml(dataSourceLabel) + '</div>'
+      + '<div class="carousel">'
+      + '<div class="overlap-stack">'
+      + ghostMarkup
+      + '<button id="prevArrow" type="button" class="arrow stack-arrow is-left" aria-label="Previous card">&#8592;</button>'
+      + '<div class="overlap-count">' + String(remainingAfter) + '</div><div class="peel-card-wrap">' + buildCardMarkup(current) + '</div>'
+      + '<button id="nextArrow" type="button" class="arrow stack-arrow is-right" aria-label="Next card">&#8594;</button>'
+      + '</div>'
+      + '</div>'
+      + '<button id="backToPacksButton" type="button" class="back-btn">Open More Packs</button>'
+      + '</div>';
+
+    document.getElementById('prevArrow').addEventListener('click', prevCard);
+    document.getElementById('nextArrow').addEventListener('click', nextCard);
+    document.getElementById('backToPacksButton').addEventListener('click', function () {
+      restorePoolAfterReward();
+    });
+    addImageFallbacks(pullArea);
+    attachBookmarkButtons(pullArea, function () { return current; });
+
+    const peelWrap = pullArea.querySelector('.peel-card-wrap');
+    attachPackCardInteractions(peelWrap, current);
+    peelWrap.classList.add('is-peeling-in');
+    setTimeout(function () { peelWrap.classList.remove('is-peeling-in'); }, 320);
+  }
+
+  function animateToCard(direction) {
+    if (!pack.length || isAnimatingPeel) return;
+    isAnimatingPeel = true;
+    const wrap = pullArea.querySelector('.peel-card-wrap');
+    if (wrap) {
+      wrap.classList.remove('is-peeling-in');
+      wrap.classList.add('is-peeling-out');
+    }
+    setTimeout(function () {
+      index = direction === 'next'
+        ? (index + 1) % pack.length
+        : (index - 1 + pack.length) % pack.length;
+      renderCarousel();
+      setTimeout(function () { isAnimatingPeel = false; }, 340);
+    }, 220);
+  }
+
+  function nextCard() { animateToCard('next'); }
+  function prevCard() { animateToCard('prev'); }
+
+  function openCollectionModal(movie) {
+    if (movie.cardType === 'person') {
+      modalBody.innerHTML = '<div class="modal-grid">'
+        + '<div><img class="modal-poster" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
+        + '<div class="modal-meta"><div class="modal-title">' + escapeHtml(movie.title) + '</div>'
+      + '<div class="chips"><div class="chip">' + escapeHtml(movie.rarity) + '</div><div class="chip">' + escapeHtml(roleLabelForDisplay(movie)) + '</div></div>'
+      + '<div class="modal-sub">' + escapeHtml(movie.desc) + '</div>'
+      + '<div class="modal-actions"><button class="modal-button" type="button" id="modalShowcaseButton">' + (isInShowcase(movie) ? 'Remove From Top 4' : 'Add To Top 4') + '</button><a class="modal-button" href="' + escapeHtml(resolveCardLink(movie)) + '" target="_blank" rel="noopener noreferrer">Open on Letterboxd</a></div></div></div>';
+      addImageFallbacks(modalBody);
+      bindModalShowcaseButton(movie);
+      cardModal.classList.add('open');
+      cardModal.setAttribute('aria-hidden', 'false');
+      return;
+    }
+
+    const quote = QUOTES[movie.title] || '';
+    modalBody.innerHTML = '<div class="modal-grid">'
+      + '<div><img class="modal-poster" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' artwork" data-poster="' + escapeHtml(movie.poster || '') + '" data-still="' + escapeHtml(movie.still || '') + '" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre) + '"></div>'
+      + '<div class="modal-meta"><div class="modal-title">' + escapeHtml(movie.title) + '</div>'
+      + '<div class="chips"><div class="chip">' + escapeHtml(movie.rarity) + '</div><div class="chip">' + escapeHtml(movie.genre) + '</div>' + (movie.year ? '<div class="chip">' + escapeHtml(movie.year) + '</div>' : '') + (movie.directorName ? '<div class="chip is-director">Dir. ' + escapeHtml(movie.directorName) + '</div>' : '') + '</div>'
+      + '<div class="modal-sub">' + escapeHtml(movie.desc) + '</div>'
+      + (quote ? '<div class="quote">“' + escapeHtml(quote) + '”</div>' : '')
+      + '<div class="modal-actions"><button class="modal-button" type="button" id="modalShowcaseButton">' + (isInShowcase(movie) ? 'Remove From Top 4' : 'Add To Top 4') + '</button><a class="modal-button" href="' + escapeHtml(letterboxdUrl(movie)) + '" target="_blank" rel="noopener noreferrer">Open on Letterboxd</a></div></div></div>';
+    addImageFallbacks(modalBody);
+    bindModalShowcaseButton(movie);
+    cardModal.classList.add('open');
+    cardModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function bindModalShowcaseButton(movie) {
+    const button = document.getElementById('modalShowcaseButton');
+    if (!button) return;
+    button.addEventListener('click', function () {
+      const result = toggleShowcase(movie);
+      if (result.blocked === 'full') {
+        showToast('Showcase is full. Make a lil room on your shelf!');
+        return;
+      }
+      button.textContent = result.active ? 'Remove From Top 4' : 'Add To Top 4';
+      renderShowcase();
+      if (collectionPage.classList.contains('active')) {
+        renderCollection();
+      }
+    });
+  }
+
+  function closeCollectionModal() {
+    cardModal.classList.remove('open');
+    cardModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function renderCollection() {
+    const rarityOrder = { Legendary: 5, Epic: 4, Rare: 3, Uncommon: 2, Common: 1 };
+    const filtered = collection.filter(function (card) {
+      return matchesCollectionFilter(card) && matchesCollectionSearch(card);
+    }).slice();
+
+    filtered.sort(function (a, b) {
+      if (collectionSort === 'title') return a.title.localeCompare(b.title);
+      if (collectionSort === 'rarity') return (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0) || a.title.localeCompare(b.title);
+      return 0;
+    });
+
+    document.getElementById('collectionCount').textContent = String(collection.length);
+    document.getElementById('uniqueCount').textContent = String(new Set(collection.map(function (movie) {
+      return (movie.cardType || 'film') + ':' + movie.title;
+    })).size);
+    document.getElementById('legendaryCount').textContent = String(collection.filter(function (movie) {
+      return movie.rarity === 'Legendary' || movie.rarity === 'Epic';
+    }).length);
+    renderCollectionViewToggle();
+
+    if (!filtered.length) {
+      collectionGrid.innerHTML = '<div class="empty-state">No matching cards yet. Open a pack or change your filter.</div>';
+      renderShowcase();
+      return;
+    }
+
+    if (collectionView === 'list') {
+      collectionGrid.classList.remove('collection-grid');
+      collectionGrid.classList.add('collection-list');
+      collectionGrid.innerHTML = filtered.map(function (movie, filteredIndex) {
+        if (movie.cardType === 'person') {
+          return '<div class="collection-list-item is-person" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
+            + buildCollectionKindMarkup(movie)
+            + '<div class="collection-list-role">' + escapeHtml(roleLabelForDisplay(movie)) + '</div>'
+            + '<span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>'
+            + buildBookmarkButtonMarkup(movie)
+            + buildShowcaseButtonMarkup(movie)
+            + '</div>';
+        }
+
+        return '<div class="collection-list-item is-film" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
+          + buildCollectionKindMarkup(movie)
+          + '<div class="collection-list-secondary">' + escapeHtml(collectionSecondaryLabel(movie)) + '</div>'
+          + '<span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>'
+          + buildBookmarkButtonMarkup(movie)
+          + buildShowcaseButtonMarkup(movie)
+          + '</div>';
+      }).join('');
+    } else {
+      collectionGrid.classList.add('collection-grid');
+      collectionGrid.classList.remove('collection-list');
+      collectionGrid.innerHTML = filtered.map(function (movie, filteredIndex) {
+        return '<div class="collection-card" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
+          + '<div class="collection-card-preview">' + buildShelfCardMarkup(movie) + '</div>'
+          + '<div class="collection-card-actions"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span><span class="collection-card-actions-right">' + buildShowcaseButtonMarkup(movie) + buildBookmarkButtonMarkup(movie) + '</span></div>'
+          + '</div>';
+      }).join('');
+    }
+
+    addImageFallbacks(collectionGrid);
+    renderShowcase();
+    attachBookmarkButtons(collectionGrid, function (button) {
+      const target = button.closest('[data-index]');
+      return filtered[Number(target && target.dataset.index)];
+    });
+    attachShowcaseButtons(collectionGrid, function (button) {
+      const target = button.closest('[data-index]');
+      return filtered[Number(target && target.dataset.index)];
+    });
+    collectionGrid.querySelectorAll('.collection-card, .collection-list-item').forEach(function (button) {
+      button.addEventListener('click', function () {
+        const item = filtered[Number(button.dataset.index)];
+        if (item) openCollectionModal(item);
+      });
+      button.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          const item = filtered[Number(button.dataset.index)];
+          if (item) openCollectionModal(item);
+        }
+      });
+    });
+  }
+
+  function showPage(id) {
+    pullPage.classList.toggle('active', id === 'pull');
+    collectionPage.classList.toggle('active', id === 'collection');
+    pullTab.classList.toggle('active', id === 'pull');
+    collectionTab.classList.toggle('active', id === 'collection');
+    if (id === 'collection') renderCollection();
+  }
+
+  async function init() {
+    resolvePackTheme(false);
+    artworkStatus = 'Loading live film pool...';
+    updatePackMeta();
+    backToPacks();
+
+    try {
+      const loadedLivePool = await fetchDynamicCardPool(false);
+      if (!loadedLivePool) {
+        await hydrateMoviesFromBackend();
+      }
+    } catch (error) {
+      artworkStatus = 'Backend unavailable. Falling back to generated card art.';
+      try {
+        await hydrateMoviesFromBackend();
+      } catch (innerError) {
+      }
+    }
+
+    if (!movies.length || getPackPool(selectedPackMode === 'all-packs' ? 'all' : selectedPackMode).length < 1) {
+      replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');
+      artworkStatus = 'Live pool was unusable. Falling back to the sample set.';
+    }
+
+    isPoolLoading = false;
+    resolvePackTheme(false);
+    updatePackMeta();
+    backToPacks();
+
+    const packThemeEl = document.getElementById('packTheme');
+    const sortEl = document.getElementById('collectionSort');
+    const filterEl = document.getElementById('collectionFilter');
+    const collectionViewListEl = document.getElementById('collectionViewList');
+    const collectionViewGridEl = document.getElementById('collectionViewGrid');
+
+    modalClose.addEventListener('click', closeCollectionModal);
+    cardModal.addEventListener('click', function (event) {
+      if (event.target === cardModal) closeCollectionModal();
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') closeCollectionModal();
+    });
+
+    packThemeEl.value = selectedPackMode;
+    packThemeEl.addEventListener('change', async function (event) {
+      selectedPackMode = event.target.value;
+      resolvePackTheme(true);
+      isPoolLoading = true;
+      artworkStatus = selectedPackMode === 'all-packs'
+        ? 'Loading a fresh mixed reel...'
+        : 'Loading ' + (PACK_THEMES[selectedPackMode] ? PACK_THEMES[selectedPackMode].label : 'that pack') + '...';
+      updatePackMeta();
+      backToPacks();
+      if (dataSourceLabel.indexOf('TMDB') !== -1 && selectedPackMode !== 'all-packs') {
+        await fetchThemedDynamicCardPool(selectedPackMode, false).catch(function () { return false; });
+      } else if (dataSourceLabel.indexOf('TMDB') !== -1) {
+        await fetchDynamicCardPool(false).catch(function () { return false; });
+      }
+      needsPoolRestoreAfterReward = false;
+      isPoolLoading = false;
+      updatePackMeta();
+      backToPacks();
+    });
+
+    sortEl.value = collectionSort;
+    sortEl.addEventListener('change', function (event) {
+      collectionSort = event.target.value;
+      renderCollection();
+    });
+
+    filterEl.value = collectionFilter;
+    filterEl.addEventListener('change', function (event) {
+      collectionFilter = event.target.value;
+      renderCollection();
+    });
+
+    collectionSearchEl.addEventListener('input', function (event) {
+      collectionSearch = event.target.value || '';
+      renderCollection();
+    });
+
+    renderCollectionViewToggle();
+    collectionViewListEl.addEventListener('click', function () {
+      collectionView = 'list';
+      saveCollectionView();
+      renderCollection();
+    });
+    collectionViewGridEl.addEventListener('click', function () {
+      collectionView = 'grid';
+      saveCollectionView();
+      renderCollection();
+    });
+
+    pullTab.addEventListener('click', function () { showPage('pull'); });
+    collectionTab.addEventListener('click', function () { showPage('collection'); });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
