@@ -2139,7 +2139,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: stack-rarity-1</div>
+  <div class="sub">Build: deploy-backend-1</div>
 </div>
 
 <div class="nav">
@@ -2244,7 +2244,9 @@ button, a, select { font: inherit; }
 <script src="./config.js"></script>
 <script>
 (function () {
-  const DEFAULT_BACKEND_BASE = 'http://localhost:3001';
+  const DEFAULT_BACKEND_BASE = /^https?:$/.test(window.location.protocol)
+    ? window.location.origin
+    : 'http://localhost:3001';
   const TMDB_BACKEND_BASE = resolveBackendBase();
   const PACK_SIZE = 6;
   const CARD_POOL_LIMIT = 1200;
@@ -2529,6 +2531,7 @@ button, a, select { font: inherit; }
     const params = new URLSearchParams(window.location.search);
     const queryValue = normalizeBackendBase(params.get('backend'));
     const configValue = normalizeBackendBase(window.FILMTCG_CONFIG && window.FILMTCG_CONFIG.backendBase);
+    const isHostedPage = /^https?:$/.test(window.location.protocol);
     let storedValue = '';
 
     try {
@@ -2537,7 +2540,7 @@ button, a, select { font: inherit; }
       storedValue = '';
     }
 
-    const resolved = queryValue || configValue || storedValue || DEFAULT_BACKEND_BASE;
+    const resolved = queryValue || configValue || (isHostedPage ? '' : storedValue) || DEFAULT_BACKEND_BASE;
 
     if (queryValue) {
       try {
