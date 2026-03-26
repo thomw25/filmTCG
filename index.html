@@ -2139,7 +2139,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: deploy-backend-1</div>
+  <div class="sub">Build: render-speed-1</div>
 </div>
 
 <div class="nav">
@@ -2463,6 +2463,7 @@ button, a, select { font: inherit; }
   };
   const RECENT_PULL_MEMORY = 90;
   const RECENT_PULL_HARD_EXCLUDE = 54;
+  const LIVE_DRAW_REFRESH_INTERVAL = 3;
   const SAMPLE_MOVIES = [
     { title: 'Jaws', rarity: 'Common', genre: 'Thriller', desc: 'Shark terrorizes a beach town.', packs: ['all', 'horror'] },
     { title: 'Ferris Bueller\'s Day Off', rarity: 'Common', genre: 'Comedy', desc: 'A perfect skip day through Chicago.', packs: ['all'] },
@@ -2731,6 +2732,10 @@ button, a, select { font: inherit; }
     return Math.floor(progress.standardPacksOpened / REEL_REFRESH_INTERVAL);
   }
 
+  function currentLiveDrawCycleKey() {
+    return Math.floor(progress.standardPacksOpened / LIVE_DRAW_REFRESH_INTERVAL);
+  }
+
   function buildPackHookMarkup() {
     if (progress.rewardChoicesAvailable > 0) {
       return '<div class="pack-hook"><strong>Choose 1</strong> reward pack</div>';
@@ -2966,7 +2971,7 @@ button, a, select { font: inherit; }
     const data = await fetchBackendJson(params);
     if (!data || !Array.isArray(data.movies) || data.movies.length < 50) return false;
     replaceMoviePool(data.movies, (data.sourceLabel || 'TMDB') + ' Fresh Draw');
-    activeReelCycleKey = currentReelCycleKey();
+    activeReelCycleKey = currentLiveDrawCycleKey();
     activeReelSeenTitles = new Set();
     artworkStatus = 'Fresh deck built from ' + data.movies.length + ' live films.';
     return true;
@@ -4010,7 +4015,13 @@ button, a, select { font: inherit; }
     }
 
     const requestedTheme = selectedPackMode !== 'all-packs' ? currentPackTheme : '';
-    const shouldRefreshReel = dataSourceLabel.indexOf('TMDB') !== -1;
+    const isRewardPackOpen = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
+    const shouldRefreshReel = dataSourceLabel.indexOf('TMDB') !== -1 && (
+      isRewardPackOpen ||
+      selectedPackMode !== 'all-packs' ||
+      activeReelCycleKey == null ||
+      activeReelCycleKey !== currentLiveDrawCycleKey()
+    );
 
     if (currentPack) {
       const statusLine = pullArea.querySelector('.status-line');
@@ -4018,6 +4029,8 @@ button, a, select { font: inherit; }
         statusLine.textContent = requestedTheme
           ? 'Pulling a fresh themed pack...'
           : 'Shuffling a fresh draw...';
+      } else if (statusLine) {
+        statusLine.textContent = 'Cracking a fresh pack...';
       }
     }
 
