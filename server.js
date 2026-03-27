@@ -12,9 +12,9 @@ const STATIC_ROOT = __dirname;
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const POOL_SNAPSHOT_VERSION = 'server-rotation-1';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-2';
 const SNAPSHOT_ROOT = path.join(STATIC_ROOT, '.cache');
-const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir'];
+const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom'];
 const BASE_REEL_COUNT = 4;
 const THEME_REEL_COUNT = 3;
 
@@ -41,6 +41,8 @@ const DISCOVER_RECIPES = [
   { key: 'mystery', pages: 5, params: { sort_by: 'vote_average.desc', with_genres: '9648', 'vote_count.gte': '150', 'primary_release_date.lte': '2016-12-31' } },
   { key: 'blockbuster', pages: 1, params: { sort_by: 'popularity.desc', with_genres: '28,12,878', 'primary_release_date.lte': '2018-12-31' } },
   { key: 'animation', pages: 3, params: { sort_by: 'popularity.desc', with_genres: '16', 'primary_release_date.lte': '2015-12-31' } },
+  { key: 'romcom', pages: 5, params: { sort_by: 'popularity.desc', with_genres: '10749,35', 'vote_count.gte': '80', 'primary_release_date.lte': '2020-12-31' } },
+  { key: 'romantic-drama', pages: 4, params: { sort_by: 'vote_average.desc', with_genres: '10749,18', 'vote_count.gte': '120', 'primary_release_date.lte': '2018-12-31' } },
   { key: 'documentary', pages: 4, params: { sort_by: 'vote_count.desc', with_genres: '99', 'vote_count.gte': '80', 'primary_release_date.lte': '2018-12-31' } },
   { key: 'classics', pages: 8, params: { sort_by: 'vote_average.desc', 'primary_release_date.lte': '1990-12-31', 'vote_count.gte': '120' } },
   { key: 'scifi', pages: 3, params: { sort_by: 'popularity.desc', with_genres: '878', 'primary_release_date.lte': '2015-12-31' } },
@@ -83,10 +85,15 @@ const FEMALE_DIRECTOR_NAMES = {
 };
 
 const RARITY_ORDER = {
+  Prolific: 1,
   Common: 1,
+  Respected: 2,
   Uncommon: 2,
+  Awarded: 3,
   Rare: 3,
+  Iconic: 4,
   Epic: 4,
+  Canon: 5,
   Legendary: 5
 };
 
@@ -161,7 +168,8 @@ const THEME_SOURCE_LABELS = {
   horror: 'Scary Movie Night',
   animation: 'Animation',
   eighties: '80s',
-  noir: 'Film Noir'
+  noir: 'Film Noir',
+  romcom: 'Rom Com'
 };
 
 function titleKey(value) {
@@ -172,10 +180,30 @@ function titleKey(value) {
     .toLowerCase();
 }
 
+function rarityByRank(rank) {
+  return {
+    1: 'Prolific',
+    2: 'Respected',
+    3: 'Awarded',
+    4: 'Iconic',
+    5: 'Canon'
+  }[Math.max(1, Math.min(5, Number(rank) || 1))] || 'Prolific';
+}
+
+function normalizeRarityLabel(value) {
+  return rarityByRank(RARITY_ORDER[value] || 1);
+}
+
 function maxRarity(left, right) {
   const leftRank = RARITY_ORDER[left] || 0;
   const rightRank = RARITY_ORDER[right] || 0;
-  return leftRank >= rightRank ? left : right;
+  return rarityByRank(Math.max(leftRank, rightRank));
+}
+
+function minRarity(left, right) {
+  const leftRank = RARITY_ORDER[left] || 0;
+  const rightRank = RARITY_ORDER[right] || 0;
+  return rarityByRank(Math.min(leftRank || 1, rightRank || 1));
 }
 
 function filterPoolByTheme(pool, theme) {
@@ -480,12 +508,7 @@ function normalizePersonName(value) {
 }
 
 const PERSON_ROLE_CONFIG = [
-  { key: 'director', type: 'director', label: 'Director', jobs: ['Director'] },
-  { key: 'writer', type: 'crew', label: 'Writer', jobs: ['Screenplay', 'Writer', 'Story', 'Novel', 'Author'] },
-  { key: 'producer', type: 'crew', label: 'Producer', jobs: ['Producer', 'Executive Producer'] },
-  { key: 'editor', type: 'crew', label: 'Editor', jobs: ['Editor'] },
-  { key: 'cinematographer', type: 'crew', label: 'Cinematographer', jobs: ['Director of Photography', 'Cinematography', 'Director of Photography Lighting Camera'] },
-  { key: 'composer', type: 'crew', label: 'Composer', jobs: ['Original Music Composer', 'Music', 'Songs'] }
+  { key: 'director', type: 'director', label: 'Director', jobs: ['Director'] }
 ];
 
 function pickPrimaryDirector(crew) {
@@ -609,6 +632,7 @@ function derivePacks(movie) {
   if (lookup.crime || lookup.noir || lookup.mystery || lookup.thriller || (lookup.drama && popularity <= 30 && voteAverage >= 7)) tags.add('noir');
   if (lookup.animation || lookup.family) tags.add('animation');
   if (year >= 1980 && year <= 1989) tags.add('eighties');
+  if ((lookup.romance && lookup.comedy) || (lookup.romance && lookup.drama && year >= 1980) || (lookup.comedy && popularity >= 18 && voteAverage >= 6.4)) tags.add('romcom');
   if (lookup.drama || lookup.history || lookup.music || lookup.war || (voteAverage >= 7.5 && voteCount >= 400)) tags.add('all');
 
   return Array.from(tags);
@@ -619,14 +643,24 @@ function computeScore(movie) {
   const popularity = Number(movie.popularity) || 0;
   const voteAverage = Number(movie.vote_average) || 0;
   const voteCount = Number(movie.vote_count) || 0;
-  const currentYearPenalty = year >= 2024 ? 15 : year >= 2021 ? 8 : year >= 2016 ? 3 : 0;
-  const releaseAgeBonus = year && year < 2000 ? Math.min(22, ((2000 - year) / 10) * 2.1) : year && year <= 2010 ? 3 : 0;
-  const deepCutBonus = popularity <= 22 ? (22 - popularity) * 1.1 : 0;
-  const lowVoteCultBonus = voteCount >= 5 && voteCount <= 140 ? 11 : voteCount <= 350 ? 5 : 0;
-  const worldCinemaBonus = String(movie.original_language || '').toLowerCase() !== 'en' ? 4 : 0;
-  const popularityPenalty = popularity > 22 ? (popularity - 22) * 1.15 : 0;
-  const franchisePenalty = voteCount > 2500 ? Math.log10(voteCount - 2499) * 12 : 0;
-  return (voteAverage * 12.5) + (Math.log10(voteCount + 1) * 7.5) + releaseAgeBonus + deepCutBonus + lowVoteCultBonus + worldCinemaBonus - currentYearPenalty - popularityPenalty - franchisePenalty;
+  const acclaimScore = voteAverage * 11.5;
+  const footprintScore = Math.log10(voteCount + 1) * 10.5;
+  const recognitionScore = Math.min(24, Math.sqrt(Math.max(popularity, 0)) * 3.6);
+  const legacyScore = year ? Math.max(0, Math.min(20, (2012 - Math.min(year, 2012)) / 6)) : 0;
+  const worldCinemaBonus = String(movie.original_language || '').toLowerCase() !== 'en' ? 2.5 : 0;
+  const nicheLoveBonus = voteAverage >= 7.7 && voteCount >= 80 && popularity <= 18 ? 3.5 : 0;
+  const obscurityPenalty = voteCount < 20 ? 20 : voteCount < 45 ? 11 : voteCount < 80 ? 5 : 0;
+  const recencyPenalty = year >= 2025 ? 8 : year >= 2023 ? 4 : year >= 2020 ? 1.5 : 0;
+  const blockbusterPenalty = popularity > 65 ? (popularity - 65) * 0.18 : 0;
+  return acclaimScore
+    + footprintScore
+    + recognitionScore
+    + legacyScore
+    + worldCinemaBonus
+    + nicheLoveBonus
+    - obscurityPenalty
+    - recencyPenalty
+    - blockbusterPenalty;
 }
 
 function selectDiversifiedPool(movies, limit) {
@@ -659,16 +693,16 @@ function selectDiversifiedPool(movies, limit) {
 
 function assignRarity(rank, total) {
   const percentile = total ? (rank + 1) / total : 1;
-  if (percentile <= 0.009) return 'Legendary';
-  if (percentile <= 0.038) return 'Epic';
-  if (percentile <= 0.155) return 'Rare';
-  if (percentile <= 0.46) return 'Uncommon';
-  return 'Common';
+  if (percentile <= 0.008) return 'Canon';
+  if (percentile <= 0.04) return 'Iconic';
+  if (percentile <= 0.17) return 'Awarded';
+  if (percentile <= 0.5) return 'Respected';
+  return 'Prolific';
 }
 
 function rarityFloorForMovie(movie) {
   const titleFloor = TITLE_RARITY_FLOORS[titleKey(movie && movie.title)];
-  if (titleFloor) return titleFloor;
+  if (titleFloor) return normalizeRarityLabel(titleFloor);
 
   const year = Number(extractYear(movie && movie.release_date)) || 0;
   const voteAverage = Number(movie && movie.vote_average) || 0;
@@ -676,58 +710,87 @@ function rarityFloorForMovie(movie) {
   const popularity = Number(movie && movie.popularity) || 0;
   const originalLanguage = String(movie && movie.original_language || '').toLowerCase();
 
-  let floor = 'Common';
+  let floor = 'Prolific';
 
-  if (voteAverage >= 7.4 && voteCount >= 220) {
-    floor = maxRarity(floor, 'Uncommon');
+  if (voteAverage >= 7.3 && voteCount >= 220) {
+    floor = maxRarity(floor, 'Respected');
   }
 
   if (year && year <= 2000 && voteAverage >= 7.1 && voteCount >= 120) {
-    floor = maxRarity(floor, 'Uncommon');
+    floor = maxRarity(floor, 'Respected');
   }
 
   if (originalLanguage && originalLanguage !== 'en' && voteAverage >= 7.3 && voteCount >= 60) {
-    floor = maxRarity(floor, 'Uncommon');
+    floor = maxRarity(floor, 'Respected');
   }
 
   if (voteAverage >= 8.4 && voteCount >= 1800) {
-    floor = maxRarity(floor, 'Epic');
+    floor = maxRarity(floor, 'Iconic');
   } else if (voteAverage >= 8.1 && voteCount >= 900) {
-    floor = maxRarity(floor, 'Rare');
+    floor = maxRarity(floor, 'Awarded');
   }
 
   if (year && year <= 1975 && voteAverage >= 8.2 && voteCount >= 220) {
-    floor = maxRarity(floor, 'Epic');
+    floor = maxRarity(floor, 'Iconic');
   } else if (year && year <= 1990 && voteAverage >= 8.0 && voteCount >= 180) {
-    floor = maxRarity(floor, 'Rare');
+    floor = maxRarity(floor, 'Awarded');
   }
 
   if (year && year <= 1985 && voteAverage >= 7.7 && voteCount >= 140) {
-    floor = maxRarity(floor, 'Rare');
+    floor = maxRarity(floor, 'Awarded');
   }
 
   if (year && year <= 1975 && voteAverage >= 7.6 && voteCount >= 90) {
-    floor = maxRarity(floor, 'Rare');
+    floor = maxRarity(floor, 'Awarded');
   }
 
   if (originalLanguage && originalLanguage !== 'en' && voteAverage >= 8.0 && voteCount >= 180) {
-    floor = maxRarity(floor, year && year <= 1980 ? 'Epic' : 'Rare');
+    floor = maxRarity(floor, year && year <= 1980 ? 'Iconic' : 'Awarded');
   } else if (originalLanguage && originalLanguage !== 'en' && year && year <= 1985 && voteAverage >= 7.7 && voteCount >= 70) {
-    floor = maxRarity(floor, 'Rare');
+    floor = maxRarity(floor, 'Awarded');
   }
 
   if (popularity >= 45 && voteAverage >= 7.8 && voteCount >= 3500) {
-    floor = maxRarity(floor, 'Rare');
+    floor = maxRarity(floor, 'Awarded');
   }
 
   return floor;
+}
+
+function rarityCeilingForMovie(movie) {
+  if (TITLE_RARITY_FLOORS[titleKey(movie && movie.title)]) {
+    return 'Canon';
+  }
+
+  const year = Number(extractYear(movie && movie.release_date)) || 0;
+  const voteAverage = Number(movie && movie.vote_average) || 0;
+  const voteCount = Number(movie && movie.vote_count) || 0;
+  const popularity = Number(movie && movie.popularity) || 0;
+
+  if (voteCount < 20 && popularity < 4) {
+    return 'Respected';
+  }
+
+  if (voteCount < 60 && popularity < 8 && voteAverage < 8.4) {
+    return 'Awarded';
+  }
+
+  if (voteCount < 140 && popularity < 12 && voteAverage < 8.2) {
+    return 'Iconic';
+  }
+
+  if (year >= 2023 && voteCount < 350 && popularity < 18 && voteAverage < 8.4) {
+    return 'Awarded';
+  }
+
+  return 'Canon';
 }
 
 function normalizeMovie(configuration, genreMap, movie) {
   const genreNames = (movie.genre_ids || []).map(function (id) { return genreMap[id]; }).filter(Boolean);
   const normalized = {
     title: movie.title,
-    rarity: movie.rarity,
+    rarity: normalizeRarityLabel(movie.rarity),
     genre: genreNames[0] || 'Film',
     genreNames: genreNames,
     desc: movie.overview || 'No synopsis available yet.',
@@ -849,7 +912,8 @@ async function buildCardPool(limit) {
 
   ranked.forEach(function (movie, index) {
     const baseRarity = assignRarity(index, ranked.length);
-    movie.rarity = maxRarity(baseRarity, rarityFloorForMovie(movie));
+    const raised = maxRarity(baseRarity, rarityFloorForMovie(movie));
+    movie.rarity = minRarity(raised, rarityCeilingForMovie(movie));
   });
 
   const enriched = await mapWithConcurrency(ranked, 8, enrichMovieWithCredits);

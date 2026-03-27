@@ -244,7 +244,9 @@ button, a, select { font: inherit; }
 .pack-foil,
 .pack-top-seal,
 .pack-spine,
-.pack-glint {
+.pack-glint,
+.pack-grain,
+.pack-twinkle {
   position: absolute;
   pointer-events: none;
 }
@@ -280,6 +282,59 @@ button, a, select { font: inherit; }
   transform: rotate(20deg);
   filter: blur(2px);
   z-index: 1;
+}
+
+.pack-grain {
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255,255,255,.08) 0 1px, transparent 1.2px),
+    radial-gradient(circle at 72% 34%, rgba(255,255,255,.06) 0 1px, transparent 1.2px),
+    radial-gradient(circle at 42% 76%, rgba(0,0,0,.07) 0 1px, transparent 1.2px),
+    radial-gradient(circle at 80% 68%, rgba(255,255,255,.05) 0 1px, transparent 1.1px),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.015) 0 2px, rgba(0,0,0,.02) 2px 4px);
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  z-index: 1;
+}
+
+.pack.is-featured .pack-grain {
+  opacity: 0.72;
+}
+
+.pack-twinkle {
+  inset: 0;
+  z-index: 2;
+  opacity: 0;
+}
+
+.pack.is-gold .pack-twinkle {
+  opacity: 1;
+}
+
+.pack.is-gold .pack-twinkle::before,
+.pack.is-gold .pack-twinkle::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background:
+    linear-gradient(90deg, transparent 46%, rgba(255,245,213,.95) 46% 54%, transparent 54%),
+    linear-gradient(0deg, transparent 46%, rgba(255,245,213,.95) 46% 54%, transparent 54%);
+  filter: drop-shadow(0 0 8px rgba(251,191,36,.4));
+  opacity: 0.9;
+}
+
+.pack.is-gold .pack-twinkle::before {
+  top: 72px;
+  right: 42px;
+  animation: packTwinkle 2.2s ease-in-out infinite;
+}
+
+.pack.is-gold .pack-twinkle::after {
+  bottom: 118px;
+  left: 38px;
+  transform: scale(0.74);
+  animation: packTwinkle 2.8s ease-in-out .5s infinite;
 }
 
 .pack-top-seal {
@@ -336,6 +391,18 @@ button, a, select { font: inherit; }
   color: var(--pack-tier-ink, rgba(255,255,255,.82));
   border: 1px solid var(--pack-tier-border, rgba(255,255,255,.16));
   background: var(--pack-tier-bg, rgba(8,10,15,.32));
+}
+
+.pack-card-count {
+  position: relative;
+  z-index: 1;
+  margin-top: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pack-tier-ink, rgba(255,255,255,.82));
+  opacity: 0.72;
 }
 
 .status-line {
@@ -662,6 +729,28 @@ button, a, select { font: inherit; }
   z-index: 0;
 }
 
+.peel-card-wrap.rarity-iconic::before {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(216,180,254,.24), transparent 36%),
+    radial-gradient(circle at 50% 82%, rgba(147,51,234,.18), transparent 42%),
+    linear-gradient(180deg, #22182f, #0f1218);
+  box-shadow:
+    0 0 0 1px rgba(216,180,254,.18),
+    0 0 28px rgba(147,51,234,.22),
+    0 18px 48px rgba(0,0,0,.38);
+}
+
+.peel-card-wrap.rarity-canon::before {
+  background:
+    radial-gradient(circle at 50% 16%, rgba(253,224,71,.28), transparent 34%),
+    radial-gradient(circle at 50% 82%, rgba(245,158,11,.18), transparent 42%),
+    linear-gradient(180deg, #33240f, #120f0a);
+  box-shadow:
+    0 0 0 1px rgba(252,211,77,.22),
+    0 0 36px rgba(245,158,11,.26),
+    0 22px 58px rgba(0,0,0,.42);
+}
+
 .peel-card-wrap.is-peeling-out { animation: peelOut 280ms ease forwards; }
 .peel-card-wrap.is-peeling-in { animation: peelIn 320ms ease forwards; }
 
@@ -708,6 +797,7 @@ button, a, select { font: inherit; }
   inset: 0;
   pointer-events: none;
   background:
+    linear-gradient(118deg, transparent 0 24%, rgba(255,255,255,.14) 32%, rgba(255,255,255,.04) 42%, transparent 56%),
     radial-gradient(circle at top left, rgba(255,255,255,.14), transparent 34%),
     linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
   z-index: 0;
@@ -716,18 +806,47 @@ button, a, select { font: inherit; }
 .card > * { position: relative; z-index: 1; }
 .card:hover { transform: translateY(-6px) rotate(0.6deg); }
 
-.card.epic { animation: epicGlow 2.4s ease-in-out infinite; }
-.card.legendary { animation: legendaryGlow 2.4s ease-in-out infinite; }
+.card.iconic { animation: epicGlow 2.4s ease-in-out infinite; }
+.card.canon { animation: legendaryGlow 2.4s ease-in-out infinite; }
 
-.card.epic::after,
-.card.legendary::after {
+.peel-card-wrap .card.iconic,
+.peel-card-wrap .card.canon {
+  transform-origin: center center;
+}
+
+.peel-card-wrap .card.iconic {
+  box-shadow:
+    0 20px 42px rgba(0,0,0,.42),
+    0 0 22px rgba(147,51,234,.24);
+}
+
+.peel-card-wrap .card.canon {
+  box-shadow:
+    0 22px 48px rgba(0,0,0,.46),
+    0 0 28px rgba(245,158,11,.28);
+}
+
+.card.iconic::after,
+.card.canon::after {
   content: "";
   position: absolute;
-  inset: -20%;
-  background: linear-gradient(100deg, transparent 25%, rgba(255,255,255,.08) 45%, rgba(255,255,255,.35) 50%, rgba(255,255,255,.08) 55%, transparent 75%);
+  inset: -38%;
+  background: linear-gradient(102deg, transparent 18%, rgba(255,255,255,.06) 38%, rgba(255,255,255,.34) 50%, rgba(255,255,255,.08) 60%, transparent 82%);
   pointer-events: none;
   animation: shimmer 2.8s linear infinite;
   z-index: 3;
+}
+
+.peel-card-wrap .card.iconic::after {
+  background:
+    linear-gradient(102deg, transparent 14%, rgba(255,255,255,.05) 34%, rgba(216,180,254,.28) 48%, rgba(255,255,255,.12) 60%, transparent 86%);
+  animation-duration: 2.35s;
+}
+
+.peel-card-wrap .card.canon::after {
+  background:
+    linear-gradient(102deg, transparent 12%, rgba(255,255,255,.08) 34%, rgba(253,224,71,.36) 48%, rgba(255,255,255,.14) 60%, transparent 88%);
+  animation-duration: 2.05s;
 }
 
 .card-frame {
@@ -737,6 +856,18 @@ button, a, select { font: inherit; }
   border: 1px solid rgba(255,255,255,.12);
   pointer-events: none;
   z-index: 2;
+}
+
+.card.iconic .card-frame {
+  border-color: rgba(216,180,254,.34);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+}
+
+.card.canon .card-frame {
+  border-color: rgba(252,211,77,.4);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.05),
+    0 0 0 1px rgba(252,211,77,.1);
 }
 
 .card-header {
@@ -793,6 +924,16 @@ button, a, select { font: inherit; }
   opacity: 0.9;
   white-space: nowrap;
   padding-top: 2px;
+}
+
+.card.iconic .card-rarity {
+  color: #efe2ff;
+  text-shadow: 0 0 12px rgba(192,132,252,.24);
+}
+
+.card.canon .card-rarity {
+  color: #fff2bf;
+  text-shadow: 0 0 14px rgba(251,191,36,.28);
 }
 
 .card-img-wrap {
@@ -1377,6 +1518,16 @@ button, a, select { font: inherit; }
 
 .lb-badge.is-rarity { color: #fff; }
 
+.lb-badge.is-count {
+  min-width: 34px;
+  justify-content: center;
+  text-align: center;
+  font-weight: 800;
+  color: rgba(255,255,255,.88);
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.12);
+}
+
 .showcase-btn {
   min-width: 34px;
   height: 34px;
@@ -1492,11 +1643,11 @@ button, a, select { font: inherit; }
 }
 
 .collection-list-item.is-film {
-  grid-template-columns: minmax(0, 2.8fr) minmax(0, 1.45fr) auto auto auto;
+  grid-template-columns: minmax(0, 2.8fr) minmax(0, 1.45fr) auto auto auto auto;
 }
 
 .collection-list-item.is-person {
-  grid-template-columns: minmax(0, 2.8fr) minmax(0, 1.45fr) auto auto auto;
+  grid-template-columns: minmax(0, 2.8fr) minmax(0, 1.45fr) auto auto auto auto;
 }
 
 .collection-kind {
@@ -1779,6 +1930,12 @@ button, a, select { font: inherit; }
   100% { transform: translateX(-112px) rotate(20deg); opacity: 0.12; }
 }
 
+@keyframes packTwinkle {
+  0%, 100% { transform: scale(0.65) rotate(0deg); opacity: 0.2; }
+  25% { transform: scale(1) rotate(0deg); opacity: 0.95; }
+  55% { transform: scale(0.72) rotate(12deg); opacity: 0.3; }
+}
+
 @keyframes loadingDots {
   0% { width: 0; }
   100% { width: 2.2em; }
@@ -1819,7 +1976,8 @@ button, a, select { font: inherit; }
   .pack-area {
     min-height: 0;
     justify-content: flex-start;
-    gap: 16px;
+    gap: 18px;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   }
   .page {
     padding: 14px 12px 18px;
@@ -1864,7 +2022,14 @@ button, a, select { font: inherit; }
   }
   .collection-grid { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 12px; }
   .collection-card { width: 100%; }
-  .collection-card-preview { --preview-scale: 0.3733; width: calc(300px * var(--preview-scale)); height: calc(430px * var(--preview-scale)); }
+  .collection-card {
+    gap: 6px;
+  }
+  .collection-card-preview { --preview-scale: 0.43; width: calc(300px * var(--preview-scale)); height: calc(430px * var(--preview-scale)); }
+  .collection-card-actions {
+    gap: 6px;
+    padding: 0 2px;
+  }
   .showcase-card-preview { --preview-scale: 0.5; }
   .showcase-slot,
   .showcase-card {
@@ -1897,18 +2062,18 @@ button, a, select { font: inherit; }
   }
   .collection-card-preview .card.rare,
   .showcase-card-preview .card.rare,
-  .collection-card-preview .card.epic,
-  .showcase-card-preview .card.epic,
-  .collection-card-preview .card.legendary,
-  .showcase-card-preview .card.legendary {
+  .collection-card-preview .card.iconic,
+  .showcase-card-preview .card.iconic,
+  .collection-card-preview .card.canon,
+  .showcase-card-preview .card.canon {
     animation: none !important;
   }
   .collection-card-preview .card.rare::after,
   .showcase-card-preview .card.rare::after,
-  .collection-card-preview .card.epic::after,
-  .showcase-card-preview .card.epic::after,
-  .collection-card-preview .card.legendary::after,
-  .showcase-card-preview .card.legendary::after {
+  .collection-card-preview .card.iconic::after,
+  .showcase-card-preview .card.iconic::after,
+  .collection-card-preview .card.canon::after,
+  .showcase-card-preview .card.canon::after {
     animation: none !important;
     opacity: 0.18;
   }
@@ -1921,7 +2086,7 @@ button, a, select { font: inherit; }
   }
   .collection-list-item,
   .collection-list-item.is-film,
-  .collection-list-item.is-person { grid-template-columns: minmax(0, 1fr) auto auto auto; }
+  .collection-list-item.is-person { grid-template-columns: minmax(0, 1fr) auto auto auto auto; }
   .collection-list-secondary,
   .collection-list-year,
   .collection-list-role { display: none; }
@@ -1992,13 +2157,12 @@ button, a, select { font: inherit; }
     line-height: 1.3;
     letter-spacing: 0.1em;
   }
-  .reward-pack-option .pack .pack-tier .pack-tier-count {
-    display: block;
-    margin-top: 4px;
-    font-size: 0.54rem;
+  .reward-pack-option .pack .pack-card-count {
+    margin-top: 7px;
+    font-size: 0.5rem;
     line-height: 1.2;
     letter-spacing: 0.08em;
-    opacity: 0.68;
+    opacity: 0.66;
   }
   .reward-pack-option .pack::after {
     bottom: 12px;
@@ -2050,8 +2214,9 @@ button, a, select { font: inherit; }
     color: rgba(255,255,255,.74);
   }
   .carousel-wrap {
-    grid-template-rows: 22px 430px 64px;
-    gap: 14px;
+    grid-template-rows: 22px 430px 88px;
+    gap: 18px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
   .overlap-stack {
     min-height: 430px;
@@ -2082,7 +2247,8 @@ button, a, select { font: inherit; }
     font-size: 1.1rem;
   }
   .back-btn {
-    margin-top: 10px;
+    margin-top: 18px;
+    margin-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -2098,12 +2264,19 @@ button, a, select { font: inherit; }
   }
   .collection-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 8px;
   }
   .collection-card-preview {
-    --preview-scale: 0.34;
+    --preview-scale: 0.455;
     width: calc(300px * var(--preview-scale));
     height: calc(430px * var(--preview-scale));
+  }
+  .collection-card {
+    gap: 5px;
+  }
+  .collection-card-actions {
+    gap: 5px;
+    padding: 0 1px;
   }
   .collection-list-item {
     padding: 11px 12px;
@@ -2147,7 +2320,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: reward-speed-1</div>
+  <div class="sub">Build: foil-pass-1</div>
 </div>
 
 <div class="nav">
@@ -2168,7 +2341,7 @@ button, a, select { font: inherit; }
       </div>
       <div class="collection-stat">
         <div class="collection-stat-label">Pack Tier</div>
-        <div class="collection-stat-value" id="packSeriesValue">Common Pack</div>
+          <div class="collection-stat-value" id="packSeriesValue">Prolific Pack</div>
       </div>
     </div>
     <div class="collection-controls">
@@ -2179,6 +2352,7 @@ button, a, select { font: inherit; }
         <option value="animation">Pack: Animation</option>
         <option value="eighties">Pack: 80s</option>
         <option value="noir">Pack: Film Noir</option>
+        <option value="romcom">Pack: Rom Com</option>
       </select>
     </div>
   </div>
@@ -2199,7 +2373,7 @@ button, a, select { font: inherit; }
           <div class="collection-stat-value" id="uniqueCount">0</div>
         </div>
         <div class="collection-stat">
-          <div class="collection-stat-label">Legendary+</div>
+          <div class="collection-stat-label">Canon+</div>
           <div class="collection-stat-value" id="legendaryCount">0</div>
         </div>
       </div>
@@ -2221,11 +2395,11 @@ button, a, select { font: inherit; }
           <option value="actors">Actors</option>
           <option value="directors">Directors</option>
           <option value="crew">Crew</option>
-          <option value="Legendary">Legendary</option>
-          <option value="Epic">Epic</option>
-          <option value="Rare">Rare</option>
-          <option value="Uncommon">Uncommon</option>
-          <option value="Common">Common</option>
+          <option value="Canon">Canon</option>
+          <option value="Iconic">Iconic</option>
+          <option value="Awarded">Awarded</option>
+          <option value="Respected">Respected</option>
+          <option value="Prolific">Prolific</option>
         </select>
       </div>
     </div>
@@ -2263,7 +2437,7 @@ button, a, select { font: inherit; }
   const ALL_PACKS_ROLL = {
     all: 100
   };
-  const FEATURED_REWARD_THEMES = ['horror', 'animation', 'eighties', 'noir'];
+  const FEATURED_REWARD_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom'];
   const PACK_THEMES = {
     all: {
       label: 'All Cinema',
@@ -2271,7 +2445,7 @@ button, a, select { font: inherit; }
       title: 'All Cinema',
       blurb: 'A little bit of everything from everywhere.',
       colors: ['#4338ca', '#6d28d9', '#9333ea'],
-      tier: 'Common Pack',
+      tier: 'Prolific Pack',
       ink: '#f8fafc',
       subInk: 'rgba(248,250,252,.84)',
       tierInk: 'rgba(255,255,255,.84)',
@@ -2285,7 +2459,7 @@ button, a, select { font: inherit; }
       title: 'Scary Movie Night',
       blurb: 'scary time 😱',
       colors: ['#7f1d1d', '#991b1b', '#450a0a'],
-      tier: 'Uncommon Pack',
+      tier: 'Respected Pack',
       ink: '#fff7ed',
       subInk: 'rgba(255,237,213,.9)',
       tierInk: '#fff7ed',
@@ -2299,7 +2473,7 @@ button, a, select { font: inherit; }
       title: 'Animation',
       blurb: 'are you drawn to this',
       colors: ['#0f766e', '#2563eb', '#7c3aed'],
-      tier: 'Rare Pack',
+      tier: 'Awarded Pack',
       ink: '#eff6ff',
       subInk: 'rgba(239,246,255,.86)',
       tierInk: '#eff6ff',
@@ -2313,7 +2487,7 @@ button, a, select { font: inherit; }
       title: '80s',
       blurb: 'the rad pack',
       colors: ['#db2777', '#7c3aed', '#312e81'],
-      tier: 'Rare Pack',
+      tier: 'Awarded Pack',
       ink: '#fff7fb',
       subInk: 'rgba(255,241,248,.9)',
       tierInk: '#fff7fb',
@@ -2327,13 +2501,27 @@ button, a, select { font: inherit; }
       title: 'Film Noir',
       blurb: 'light a cigarette NOW',
       colors: ['#111827', '#334155', '#020617'],
-      tier: 'Epic Pack',
+      tier: 'Iconic Pack',
       ink: '#f8fafc',
       subInk: 'rgba(226,232,240,.84)',
       tierInk: '#f8fafc',
       tierBg: 'rgba(248,250,252,.08)',
       tierBorder: 'rgba(248,250,252,.16)',
       ctaInk: 'rgba(248,250,252,.84)'
+    },
+    romcom: {
+      label: 'Rom Com',
+      ribbon: 'MEET CUTE',
+      title: 'Rom Com',
+      blurb: 'love is in the air',
+      colors: ['#fb7185', '#f472b6', '#f59e0b'],
+      tier: 'Awarded Pack',
+      ink: '#fff7fb',
+      subInk: 'rgba(255,241,248,.9)',
+      tierInk: '#fff7fb',
+      tierBg: 'rgba(68,18,44,.26)',
+      tierBorder: 'rgba(255,241,248,.18)',
+      ctaInk: 'rgba(255,241,248,.84)'
     },
     gold: {
       label: 'Gold Pack',
@@ -2380,117 +2568,113 @@ button, a, select { font: inherit; }
     'La Haine': 'So far, so good.',
     'Stalker': 'Let everything that\'s been planned come true.'
   };
-  const RARITY_COLORS = { Common: '#94a3b8', Uncommon: '#10b981', Rare: '#60a5fa', Epic: '#c084fc', Legendary: '#fbbf24' };
+  const RARITY_COLORS = { Prolific: '#94a3b8', Respected: '#10b981', Awarded: '#60a5fa', Iconic: '#c084fc', Canon: '#fbbf24' };
   const PULL_ODDS = [
-    { rarity: 'Common', weight: 87.15 },
-    { rarity: 'Uncommon', weight: 11.5 },
-    { rarity: 'Rare', weight: 1.1 },
-    { rarity: 'Epic', weight: 0.22 },
-    { rarity: 'Legendary', weight: 0.03 }
+    { rarity: 'Prolific', weight: 85.8 },
+    { rarity: 'Respected', weight: 12.6 },
+    { rarity: 'Awarded', weight: 1.28 },
+    { rarity: 'Iconic', weight: 0.28 },
+    { rarity: 'Canon', weight: 0.04 }
   ];
   const PERSON_INSERT_CHANCE = 0.34;
   const PERSON_INSERT_CHANCE_GOLD = 0.58;
   const PERSON_RARITY_FLOORS = {
-    'martin scorsese': 'Legendary',
-    'alfred hitchcock': 'Legendary',
-    'akira kurosawa': 'Legendary',
-    'ingmar bergman': 'Legendary',
-    'federico fellini': 'Legendary',
-    'agnes varda': 'Legendary',
-    'abbas kiarostami': 'Legendary',
-    'billy wilder': 'Legendary',
-    'david lynch': 'Legendary',
-    'edward yang': 'Legendary',
-    'francis ford coppola': 'Legendary',
-    'howard hawks': 'Legendary',
-    'jean-luc godard': 'Legendary',
-    'john ford': 'Legendary',
-    'orson welles': 'Legendary',
-    'robert bresson': 'Legendary',
-    'satyajit ray': 'Legendary',
-    'spike lee': 'Legendary',
-    'stanley kubrick': 'Legendary',
-    'andrei tarkovsky': 'Legendary',
-    'werner herzog': 'Legendary',
-    'wong kar-wai': 'Legendary',
-    'yasujiro ozu': 'Legendary',
-    'claire denis': 'Epic',
-    'chantal akerman': 'Epic',
-    'celine sciamma': 'Epic',
-    'jane campion': 'Epic',
-    'john cassavetes': 'Epic',
-    'krzysztof kieslowski': 'Epic',
-    'lucrecia martel': 'Epic',
-    'mikio naruse': 'Epic',
-    'michael haneke': 'Epic',
-    'park chan-wook': 'Epic',
-    'terrence malick': 'Epic',
-    'toni scott': 'Rare',
-    'robert de niro': 'Epic',
-    'anna karina': 'Legendary',
-    'giulietta masina': 'Legendary',
-    'ingrid bergman': 'Legendary',
-    'jeanne moreau': 'Legendary',
-    'liv ullmann': 'Legendary',
-    'marcello mastroianni': 'Legendary',
-    'setsuko hara': 'Legendary',
-    'takashi shimura': 'Legendary',
-    'toshirô mifune': 'Legendary',
-    'tatsuya nakadai': 'Epic',
-    'delphine seyrig': 'Epic',
-    'gena rowlands': 'Epic',
-    'isabelle huppert': 'Epic',
-    'maggie cheung': 'Epic',
-    'max von sydow': 'Epic',
-    'tony leung chiu-wai': 'Epic',
-    'bernard herrmann': 'Epic',
-    'ennio morricone': 'Epic',
-    'gregg toland': 'Legendary',
-    'nino rota': 'Epic',
-    'paul schrader': 'Epic',
-    'robert towne': 'Epic',
-    'roger deakins': 'Epic',
-    'sven nykvist': 'Epic',
-    'thelma schoonmaker': 'Epic'
+    'martin scorsese': 'Canon',
+    'alfred hitchcock': 'Canon',
+    'akira kurosawa': 'Canon',
+    'ingmar bergman': 'Canon',
+    'federico fellini': 'Canon',
+    'agnes varda': 'Canon',
+    'abbas kiarostami': 'Canon',
+    'billy wilder': 'Canon',
+    'david lynch': 'Canon',
+    'edward yang': 'Canon',
+    'francis ford coppola': 'Canon',
+    'howard hawks': 'Canon',
+    'jean-luc godard': 'Canon',
+    'john ford': 'Canon',
+    'orson welles': 'Canon',
+    'robert bresson': 'Canon',
+    'satyajit ray': 'Canon',
+    'spike lee': 'Canon',
+    'stanley kubrick': 'Canon',
+    'andrei tarkovsky': 'Canon',
+    'werner herzog': 'Canon',
+    'wong kar-wai': 'Canon',
+    'yasujiro ozu': 'Canon',
+    'claire denis': 'Iconic',
+    'chantal akerman': 'Iconic',
+    'celine sciamma': 'Iconic',
+    'jane campion': 'Iconic',
+    'john cassavetes': 'Iconic',
+    'krzysztof kieslowski': 'Iconic',
+    'lucrecia martel': 'Iconic',
+    'mikio naruse': 'Iconic',
+    'michael haneke': 'Iconic',
+    'park chan-wook': 'Iconic',
+    'terrence malick': 'Iconic',
+    'toni scott': 'Awarded',
+    'robert de niro': 'Iconic',
+    'anna karina': 'Canon',
+    'giulietta masina': 'Canon',
+    'ingrid bergman': 'Canon',
+    'jeanne moreau': 'Canon',
+    'liv ullmann': 'Canon',
+    'marcello mastroianni': 'Canon',
+    'setsuko hara': 'Canon',
+    'takashi shimura': 'Canon',
+    'toshirô mifune': 'Canon',
+    'tatsuya nakadai': 'Iconic',
+    'delphine seyrig': 'Iconic',
+    'gena rowlands': 'Iconic',
+    'isabelle huppert': 'Iconic',
+    'maggie cheung': 'Iconic',
+    'max von sydow': 'Iconic',
+    'tony leung chiu-wai': 'Iconic',
+    'bernard herrmann': 'Iconic',
+    'ennio morricone': 'Iconic',
+    'gregg toland': 'Canon',
+    'nino rota': 'Iconic',
+    'paul schrader': 'Iconic',
+    'robert towne': 'Iconic',
+    'roger deakins': 'Iconic',
+    'sven nykvist': 'Iconic',
+    'thelma schoonmaker': 'Iconic'
   };
   const PERSON_ROLE_WEIGHTS = {
     actor: 30,
-    director: 39,
-    writer: 10,
-    composer: 8,
-    cinematographer: 6,
-    editor: 4,
-    producer: 3
+    director: 39
   };
   const PERSON_ROLE_THEME_BONUS = {
-    horror: { actor: 6, director: 4, composer: 5 },
-    animation: { actor: 5, director: 4, composer: 6 },
-    eighties: { actor: 6, director: 4, composer: 4 },
-    noir: { actor: 6, writer: 5, cinematographer: 5 },
+    horror: { actor: 6, director: 4 },
+    animation: { actor: 5, director: 4 },
+    eighties: { actor: 6, director: 4 },
+    noir: { actor: 6, director: 5 },
+    romcom: { actor: 7, director: 4 },
     all: {}
   };
-  const RECENT_PULL_MEMORY = 90;
-  const RECENT_PULL_HARD_EXCLUDE = 54;
-  const LIVE_DRAW_REFRESH_INTERVAL = 3;
+  const RECENT_PULL_MEMORY = 140;
+  const RECENT_PULL_HARD_EXCLUDE = 90;
+  const LIVE_DRAW_REFRESH_INTERVAL = 2;
   const THEME_POOL_LIMIT = 900;
   const SAMPLE_MOVIES = [
-    { title: 'Jaws', rarity: 'Common', genre: 'Thriller', desc: 'Shark terrorizes a beach town.', packs: ['all', 'horror'] },
-    { title: 'Ferris Bueller\'s Day Off', rarity: 'Common', genre: 'Comedy', desc: 'A perfect skip day through Chicago.', packs: ['all'] },
-    { title: 'Scream', rarity: 'Uncommon', genre: 'Horror', desc: 'A meta slasher classic.', packs: ['all', 'horror'] },
-    { title: 'Whiplash', rarity: 'Uncommon', genre: 'Drama', desc: 'A drummer is pushed toward greatness and collapse.', packs: ['all'] },
-    { title: 'The Conjuring', rarity: 'Uncommon', genre: 'Horror', desc: 'Paranormal investigators confront a dark presence.', packs: ['all', 'horror'] },
-    { title: 'The Social Network', rarity: 'Rare', genre: 'Drama', desc: 'Ambition and betrayal at the birth of Facebook.', packs: ['all'] },
-    { title: 'Moonlight', rarity: 'Rare', genre: 'Drama', desc: 'A young man searches for identity and tenderness.', packs: ['all'] },
-    { title: 'No Country for Old Men', rarity: 'Epic', genre: 'Crime', desc: 'Violence and fate collide in the Texas desert.', packs: ['all', 'noir'] },
-    { title: 'Parasite', rarity: 'Epic', genre: 'Thriller', desc: 'A class warfare masterpiece.', packs: ['all', 'international'] },
-    { title: 'Mad Max: Fury Road', rarity: 'Epic', genre: 'Action', desc: 'A desert chase movie turned into myth.', packs: ['all'] },
-    { title: 'The Godfather', rarity: 'Legendary', genre: 'Crime', desc: 'A mob dynasty saga.', packs: ['all', 'noir'] },
-    { title: '2001: A Space Odyssey', rarity: 'Legendary', genre: 'Sci-Fi', desc: 'A monumental journey from prehistory to deep space.', packs: ['all'] },
-    { title: 'Portrait of a Lady on Fire', rarity: 'Epic', genre: 'Drama', desc: 'A doomed romance rendered with startling precision.', packs: ['all', 'female', 'international'], originalLanguage: 'fr', directorName: 'Celine Sciamma', directorGender: 1 },
-    { title: 'Beau Travail', rarity: 'Rare', genre: 'Drama', desc: 'Foreign Legion masculinity fractures under the Djibouti sun.', packs: ['all', 'female', 'international'], originalLanguage: 'fr', directorName: 'Claire Denis', directorGender: 1 },
-    { title: 'Mildred Pierce', rarity: 'Rare', genre: 'Noir', desc: 'Maternal devotion curdles into ambition and betrayal.', packs: ['all', 'noir'] },
-    { title: 'In the Mood for Love', rarity: 'Epic', genre: 'Drama', desc: 'Desire, timing, and memory drift through narrow hallways.', packs: ['all', 'international'], originalLanguage: 'cn' },
-    { title: 'The Hitch-Hiker', rarity: 'Rare', genre: 'Noir', desc: 'A road trip nightmare from one of noir\'s sharpest directors.', packs: ['all', 'female', 'noir'], directorName: 'Ida Lupino', directorGender: 1 }
+    { title: 'Jaws', rarity: 'Prolific', genre: 'Thriller', desc: 'Shark terrorizes a beach town.', packs: ['all', 'horror'] },
+    { title: 'Ferris Bueller\'s Day Off', rarity: 'Prolific', genre: 'Comedy', desc: 'A perfect skip day through Chicago.', packs: ['all'] },
+    { title: 'Scream', rarity: 'Respected', genre: 'Horror', desc: 'A meta slasher classic.', packs: ['all', 'horror'] },
+    { title: 'Whiplash', rarity: 'Respected', genre: 'Drama', desc: 'A drummer is pushed toward greatness and collapse.', packs: ['all'] },
+    { title: 'The Conjuring', rarity: 'Respected', genre: 'Horror', desc: 'Paranormal investigators confront a dark presence.', packs: ['all', 'horror'] },
+    { title: 'The Social Network', rarity: 'Awarded', genre: 'Drama', desc: 'Ambition and betrayal at the birth of Facebook.', packs: ['all'] },
+    { title: 'Moonlight', rarity: 'Awarded', genre: 'Drama', desc: 'A young man searches for identity and tenderness.', packs: ['all'] },
+    { title: 'No Country for Old Men', rarity: 'Iconic', genre: 'Crime', desc: 'Violence and fate collide in the Texas desert.', packs: ['all', 'noir'] },
+    { title: 'Parasite', rarity: 'Iconic', genre: 'Thriller', desc: 'A class warfare masterpiece.', packs: ['all', 'international'] },
+    { title: 'Mad Max: Fury Road', rarity: 'Iconic', genre: 'Action', desc: 'A desert chase movie turned into myth.', packs: ['all'] },
+    { title: 'The Godfather', rarity: 'Canon', genre: 'Crime', desc: 'A mob dynasty saga.', packs: ['all', 'noir'] },
+    { title: '2001: A Space Odyssey', rarity: 'Canon', genre: 'Sci-Fi', desc: 'A monumental journey from prehistory to deep space.', packs: ['all'] },
+    { title: 'Portrait of a Lady on Fire', rarity: 'Iconic', genre: 'Drama', desc: 'A doomed romance rendered with startling precision.', packs: ['all', 'female', 'international'], originalLanguage: 'fr', directorName: 'Celine Sciamma', directorGender: 1 },
+    { title: 'Beau Travail', rarity: 'Awarded', genre: 'Drama', desc: 'Foreign Legion masculinity fractures under the Djibouti sun.', packs: ['all', 'female', 'international'], originalLanguage: 'fr', directorName: 'Claire Denis', directorGender: 1 },
+    { title: 'Mildred Pierce', rarity: 'Awarded', genre: 'Noir', desc: 'Maternal devotion curdles into ambition and betrayal.', packs: ['all', 'noir'] },
+    { title: 'In the Mood for Love', rarity: 'Iconic', genre: 'Drama', desc: 'Desire, timing, and memory drift through narrow hallways.', packs: ['all', 'international'], originalLanguage: 'cn' },
+    { title: 'The Hitch-Hiker', rarity: 'Awarded', genre: 'Noir', desc: 'A road trip nightmare from one of noir\'s sharpest directors.', packs: ['all', 'female', 'noir'], directorName: 'Ida Lupino', directorGender: 1 }
   ];
 
   let movies = SAMPLE_MOVIES.map(normalizeMovieRecord);
@@ -2615,6 +2799,26 @@ button, a, select { font: inherit; }
     localStorage.setItem('filmtcg.collectionView', collectionView);
   }
 
+  function aggregateCollectionEntries(cards) {
+    const grouped = new Map();
+    (Array.isArray(cards) ? cards : []).forEach(function (card, rawIndex) {
+      const key = cardKey(card);
+      if (!key) return;
+      const existing = grouped.get(key);
+      if (existing) {
+        existing.count += 1;
+        return;
+      }
+      grouped.set(key, {
+        key: key,
+        card: card,
+        count: 1,
+        rawIndex: rawIndex
+      });
+    });
+    return Array.from(grouped.values());
+  }
+
   function cardKey(card) {
     if (!card) return '';
     const type = card.cardType || 'film';
@@ -2719,6 +2923,16 @@ button, a, select { font: inherit; }
     return new Set((progress.recentPullTitles || []).slice(0, RECENT_PULL_HARD_EXCLUDE));
   }
 
+  function buildOwnedFilmTitleSet() {
+    const titles = new Set();
+    collection.forEach(function (card) {
+      if (card && card.cardType !== 'person' && card.title) {
+        titles.add(card.title);
+      }
+    });
+    return titles;
+  }
+
   function rememberPulledTitles(cards) {
     const next = [];
     (cards || []).forEach(function (movie) {
@@ -2762,6 +2976,22 @@ button, a, select { font: inherit; }
       .replace(/'/g, '&#39;');
   }
 
+  function normalizeRarityLabel(value) {
+    const key = String(value || '').trim();
+    return ({
+      Common: 'Prolific',
+      Uncommon: 'Respected',
+      Rare: 'Awarded',
+      Epic: 'Iconic',
+      Legendary: 'Canon',
+      Prolific: 'Prolific',
+      Respected: 'Respected',
+      Awarded: 'Awarded',
+      Iconic: 'Iconic',
+      Canon: 'Canon'
+    })[key] || 'Prolific';
+  }
+
   function extractYear(value) {
     const match = String(value || '').match(/^(\d{4})/);
     return match ? match[1] : null;
@@ -2796,6 +3026,7 @@ button, a, select { font: inherit; }
     if (lookup.crime || lookup.noir || lookup.thriller || lookup.mystery) tags.add('noir');
     if (lookup.animation || lookup.family) tags.add('animation');
     if (year >= 1980 && year <= 1989) tags.add('eighties');
+    if ((lookup.romance && lookup.comedy) || (lookup.romance && lookup.drama && year >= 1980) || (lookup.comedy && popularity >= 18 && voteAverage >= 6.4)) tags.add('romcom');
     if (movie.originalLanguage && String(movie.originalLanguage).toLowerCase() !== 'en') tags.add('international');
     if (isFemaleDirected(movie)) tags.add('female');
 
@@ -2806,7 +3037,7 @@ button, a, select { font: inherit; }
     const normalized = {
       cardType: movie.cardType || 'film',
       title: movie.title || 'Unknown',
-      rarity: movie.rarity || 'Common',
+      rarity: normalizeRarityLabel(movie.rarity || 'Prolific'),
       genre: inferPrimaryGenre(movie),
       genreNames: Array.isArray(movie.genreNames) ? movie.genreNames.slice() : (movie.genre ? [movie.genre] : []),
       desc: movie.desc || movie.overview || 'No synopsis available yet.',
@@ -2848,7 +3079,7 @@ button, a, select { font: inherit; }
   }
 
   function rarityColor(rarity) {
-    return RARITY_COLORS[rarity] || RARITY_COLORS.Common;
+    return RARITY_COLORS[normalizeRarityLabel(rarity)] || RARITY_COLORS.Prolific;
   }
 
   function hexToRgba(hex, alpha) {
@@ -2871,7 +3102,7 @@ button, a, select { font: inherit; }
   }
 
   function chooseArtMode(movie) {
-    if (movie.still && (movie.rarity === 'Epic' || movie.rarity === 'Legendary')) {
+    if (movie.still && rarityRank(movie.rarity) >= 4) {
       return Math.random() < 0.35 ? 'still' : 'poster';
     }
     if (movie.poster) return 'poster';
@@ -2881,7 +3112,7 @@ button, a, select { font: inherit; }
 
   function makePosterDataUri(movie) {
     const bgA = rarityColor(movie.rarity);
-    const bgB = movie.rarity === 'Legendary' ? '#92400e' : movie.rarity === 'Epic' ? '#6b21a8' : movie.rarity === 'Rare' ? '#1d4ed8' : movie.rarity === 'Uncommon' ? '#065f46' : '#475569';
+    const bgB = movie.rarity === 'Canon' ? '#92400e' : movie.rarity === 'Iconic' ? '#6b21a8' : movie.rarity === 'Awarded' ? '#1d4ed8' : movie.rarity === 'Respected' ? '#065f46' : '#475569';
     const safeTitle = escapeHtml(movie.title).slice(0, 24);
     const safeGenre = escapeHtml(movie.genre);
     const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">'
@@ -3056,7 +3287,7 @@ button, a, select { font: inherit; }
   }
 
   function computeStats(movie) {
-    const baseByRarity = { Common: 58, Uncommon: 66, Rare: 74, Epic: 84, Legendary: 94 };
+    const baseByRarity = { Prolific: 58, Respected: 66, Awarded: 74, Iconic: 84, Canon: 94 };
     const atkByGenre = { Horror: 10, Thriller: 8, Crime: 6, Action: 9, Drama: 1, 'Sci-Fi': 4, Comedy: 2, Film: 3 };
     const defByGenre = { Drama: 10, 'Sci-Fi': 7, Crime: 5, Thriller: 4, Horror: 2, Action: 3, Comedy: 4, Film: 3 };
     const base = baseByRarity[movie.rarity] || 60;
@@ -3174,25 +3405,20 @@ button, a, select { font: inherit; }
   function personLetterboxdUrl(card) {
     const rolePath = {
       actor: 'actor',
-      director: 'director',
-      writer: 'writer',
-      producer: 'producer',
-      editor: 'editor',
-      cinematographer: 'cinematographer',
-      composer: 'composer'
+      director: 'director'
     }[card && card.roleKey] || 'actor';
     return 'https://letterboxd.com/' + rolePath + '/' + slugifyLetterboxdPerson(card && card.title) + '/';
   }
 
   function buildCardBackground(rarity) {
     const backgrounds = {
-      Common: 'linear-gradient(180deg, #232a36 0%, #151a22 100%), linear-gradient(180deg, #8f9bab 0%, #6b7787 100%)',
-      Uncommon: 'linear-gradient(180deg, #1b332d 0%, #111a1a 100%), linear-gradient(180deg, #22c55e 0%, #0f766e 100%)',
-      Rare: 'linear-gradient(180deg, #1a2a42 0%, #111827 100%), linear-gradient(180deg, #60a5fa 0%, #4338ca 100%)',
-      Epic: 'linear-gradient(180deg, #2b1f3b 0%, #161320 100%), linear-gradient(180deg, #d8b4fe 0%, #7e22ce 100%)',
-      Legendary: 'linear-gradient(180deg, #3b2913 0%, #19140d 100%), linear-gradient(180deg, #fcd34d 0%, #d97706 100%)'
+      Prolific: 'linear-gradient(180deg, #232a36 0%, #151a22 100%), linear-gradient(180deg, #8f9bab 0%, #6b7787 100%)',
+      Respected: 'linear-gradient(180deg, #1b332d 0%, #111a1a 100%), linear-gradient(180deg, #22c55e 0%, #0f766e 100%)',
+      Awarded: 'linear-gradient(180deg, #1a2a42 0%, #111827 100%), linear-gradient(180deg, #60a5fa 0%, #4338ca 100%)',
+      Iconic: 'linear-gradient(180deg, #2b1f3b 0%, #161320 100%), linear-gradient(180deg, #d8b4fe 0%, #7e22ce 100%)',
+      Canon: 'linear-gradient(180deg, #3b2913 0%, #19140d 100%), linear-gradient(180deg, #fcd34d 0%, #d97706 100%)'
     };
-    return backgrounds[rarity] || backgrounds.Common;
+    return backgrounds[normalizeRarityLabel(rarity)] || backgrounds.Prolific;
   }
 
   function artLabel(movie) {
@@ -3209,11 +3435,11 @@ button, a, select { font: inherit; }
   }
 
   function rarityRank(rarity) {
-    return { Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5 }[rarity] || 1;
+    return { Prolific: 1, Respected: 2, Awarded: 3, Iconic: 4, Canon: 5 }[normalizeRarityLabel(rarity)] || 1;
   }
 
   function rarityByRank(rank) {
-    return { 1: 'Common', 2: 'Uncommon', 3: 'Rare', 4: 'Epic', 5: 'Legendary' }[Math.max(1, Math.min(5, rank))] || 'Common';
+    return { 1: 'Prolific', 2: 'Respected', 3: 'Awarded', 4: 'Iconic', 5: 'Canon' }[Math.max(1, Math.min(5, rank))] || 'Prolific';
   }
 
   function roleLabelForDisplay(card) {
@@ -3285,18 +3511,14 @@ button, a, select { font: inherit; }
 
     if (candidate.personType === 'director') rank = Math.max(rank, sourceRank);
     if (candidate.personType === 'actor') rank = Math.max(rank, sourceRank - 1);
-    if (candidate.personType === 'crew') rank = Math.max(2, sourceRank - 2);
 
     if (candidate.roleKey === 'director') rank = Math.max(rank, 3);
     if (candidate.roleKey === 'director' && popularity >= 10) rank = Math.max(rank, 4);
     if (candidate.roleKey === 'actor' && popularity >= 22) rank = Math.max(rank, 3);
-    if ((candidate.roleKey === 'composer' || candidate.roleKey === 'cinematographer' || candidate.roleKey === 'writer') && popularity >= 9) rank = Math.max(rank, 3);
     if (popularity >= 25) rank += 1;
-    if (popularity >= 45 && candidate.personType !== 'crew') rank += 1;
+    if (popularity >= 45) rank += 1;
     if (candidate.roleKey === 'director' && sourceRank >= 4) rank = Math.max(rank, 4);
     if (candidate.roleKey === 'actor' && sourceRank >= 5 && popularity >= 20) rank = Math.max(rank, 4);
-    if (candidate.roleKey === 'composer' || candidate.roleKey === 'cinematographer') rank = Math.min(rank, 4);
-    if (candidate.roleKey === 'producer' || candidate.roleKey === 'editor' || candidate.roleKey === 'writer') rank = Math.min(rank, 4);
     if (explicitFloor) rank = Math.max(rank, rarityRank(explicitFloor));
 
     return rarityByRank(rank);
@@ -3413,7 +3635,7 @@ button, a, select { font: inherit; }
     if (movie.voteAverage >= 8.0 && movie.voteCount >= 1200) tags.push('Awards Favorite');
     if (movieHasTag(movie, 'international') && movie.voteAverage >= 7.5) tags.push('Festival Favorite');
     if (movieHasTag(movie, 'horror') && year && year <= 2005) tags.push('Cult Classic');
-    if (movieHasTag(movie, 'horror') && movie.rarity !== 'Common') tags.push('Midnight Movie');
+    if (movieHasTag(movie, 'horror') && rarityRank(movie.rarity) > 1) tags.push('Midnight Movie');
     if (movieHasTag(movie, 'noir') && year && year <= 1975) tags.push('Noir Staple');
     if (movieHasTag(movie, 'female')) tags.push('Auteur Vision');
     if (movie.voteCount >= 2500) tags.push('Crowd Favorite');
@@ -3448,14 +3670,14 @@ button, a, select { font: inherit; }
   }
 
   function buildGhostMarkup(positionClass, movie) {
-    const rarity = movie ? movie.rarity : 'Common';
+    const rarity = movie ? movie.rarity : 'Prolific';
     const meta = movie
       ? (movie.cardType === 'person'
         ? roleLabelForDisplay(movie)
         : (movie.year || 'Film'))
       : 'filmTCG';
     const title = movie ? movie.title : 'filmTCG';
-    return '<div class="overlap-ghost ' + positionClass + '" style="border-color:' + escapeHtml(rarityColor(movie ? movie.rarity : 'Common')) + ';">'
+    return '<div class="overlap-ghost ' + positionClass + '" style="border-color:' + escapeHtml(rarityColor(movie ? movie.rarity : 'Prolific')) + ';">'
       + '<div class="overlap-ghost-core">'
       + '<span class="overlap-ghost-rarity" style="background:' + escapeHtml(rarityColor(rarity)) + ';">' + escapeHtml(rarityShortLabel(rarity)) + '</span>'
       + '<div class="overlap-ghost-title">' + escapeHtml(title) + '</div><div class="overlap-ghost-meta">' + escapeHtml(meta) + '</div></div>'
@@ -3467,7 +3689,13 @@ button, a, select { font: inherit; }
   }
 
   function rarityShortLabel(rarity) {
-    return ({ Common: 'C', Uncommon: 'U', Rare: 'R', Epic: 'E', Legendary: 'L' })[rarity] || 'C';
+    return ({ Prolific: 'P', Respected: 'R', Awarded: 'A', Iconic: 'I', Canon: 'C' })[normalizeRarityLabel(rarity)] || 'P';
+  }
+
+  function buildDuplicateCountMarkup(count) {
+    return count > 1
+      ? '<span class="lb-badge is-count" aria-label="' + escapeHtml(String(count)) + ' copies">x' + escapeHtml(String(count)) + '</span>'
+      : '';
   }
 
   function buildShowcaseButtonMarkup(card) {
@@ -3492,7 +3720,10 @@ button, a, select { font: inherit; }
       + '; --pack-tier-border:' + (theme.tierBorder || 'rgba(255,255,255,.16)')
       + '; --pack-cta-ink:' + (theme.ctaInk || 'rgba(255,255,255,.84)');
     const config = options || {};
-    const classes = 'pack' + (config.extraClasses ? ' ' + config.extraClasses : '');
+    const packTextureClass = themeKey === 'gold'
+      ? ' is-gold'
+      : (themeKey !== 'all' ? ' is-featured' : '');
+    const classes = 'pack' + packTextureClass + (config.extraClasses ? ' ' + config.extraClasses : '');
     let attrs = ' class="' + escapeHtml(classes) + '"';
     if (config.id) attrs += ' id="' + escapeHtml(config.id) + '"';
     if (config.disabled) attrs += ' aria-disabled="true"';
@@ -3505,9 +3736,12 @@ button, a, select { font: inherit; }
       + '<div class="pack-spine"></div>'
       + '<div class="pack-glow"></div>'
       + '<div class="pack-glint"></div>'
+      + '<div class="pack-grain"></div>'
+      + '<div class="pack-twinkle"></div>'
       + '<div class="pack-title">' + escapeHtml(theme.title) + '</div>'
       + '<div class="pack-sub">' + escapeHtml(theme.blurb) + '</div>'
-      + '<div class="pack-tier">' + escapeHtml(theme.tier) + '<span class="pack-tier-count">' + PACK_SIZE + ' cards</span></div>'
+      + '<div class="pack-tier">' + escapeHtml(theme.tier) + '</div>'
+      + '<div class="pack-card-count">' + PACK_SIZE + ' cards</div>'
       + '</div>';
   }
 
@@ -3604,7 +3838,7 @@ button, a, select { font: inherit; }
         }
         img.src = makePosterDataUri({
           title: img.dataset.title || 'Unknown',
-          rarity: img.dataset.rarity || 'Common',
+          rarity: img.dataset.rarity || 'Prolific',
           genre: img.dataset.genre || 'Film'
         });
       });
@@ -3951,12 +4185,25 @@ button, a, select { font: inherit; }
     return normalizeMovieRecord(movie);
   }
 
-  function chooseCandidateWithAvoidance(candidates, excludedTitles, avoidedTitles) {
+  function chooseCandidateWithAvoidance(candidates, excludedTitles, avoidedTitles, ownedTitles) {
     const excluded = excludedTitles || new Set();
     const avoided = avoidedTitles || new Set();
+    const owned = ownedTitles || new Set();
     let filtered = (candidates || []).filter(function (movie) {
-      return !excluded.has(movie.title) && !avoided.has(movie.title);
+      return !excluded.has(movie.title) && !avoided.has(movie.title) && !owned.has(movie.title);
     });
+
+    if (!filtered.length) {
+      filtered = (candidates || []).filter(function (movie) {
+        return !excluded.has(movie.title) && !avoided.has(movie.title);
+      });
+    }
+
+    if (!filtered.length) {
+      filtered = (candidates || []).filter(function (movie) {
+        return !excluded.has(movie.title) && !owned.has(movie.title);
+      });
+    }
 
     if (!filtered.length) {
       filtered = (candidates || []).filter(function (movie) {
@@ -3976,9 +4223,10 @@ button, a, select { font: inherit; }
     return avoided;
   }
 
-  function chooseMovieForPack(pool, excludedTitles, guaranteedHighRarity) {
+  function chooseMovieForPack(pool, excludedTitles, guaranteedHighRarity, ownedTitles) {
     const buckets = {};
     const avoidedTitles = buildAvoidedTitleSet();
+    const preferredOwnedTitles = ownedTitles || buildOwnedFilmTitleSet();
     pool.forEach(function (movie) {
       if (!buckets[movie.rarity]) buckets[movie.rarity] = [];
       buckets[movie.rarity].push(movie);
@@ -3986,30 +4234,30 @@ button, a, select { font: inherit; }
 
     if (guaranteedHighRarity) {
       let premiumCandidates = []
-        .concat(buckets.Legendary || [])
-        .concat(buckets.Epic || []);
+        .concat(buckets.Canon || [])
+        .concat(buckets.Iconic || []);
 
-      const premiumPick = chooseCandidateWithAvoidance(premiumCandidates, excludedTitles, avoidedTitles);
+      const premiumPick = chooseCandidateWithAvoidance(premiumCandidates, excludedTitles, avoidedTitles, preferredOwnedTitles);
       if (premiumPick) {
         return cloneMovie(premiumPick);
       }
     }
 
     const availableOdds = PULL_ODDS.filter(function (entry) { return buckets[entry.rarity] && buckets[entry.rarity].length; });
-    const pickedRarity = availableOdds.length ? weightedChoice(availableOdds).rarity : 'Common';
-    let pickedMovie = chooseCandidateWithAvoidance(buckets[pickedRarity] || [], excludedTitles, avoidedTitles);
+    const pickedRarity = availableOdds.length ? weightedChoice(availableOdds).rarity : 'Prolific';
+    let pickedMovie = chooseCandidateWithAvoidance(buckets[pickedRarity] || [], excludedTitles, avoidedTitles, preferredOwnedTitles);
 
     if (!pickedMovie) {
-      pickedMovie = chooseCandidateWithAvoidance(pool, excludedTitles, avoidedTitles);
+      pickedMovie = chooseCandidateWithAvoidance(pool, excludedTitles, avoidedTitles, preferredOwnedTitles);
     }
 
     return cloneMovie(pickedMovie || pool[Math.floor(Math.random() * pool.length)]);
   }
 
   function sortPackForReveal(cards) {
-    const weights = { Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5 };
+    const weights = { Prolific: 1, Respected: 2, Awarded: 3, Iconic: 4, Canon: 5 };
     const sorted = cards.slice().sort(function (a, b) { return weights[a.rarity] - weights[b.rarity]; });
-    const highIndex = sorted.findIndex(function (card) { return card.rarity === 'Epic' || card.rarity === 'Legendary'; });
+    const highIndex = sorted.findIndex(function (card) { return card.rarity === 'Iconic' || card.rarity === 'Canon'; });
     if (highIndex !== -1) {
       const target = sorted.length >= 4 ? sorted.length - 2 : sorted.length - 1;
       const picked = sorted.splice(highIndex, 1)[0];
@@ -4082,13 +4330,14 @@ button, a, select { font: inherit; }
 
     pack = [];
     const seenTitles = new Set();
+    const ownedTitles = buildOwnedFilmTitleSet();
     const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
     const isGoldRewardPack = isRewardPack && activeRewardSelection === 'gold';
     const shouldTryPersonInsert = dataSourceLabel.indexOf('TMDB') !== -1;
     const filmSlots = shouldTryPersonInsert ? (PACK_SIZE - 1) : PACK_SIZE;
 
     for (let i = 0; i < filmSlots; i += 1) {
-      const movie = chooseMovieForPack(pool, seenTitles, isGoldRewardPack && i === 0);
+      const movie = chooseMovieForPack(pool, seenTitles, isGoldRewardPack && i === 0, ownedTitles);
       pack.push(movie);
       collection.unshift(movie);
       if (pool.length > PACK_SIZE) seenTitles.add(movie.title);
@@ -4103,7 +4352,7 @@ button, a, select { font: inherit; }
         activeReelSeenTitles.add(personInsert.title);
       } else {
         while (pack.length < PACK_SIZE) {
-          const fallbackMovie = chooseMovieForPack(pool, seenTitles, false);
+          const fallbackMovie = chooseMovieForPack(pool, seenTitles, false, ownedTitles);
           pack.push(fallbackMovie);
           collection.unshift(fallbackMovie);
           if (pool.length > PACK_SIZE) seenTitles.add(fallbackMovie.title);
@@ -4113,7 +4362,7 @@ button, a, select { font: inherit; }
     }
 
     while (pack.length < PACK_SIZE) {
-      const movie = chooseMovieForPack(pool, seenTitles, false);
+      const movie = chooseMovieForPack(pool, seenTitles, false, ownedTitles);
       pack.push(movie);
       collection.unshift(movie);
       if (pool.length > PACK_SIZE) seenTitles.add(movie.title);
@@ -4184,7 +4433,7 @@ button, a, select { font: inherit; }
       + '<div class="overlap-stack">'
       + ghostMarkup
       + '<button id="prevArrow" type="button" class="arrow stack-arrow is-left" aria-label="Previous card">&#8592;</button>'
-      + '<div class="overlap-count">' + String(remainingAfter) + '</div><div class="peel-card-wrap">' + buildCardMarkup(current) + '</div>'
+      + '<div class="overlap-count">' + String(remainingAfter) + '</div><div class="peel-card-wrap rarity-' + escapeHtml(String((current.rarity || 'Prolific')).toLowerCase()) + '">' + buildCardMarkup(current) + '</div>'
       + '<button id="nextArrow" type="button" class="arrow stack-arrow is-right" aria-label="Next card">&#8594;</button>'
       + '</div>'
       + '</div>'
@@ -4277,23 +4526,21 @@ button, a, select { font: inherit; }
   }
 
   function renderCollection() {
-    const rarityOrder = { Legendary: 5, Epic: 4, Rare: 3, Uncommon: 2, Common: 1 };
-    const filtered = collection.filter(function (card) {
-      return matchesCollectionFilter(card) && matchesCollectionSearch(card);
+    const grouped = aggregateCollectionEntries(collection);
+    const filtered = grouped.filter(function (entry) {
+      return matchesCollectionFilter(entry.card) && matchesCollectionSearch(entry.card);
     }).slice();
 
     filtered.sort(function (a, b) {
-      if (collectionSort === 'title') return a.title.localeCompare(b.title);
-      if (collectionSort === 'rarity') return (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0) || a.title.localeCompare(b.title);
-      return 0;
+      if (collectionSort === 'title') return a.card.title.localeCompare(b.card.title);
+      if (collectionSort === 'rarity') return rarityRank(b.card.rarity) - rarityRank(a.card.rarity) || a.card.title.localeCompare(b.card.title);
+      return a.rawIndex - b.rawIndex;
     });
 
     document.getElementById('collectionCount').textContent = String(collection.length);
-    document.getElementById('uniqueCount').textContent = String(new Set(collection.map(function (movie) {
-      return (movie.cardType || 'film') + ':' + movie.title;
-    })).size);
-    document.getElementById('legendaryCount').textContent = String(collection.filter(function (movie) {
-      return movie.rarity === 'Legendary' || movie.rarity === 'Epic';
+    document.getElementById('uniqueCount').textContent = String(grouped.length);
+    document.getElementById('legendaryCount').textContent = String(grouped.filter(function (entry) {
+      return rarityRank(entry.card.rarity) >= 4;
     }).length);
     renderCollectionViewToggle();
 
@@ -4306,12 +4553,15 @@ button, a, select { font: inherit; }
     if (collectionView === 'list') {
       collectionGrid.classList.remove('collection-grid');
       collectionGrid.classList.add('collection-list');
-      collectionGrid.innerHTML = filtered.map(function (movie, filteredIndex) {
+      collectionGrid.innerHTML = filtered.map(function (entry, filteredIndex) {
+        const movie = entry.card;
+        const countBadge = buildDuplicateCountMarkup(entry.count);
         if (movie.cardType === 'person') {
           return '<div class="collection-list-item is-person" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
             + buildCollectionKindMarkup(movie)
             + '<div class="collection-list-role">' + escapeHtml(roleLabelForDisplay(movie)) + '</div>'
             + '<span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>'
+            + countBadge
             + buildBookmarkButtonMarkup(movie)
             + buildShowcaseButtonMarkup(movie)
             + '</div>';
@@ -4321,6 +4571,7 @@ button, a, select { font: inherit; }
           + buildCollectionKindMarkup(movie)
           + '<div class="collection-list-secondary">' + escapeHtml(collectionSecondaryLabel(movie)) + '</div>'
           + '<span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>'
+          + countBadge
           + buildBookmarkButtonMarkup(movie)
           + buildShowcaseButtonMarkup(movie)
           + '</div>';
@@ -4328,10 +4579,11 @@ button, a, select { font: inherit; }
     } else {
       collectionGrid.classList.add('collection-grid');
       collectionGrid.classList.remove('collection-list');
-      collectionGrid.innerHTML = filtered.map(function (movie, filteredIndex) {
+      collectionGrid.innerHTML = filtered.map(function (entry, filteredIndex) {
+        const movie = entry.card;
         return '<div class="collection-card" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
           + '<div class="collection-card-preview">' + buildShelfCardMarkup(movie) + '</div>'
-          + '<div class="collection-card-actions"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span><span class="collection-card-actions-right">' + buildShowcaseButtonMarkup(movie) + buildBookmarkButtonMarkup(movie) + '</span></div>'
+          + '<div class="collection-card-actions"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>' + buildDuplicateCountMarkup(entry.count) + '<span class="collection-card-actions-right">' + buildShowcaseButtonMarkup(movie) + buildBookmarkButtonMarkup(movie) + '</span></div>'
           + '</div>';
       }).join('');
     }
@@ -4340,21 +4592,25 @@ button, a, select { font: inherit; }
     renderShowcase();
     attachBookmarkButtons(collectionGrid, function (button) {
       const target = button.closest('[data-index]');
-      return filtered[Number(target && target.dataset.index)];
+      const entry = filtered[Number(target && target.dataset.index)];
+      return entry ? entry.card : null;
     });
     attachShowcaseButtons(collectionGrid, function (button) {
       const target = button.closest('[data-index]');
-      return filtered[Number(target && target.dataset.index)];
+      const entry = filtered[Number(target && target.dataset.index)];
+      return entry ? entry.card : null;
     });
     collectionGrid.querySelectorAll('.collection-card, .collection-list-item').forEach(function (button) {
       button.addEventListener('click', function () {
-        const item = filtered[Number(button.dataset.index)];
+        const entry = filtered[Number(button.dataset.index)];
+        const item = entry ? entry.card : null;
         if (item) openCollectionModal(item);
       });
       button.addEventListener('keydown', function (event) {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
-          const item = filtered[Number(button.dataset.index)];
+          const entry = filtered[Number(button.dataset.index)];
+          const item = entry ? entry.card : null;
           if (item) openCollectionModal(item);
         }
       });
