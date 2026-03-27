@@ -111,6 +111,9 @@ const TITLE_RARITY_FLOORS = {
   '8 1/2': 'Epic',
   '8½': 'Epic',
   '12 angry men': 'Legendary',
+  'a matter of loaf and death': 'Select',
+  'a close shave': 'Epic',
+  'a grand day out': 'Select',
   'a brighter summer day': 'Epic',
   'all that jazz': 'Epic',
   'andrei rublev': 'Epic',
@@ -131,6 +134,7 @@ const TITLE_RARITY_FLOORS = {
   'e.t. the extra-terrestrial': 'Epic',
   'et the extra-terrestrial': 'Epic',
   'goodfellas': 'Legendary',
+  'grey gardens': 'Epic',
   'grave of the fireflies': 'Epic',
   'harakiri': 'Legendary',
   'high and low': 'Epic',
@@ -172,6 +176,7 @@ const TITLE_RARITY_FLOORS = {
   'the terminator': 'Epic',
   'the third man': 'Epic',
   'the umbrellas of cherbourg': 'Epic',
+  'the wrong trousers': 'Epic',
   'the wizard of oz': 'Epic',
   'there will be blood': 'Legendary',
   'tokyo story': 'Legendary',
@@ -180,6 +185,13 @@ const TITLE_RARITY_FLOORS = {
   'apollo 13': 'Epic',
   'yi yi': 'Legendary'
 };
+
+const CANON_SHORT_TITLES = [
+  'A Grand Day Out',
+  'The Wrong Trousers',
+  'A Close Shave',
+  'A Matter of Loaf and Death'
+];
 
 const EPIC_PROMOTION_TITLES = new Set([
   'finding nemo',
@@ -370,6 +382,24 @@ function sampleDistinctPageNumbers(count, maxPage) {
 function buildRecipePages(recipe) {
   const pageWindow = Math.max(recipe.pages, Math.min(120, Number(recipe.pageWindow) || (recipe.pages * 10)));
   return sampleDistinctPageNumbers(recipe.pages, pageWindow);
+}
+
+async function fetchCanonShorts() {
+  const searches = await Promise.allSettled(CANON_SHORT_TITLES.map(function (title) {
+    return tmdbJson('/search/movie', { query: title, page: 1 });
+  }));
+
+  return searches.map(function (entry, index) {
+    if (entry.status !== 'fulfilled' || !entry.value) return null;
+    const wantedKey = titleKey(CANON_SHORT_TITLES[index]);
+    return (entry.value.results || []).find(function (movie) {
+      return movie
+        && !movie.adult
+        && movie.poster_path
+        && extractYear(movie.release_date)
+        && titleKey(movie.title) === wantedKey;
+    }) || null;
+  }).filter(Boolean);
 }
 
 function loadEnvFile() {
@@ -701,6 +731,7 @@ function computeMovieSignals(movie) {
   const isGenreLandmarkLane = movieHasGenreId(movie, [80, 27, 53, 9648, 878, 28]);
   const isFamilyLane = movieHasGenreId(movie, [16, 10751, 12, 14]);
   const isCrowdPleaserLane = movieHasGenreId(movie, [35, 12, 10749, 10402, 10751]);
+  const isDocumentary = movieHasGenreId(movie, 99);
 
   let recognition = 0;
   if (popularity >= 12) recognition += 1;
@@ -709,6 +740,8 @@ function computeMovieSignals(movie) {
   if (voteCount >= 250) recognition += 1;
   if (voteCount >= 1500) recognition += 1;
   if (voteCount >= 7000) recognition += 1;
+  if (isDocumentary && voteCount >= 120) recognition += 1;
+  if (isDocumentary && voteCount >= 900) recognition += 1;
 
   let respect = 0;
   if (voteAverage >= 7.0 && voteCount >= 70) respect += 1;
@@ -717,12 +750,16 @@ function computeMovieSignals(movie) {
   if (voteAverage >= 8.2 && voteCount >= 1800) respect += 1;
   if (year && year <= 2000 && voteAverage >= 7.7 && voteCount >= 120) respect += 1;
   if (isInternational && voteAverage >= 7.7 && voteCount >= 80) respect += 1;
+  if (isDocumentary && voteAverage >= 7.5 && voteCount >= 90) respect += 1;
+  if (isDocumentary && voteAverage >= 8.0 && voteCount >= 260) respect += 1;
 
   let cult = 0;
   if (voteAverage >= 7.1 && voteCount >= 40 && voteCount <= 1800 && popularity >= 3 && popularity <= 36) cult += 1;
   if (year && year <= 2010 && voteAverage >= 7.0 && voteCount >= 70 && popularity <= 28) cult += 1;
   if (isCultFriendlyGenre && voteAverage >= 6.8 && voteCount >= 60) cult += 1;
   if (isInternational && voteAverage >= 7.3 && voteCount >= 45 && popularity <= 26) cult += 1;
+  if (isDocumentary && voteAverage >= 7.6 && voteCount >= 60 && popularity <= 18) cult += 1;
+  if (isDocumentary && year && year <= 2012 && voteAverage >= 7.4 && voteCount >= 45) cult += 1;
 
   let canon = 0;
   if (year && year <= 1985 && voteAverage >= 8.0 && voteCount >= 120) canon += 1;
@@ -738,6 +775,11 @@ function computeMovieSignals(movie) {
   const prestigeCrowdPleaserProxy = isPrestigeGenre && recognition >= 3 && respect >= 2 && voteCount >= 900;
   const familyAnimationStapleProxy = isFamilyLane && recognition >= 4 && respect >= 2;
   const blockbusterRespectProxy = recognition >= 5 && respect >= 3 && voteAverage >= 7.0;
+  const documentaryLandmarkProxy = isDocumentary && (
+    respect >= 4 ||
+    (recognition >= 3 && respect >= 3) ||
+    (cult >= 3 && respect >= 2)
+  );
   const titlePromotion = EPIC_PROMOTION_TITLES.has(titleKey(movie && movie.title));
 
   return {
@@ -753,6 +795,7 @@ function computeMovieSignals(movie) {
     prestigeCrowdPleaserProxy: prestigeCrowdPleaserProxy,
     familyAnimationStapleProxy: familyAnimationStapleProxy,
     blockbusterRespectProxy: blockbusterRespectProxy,
+    documentaryLandmarkProxy: documentaryLandmarkProxy,
     titlePromotion: titlePromotion,
     year: year,
     popularity: popularity,
@@ -864,6 +907,7 @@ function rarityFloorForMovie(movie) {
     signals.prestigeCrowdPleaserProxy ||
     signals.familyAnimationStapleProxy ||
     signals.blockbusterRespectProxy ||
+    signals.documentaryLandmarkProxy ||
     signals.titlePromotion
   ) {
     floor = maxRarity(floor, 'Epic');
@@ -1001,6 +1045,7 @@ async function buildCardPool(limit) {
       requests.push(tmdbJson('/discover/movie', Object.assign({
         page: pages[i],
         include_video: 'false',
+        'with_runtime.gte': '30',
         'primary_release_date.lte': today
       }, recipe.params)));
     }
@@ -1010,8 +1055,9 @@ async function buildCardPool(limit) {
   const responses = settledResponses
     .filter(function (entry) { return entry.status === 'fulfilled' && entry.value; })
     .map(function (entry) { return entry.value; });
+  const canonShorts = await fetchCanonShorts();
 
-  if (!responses.length) {
+  if (!responses.length && !canonShorts.length) {
     throw new Error('Unable to build card pool from TMDB discover results.');
   }
 
@@ -1028,6 +1074,13 @@ async function buildCardPool(limit) {
         deduped.set(movie.id, movie);
       }
     });
+  });
+
+  canonShorts.forEach(function (movie) {
+    if (!movie || !movie.id || !movie.title) return;
+    if (!deduped.has(movie.id)) {
+      deduped.set(movie.id, movie);
+    }
   });
 
   const ranked = selectDiversifiedPool(
