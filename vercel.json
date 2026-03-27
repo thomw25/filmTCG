@@ -11,11 +11,5 @@
       "src": "/(.*)",
       "dest": "server.js"
     }
-  ],
-  "functions": {
-    "server.js": {
-      "memory": 2048,
-      "maxDuration": 60
-    }
-  }
+  ]
 }
