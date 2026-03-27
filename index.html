@@ -206,9 +206,10 @@ button, a, select { font: inherit; }
   color: var(--pack-ink, #f8fafc);
 }
 
-.pack.opening { animation: packBeat .22s ease-in-out 2; }
+.pack.opening { animation: none; }
 .pack.is-shuffling {
-  animation: packShuffle 900ms cubic-bezier(.2,.85,.2,1) forwards;
+  animation: packBurst 860ms cubic-bezier(.18,.88,.24,1) forwards;
+  overflow: hidden;
 }
 
 .pack:not(.is-loading):not(.opening):not(.is-shuffling) {
@@ -247,8 +248,7 @@ button, a, select { font: inherit; }
 
 .pack-foil,
 .pack-top-seal,
-.pack-rip-strip,
-.pack-perf-edge,
+.pack-tear-line,
 .pack-spine,
 .pack-glint,
 .pack-grain,
@@ -265,6 +265,20 @@ button, a, select { font: inherit; }
   background-size: 132% 132%, 100% 100%;
   background-position: 100% 0, 50% 50%;
   z-index: 0;
+}
+
+.pack-tear-line {
+  top: 34px;
+  left: -40px;
+  width: calc(100% + 80px);
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), var(--pack-tear-core, rgba(255,250,220,.98)) 10%, rgba(255,255,255,.98) 20%, var(--pack-tear-core-strong, rgba(255,219,77,.96)) 52%, rgba(255,255,255,.96) 82%, rgba(255,255,255,0));
+  box-shadow:
+    0 0 7px var(--pack-tear-soft, rgba(255,240,180,.5)),
+    0 0 16px var(--pack-tear-glow, rgba(251,191,36,.3));
+  opacity: 0;
+  z-index: 5;
 }
 
 .pack-glow {
@@ -362,30 +376,6 @@ button, a, select { font: inherit; }
   box-shadow: inset 0 -2px 0 rgba(0,0,0,.18);
 }
 
-.pack-rip-strip {
-  top: 26px;
-  left: 0;
-  width: 100%;
-  height: 18px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.03)),
-    linear-gradient(90deg, rgba(255,255,255,.08), rgba(0,0,0,.06));
-  box-shadow: inset 0 -1px 0 rgba(0,0,0,.18);
-  z-index: 2;
-}
-
-.pack-perf-edge {
-  top: 34px;
-  left: 8px;
-  right: 8px;
-  height: 11px;
-  z-index: 3;
-  background:
-    radial-gradient(circle at 6px 5px, transparent 0 3px, rgba(255,255,255,.24) 3.15px 4.1px, transparent 4.3px) 0 0 / 12px 11px repeat-x;
-  opacity: 0.92;
-  mix-blend-mode: screen;
-}
-
 .pack-spine {
   top: 24px;
   bottom: 24px;
@@ -439,14 +429,45 @@ button, a, select { font: inherit; }
   opacity: 0.72;
 }
 
-.pack.opening .pack-rip-strip,
-.pack.is-shuffling .pack-rip-strip {
-  animation: packRipStrip 760ms cubic-bezier(.24,.86,.28,1) forwards;
+.pack.opening .pack-tear-line,
+.pack.is-shuffling .pack-tear-line {
+  animation: packTearLine 320ms cubic-bezier(.18,.24,.14,1) forwards;
 }
 
-.pack.opening .pack-perf-edge,
-.pack.is-shuffling .pack-perf-edge {
-  animation: packPerfFade 520ms ease forwards;
+.reward-pack-option.is-selected.is-committing .pack {
+  overflow: hidden;
+}
+
+.reward-pack-option.is-selected.is-committing .pack .pack-tear-line {
+  animation: packTearLine 320ms cubic-bezier(.18,.24,.14,1) forwards;
+}
+
+.pack.opening .pack-title,
+.pack.opening .pack-sub,
+.pack.opening .pack-tier,
+.pack.opening .pack-card-count,
+.pack.opening .pack-top-seal,
+.pack.opening .pack-spine,
+.pack.opening .pack-glow,
+.pack.opening .pack-glint,
+.pack.opening .pack-grain,
+.pack.opening .pack-twinkle,
+.pack.is-shuffling .pack-title,
+.pack.is-shuffling .pack-sub,
+.pack.is-shuffling .pack-tier,
+.pack.is-shuffling .pack-card-count,
+.pack.is-shuffling .pack-top-seal,
+.pack.is-shuffling .pack-spine,
+.pack.is-shuffling .pack-glow,
+.pack.is-shuffling .pack-glint,
+.pack.is-shuffling .pack-grain,
+.pack.is-shuffling .pack-twinkle {
+  animation: packBodyFade 700ms ease-out forwards;
+}
+
+.pack.opening::after,
+.pack.is-shuffling::after {
+  animation: packBodyFade 700ms ease-out forwards;
 }
 
 .status-line {
@@ -857,6 +878,16 @@ button, a, select { font: inherit; }
 .card.legendary,
 .card.canon { animation: legendaryGlow 2.4s ease-in-out infinite; }
 
+.card.legendary::before,
+.card.canon::before {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(253,224,71,.2), transparent 28%),
+    radial-gradient(circle at 50% 84%, rgba(245,158,11,.16), transparent 38%),
+    linear-gradient(118deg, transparent 0 24%, rgba(255,255,255,.14) 32%, rgba(255,255,255,.04) 42%, transparent 56%),
+    radial-gradient(circle at top left, rgba(255,255,255,.14), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+}
+
 .peel-card-wrap .card.epic,
 .peel-card-wrap .card.iconic,
 .peel-card-wrap .card.legendary,
@@ -875,7 +906,8 @@ button, a, select { font: inherit; }
 .peel-card-wrap .card.canon {
   box-shadow:
     0 22px 48px rgba(0,0,0,.46),
-    0 0 28px rgba(245,158,11,.28);
+    0 0 28px rgba(245,158,11,.28),
+    0 0 60px rgba(251,191,36,.16);
 }
 
 .card.epic::after,
@@ -1569,11 +1601,17 @@ button, a, select { font: inherit; }
 
 .lb-badge {
   font-size: 0.66rem;
-  padding: 4px 7px;
+  padding: 0 7px;
   border-radius: 999px;
   background: #1f2937;
   color: #d1d5db;
   border: 1px solid var(--border);
+  min-width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .lb-badge.is-rarity { color: #fff; }
@@ -1589,9 +1627,10 @@ button, a, select { font: inherit; }
 }
 
 .showcase-btn {
-  min-width: 34px;
+  width: 34px;
   height: 34px;
-  padding: 0 10px;
+  min-width: 34px;
+  padding: 0;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,.16);
   background: rgba(9,11,16,.68);
@@ -1606,6 +1645,8 @@ button, a, select { font: inherit; }
 }
 
 .bookmark-btn {
+  width: 34px;
+  height: 34px;
   min-width: 34px;
 }
 
@@ -1649,8 +1690,13 @@ button, a, select { font: inherit; }
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 0 4px;
-  width: 100%;
+  padding: 6px 8px;
+  width: calc(100% - 8px);
+  min-height: 46px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.028));
+  border: 1px solid rgba(255,255,255,.08);
+  box-sizing: border-box;
 }
 
 .collection-card-actions-right {
@@ -1961,17 +2007,12 @@ button, a, select { font: inherit; }
   50% { transform: scale(1.018); box-shadow: 0 26px 54px rgba(79,70,229,0.28); }
 }
 
-@keyframes packBeat {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.055); }
-}
-
-@keyframes packShuffle {
-  0% { transform: scale(1) rotate(0deg); filter: saturate(1); }
-  24% { transform: scale(1.04) rotate(-1.6deg) translateY(-6px); }
-  52% { transform: scale(0.99) rotate(1.4deg) translateY(2px); }
-  72% { transform: scale(1.03) rotate(-0.8deg); }
-  100% { transform: scale(1) rotate(0deg); filter: saturate(1.12); }
+@keyframes packBurst {
+  0% { transform: scale(1) translateY(0); filter: saturate(1); }
+  22% { transform: scale(0.95) translateY(5px); filter: saturate(1.02); }
+  54% { transform: scale(1.07) translateY(-10px); filter: saturate(1.15); }
+  78% { transform: scale(1.01) translateY(-2px); }
+  100% { transform: scale(1) translateY(0); filter: saturate(1.12); }
 }
 
 @keyframes packHover {
@@ -1990,29 +2031,32 @@ button, a, select { font: inherit; }
   100% { transform: translateX(-112px) rotate(20deg); opacity: 0.12; }
 }
 
-@keyframes packRipStrip {
+@keyframes packTearLine {
   0% {
-    transform: translateY(0) rotate(0deg);
+    transform: translateX(-100%) scaleX(0.32);
+    opacity: 0;
+  }
+  20% {
     opacity: 1;
   }
-  35% {
-    transform: translateY(-4px) rotate(-1.1deg);
-    opacity: 1;
+  44% {
+    transform: translateX(-12%) scaleX(0.68);
+    opacity: 0.95;
   }
   100% {
-    transform: translateY(-30px) rotate(-4deg);
+    transform: translateX(100%) scaleX(1.02);
     opacity: 0;
   }
 }
 
-@keyframes packPerfFade {
-  0% {
-    transform: scaleX(1);
-    opacity: 0.92;
+@keyframes packBodyFade {
+  0%, 58% {
+    opacity: 1;
+    transform: translateY(0);
   }
   100% {
-    transform: scaleX(1.03);
     opacity: 0;
+    transform: translateY(8px);
   }
 }
 
@@ -2044,8 +2088,8 @@ button, a, select { font: inherit; }
 }
 
 @keyframes legendaryGlow {
-  0%, 100% { box-shadow: 0 20px 40px rgba(0,0,0,.4), 0 0 0 rgba(245,158,11,0); }
-  50% { box-shadow: 0 20px 40px rgba(0,0,0,.4), 0 0 34px rgba(245,158,11,.42); }
+  0%, 100% { box-shadow: 0 20px 40px rgba(0,0,0,.4), 0 0 0 rgba(245,158,11,0), 0 0 0 rgba(251,191,36,0); }
+  50% { box-shadow: 0 20px 40px rgba(0,0,0,.4), 0 0 34px rgba(245,158,11,.42), 0 0 78px rgba(251,191,36,.2); }
 }
 
 @keyframes peelOut {
@@ -2109,12 +2153,15 @@ button, a, select { font: inherit; }
   .collection-grid { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 12px; }
   .collection-card { width: 100%; }
   .collection-card {
-    gap: 6px;
+    gap: 10px;
+    padding-bottom: 6px;
   }
-  .collection-card-preview { --preview-scale: 0.43; width: calc(300px * var(--preview-scale)); height: calc(430px * var(--preview-scale)); }
+  .collection-card-preview { --preview-scale: 0.485; width: calc(300px * var(--preview-scale)); height: calc(430px * var(--preview-scale)); }
   .collection-card-actions {
     gap: 6px;
-    padding: 0 2px;
+    padding: 7px 8px;
+    width: 100%;
+    min-height: 48px;
   }
   .showcase-card-preview { --preview-scale: 0.5; }
   .showcase-slot,
@@ -2358,19 +2405,22 @@ button, a, select { font: inherit; }
   }
   .collection-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: 12px 10px;
   }
   .collection-card-preview {
-    --preview-scale: 0.455;
+    --preview-scale: 0.515;
     width: calc(300px * var(--preview-scale));
     height: calc(430px * var(--preview-scale));
   }
   .collection-card {
-    gap: 5px;
+    gap: 12px;
+    padding-bottom: 8px;
   }
   .collection-card-actions {
-    gap: 5px;
-    padding: 0 1px;
+    gap: 6px;
+    padding: 8px 9px;
+    width: 100%;
+    min-height: 50px;
   }
   .collection-list-item {
     padding: 11px 12px;
@@ -2414,7 +2464,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: signal-rarity-9</div>
+  <div class="sub">Build: signal-rarity-10</div>
 </div>
 
 <div class="nav">
@@ -2483,16 +2533,21 @@ button, a, select { font: inherit; }
         </select>
         <select id="collectionFilter" class="filter-select">
           <option value="all">Filter: All</option>
-          <option value="bookmarked">Bookmarked</option>
-          <option value="films">Films</option>
-          <option value="people">People</option>
-          <option value="actors">Actors</option>
-          <option value="directors">Directors</option>
-          <option value="crew">Crew</option>
-          <option value="Legendary">Legendary</option>
-          <option value="Epic">Epic</option>
-          <option value="Select">Select</option>
-          <option value="Base">Base</option>
+          <optgroup label="Saved">
+            <option value="bookmarked">Starred</option>
+          </optgroup>
+          <optgroup label="Card Types">
+            <option value="films">Films</option>
+            <option value="people">People</option>
+            <option value="actors">Actors</option>
+            <option value="directors">Directors</option>
+          </optgroup>
+          <optgroup label="Rarity Tiers">
+            <option value="Base">⚪ Base</option>
+            <option value="Select">🔵 Select</option>
+            <option value="Epic">🟣 Epic</option>
+            <option value="Legendary">🟡 Legendary</option>
+          </optgroup>
         </select>
       </div>
     </div>
@@ -3864,9 +3919,8 @@ button, a, select { font: inherit; }
     attrs += ' style="' + escapeHtml(style) + '"';
     return '<div' + attrs + '>'
       + '<div class="pack-foil"></div>'
+      + '<div class="pack-tear-line"></div>'
       + '<div class="pack-top-seal"></div>'
-      + '<div class="pack-rip-strip"></div>'
-      + '<div class="pack-perf-edge"></div>'
       + '<div class="pack-spine"></div>'
       + '<div class="pack-glow"></div>'
       + '<div class="pack-glint"></div>'
@@ -4299,7 +4353,15 @@ button, a, select { font: inherit; }
       }
 
       updatePackMeta();
-      await finalizePackOpen();
+      const draftedPack = await buildDraftPack(getPackPool());
+      if (selectedPackFace) {
+        selectedPackFace.classList.remove('is-loading');
+        applyPackCueToElement(selectedPackFace, draftedPack);
+        selectedPackFace.classList.add('opening');
+        selectedPackFace.classList.add('is-shuffling');
+      }
+      await new Promise(function (resolve) { setTimeout(resolve, 860); });
+      await finalizePackOpen(draftedPack);
     } finally {
       isOpeningPack = false;
     }
@@ -4388,6 +4450,87 @@ button, a, select { font: inherit; }
     return cloneMovie(pickedMovie || pool[Math.floor(Math.random() * pool.length)]);
   }
 
+  function highestRarityInCards(cards) {
+    const entries = Array.isArray(cards) ? cards : [];
+    return entries.reduce(function (highest, card) {
+      return rarityRank(card && card.rarity) > rarityRank(highest) ? normalizeRarityLabel(card.rarity) : highest;
+    }, 'Base');
+  }
+
+  function applyPackCueToElement(element, cards) {
+    if (!element) return;
+    const highest = highestRarityInCards(cards);
+    const palettes = {
+      Base: {
+        core: 'rgba(255,255,255,.94)',
+        strong: 'rgba(255,255,255,.98)',
+        soft: 'rgba(255,255,255,.34)',
+        glow: 'rgba(255,255,255,.22)'
+      },
+      Select: {
+        core: 'rgba(191,229,255,.98)',
+        strong: '#60a5fa',
+        soft: 'rgba(147,197,253,.36)',
+        glow: 'rgba(96,165,250,.28)'
+      },
+      Epic: {
+        core: 'rgba(235,210,255,.98)',
+        strong: '#c084fc',
+        soft: 'rgba(216,180,254,.38)',
+        glow: 'rgba(192,132,252,.3)'
+      },
+      Legendary: {
+        core: 'rgba(120,73,0,.98)',
+        strong: '#92400e',
+        soft: 'rgba(146,64,14,.24)',
+        glow: 'rgba(180,83,9,.22)'
+      }
+    };
+    const palette = palettes[highest] || palettes.Base;
+    element.style.setProperty('--pack-tear-core', palette.core);
+    element.style.setProperty('--pack-tear-core-strong', palette.strong);
+    element.style.setProperty('--pack-tear-soft', palette.soft);
+    element.style.setProperty('--pack-tear-glow', palette.glow);
+  }
+
+  function buildDraftPack(pool) {
+    const sourcePool = Array.isArray(pool) ? pool : [];
+    if (!sourcePool.length) return Promise.resolve([]);
+    const drafted = [];
+    const seenTitles = new Set();
+    const ownedTitles = buildOwnedFilmTitleSet();
+    const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
+    const isGoldRewardPack = isRewardPack && activeRewardSelection === 'gold';
+    const shouldTryPersonInsert = dataSourceLabel.indexOf('TMDB') !== -1;
+    const filmSlots = shouldTryPersonInsert ? (PACK_SIZE - 1) : PACK_SIZE;
+
+    for (let i = 0; i < filmSlots; i += 1) {
+      const movie = chooseMovieForPack(sourcePool, seenTitles, isGoldRewardPack && i === 0, ownedTitles);
+      drafted.push(movie);
+      if (sourcePool.length > PACK_SIZE) seenTitles.add(movie.title);
+    }
+
+    const fillFallbacks = function () {
+      while (drafted.length < PACK_SIZE) {
+        const fallbackMovie = chooseMovieForPack(sourcePool, seenTitles, false, ownedTitles);
+        drafted.push(fallbackMovie);
+        if (sourcePool.length > PACK_SIZE) seenTitles.add(fallbackMovie.title);
+      }
+      return drafted;
+    };
+
+    if (!shouldTryPersonInsert) {
+      return Promise.resolve(fillFallbacks());
+    }
+
+    return maybeBuildPersonInsert(drafted, currentPackTheme, isGoldRewardPack)
+      .catch(function () { return null; })
+      .then(function (personInsert) {
+        if (personInsert) drafted.push(personInsert);
+        return fillFallbacks();
+      });
+  }
+
   function sortPackForReveal(cards) {
     const weights = { Base: 1, Select: 2, Epic: 3, Legendary: 4 };
     const sorted = cards.slice().sort(function (a, b) { return weights[a.rarity] - weights[b.rarity]; });
@@ -4405,8 +4548,7 @@ button, a, select { font: inherit; }
     isOpeningPack = true;
     const currentPack = document.getElementById('openPackButton');
     if (currentPack) {
-      currentPack.classList.add('opening');
-      currentPack.classList.add('is-shuffling');
+      currentPack.classList.add('is-loading');
       const statusLine = pullArea.querySelector('.status-line');
       if (statusLine) {
         statusLine.textContent = 'Cracking a fresh pack...';
@@ -4434,27 +4576,37 @@ button, a, select { font: inherit; }
       }
     }
 
-    const waitForAnimation = new Promise(function (resolve) {
-      setTimeout(resolve, 900);
-    });
     const refreshPromise = shouldRefreshReel
       ? refreshPoolForPackOpen(false, requestedTheme).catch(function () { return false; })
       : Promise.resolve(false);
 
-    await Promise.all([waitForAnimation, refreshPromise]);
+    await Promise.all([
+      refreshPromise,
+      new Promise(function (resolve) { setTimeout(resolve, 120); })
+    ]);
     if (getPackPool().length < PACK_SIZE) resolvePackTheme(false);
     updatePackMeta();
+    const draftedPack = await buildDraftPack(getPackPool());
+
+    if (currentPack) {
+      currentPack.classList.remove('is-loading');
+      applyPackCueToElement(currentPack, draftedPack);
+      currentPack.classList.add('opening');
+      currentPack.classList.add('is-shuffling');
+    }
+
+    await new Promise(function (resolve) { setTimeout(resolve, 860); });
 
     try {
-      await finalizePackOpen();
+      await finalizePackOpen(draftedPack);
     } finally {
       isOpeningPack = false;
     }
   }
 
-  async function finalizePackOpen() {
+  async function finalizePackOpen(draftedPack) {
     const pool = getPackPool();
-    if (!pool.length) {
+    if (!pool.length && !(draftedPack && draftedPack.length)) {
       artworkStatus = 'No cards available for that pack theme yet.';
       resolvePackTheme(true);
       updatePackMeta();
@@ -4462,46 +4614,13 @@ button, a, select { font: inherit; }
       return;
     }
 
-    pack = [];
-    const seenTitles = new Set();
-    const ownedTitles = buildOwnedFilmTitleSet();
+    pack = Array.isArray(draftedPack) && draftedPack.length ? draftedPack.slice() : await buildDraftPack(pool);
     const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
     const isGoldRewardPack = isRewardPack && activeRewardSelection === 'gold';
-    const shouldTryPersonInsert = dataSourceLabel.indexOf('TMDB') !== -1;
-    const filmSlots = shouldTryPersonInsert ? (PACK_SIZE - 1) : PACK_SIZE;
-
-    for (let i = 0; i < filmSlots; i += 1) {
-      const movie = chooseMovieForPack(pool, seenTitles, isGoldRewardPack && i === 0, ownedTitles);
-      pack.push(movie);
-      collection.unshift(movie);
-      if (pool.length > PACK_SIZE) seenTitles.add(movie.title);
-      activeReelSeenTitles.add(movie.title);
-    }
-
-    if (shouldTryPersonInsert) {
-      const personInsert = await maybeBuildPersonInsert(pack, currentPackTheme, isGoldRewardPack).catch(function () { return null; });
-      if (personInsert) {
-        pack.push(personInsert);
-        collection.unshift(personInsert);
-        activeReelSeenTitles.add(personInsert.title);
-      } else {
-        while (pack.length < PACK_SIZE) {
-          const fallbackMovie = chooseMovieForPack(pool, seenTitles, false, ownedTitles);
-          pack.push(fallbackMovie);
-          collection.unshift(fallbackMovie);
-          if (pool.length > PACK_SIZE) seenTitles.add(fallbackMovie.title);
-          activeReelSeenTitles.add(fallbackMovie.title);
-        }
-      }
-    }
-
-    while (pack.length < PACK_SIZE) {
-      const movie = chooseMovieForPack(pool, seenTitles, false, ownedTitles);
-      pack.push(movie);
-      collection.unshift(movie);
-      if (pool.length > PACK_SIZE) seenTitles.add(movie.title);
-      activeReelSeenTitles.add(movie.title);
-    }
+    pack.forEach(function (card) {
+      collection.unshift(card);
+      activeReelSeenTitles.add(card.title);
+    });
 
     if (isRewardPack) {
       progress.rewardChoicesAvailable = Math.max(0, progress.rewardChoicesAvailable - 1);
