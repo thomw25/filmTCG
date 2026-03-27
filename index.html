@@ -2347,7 +2347,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: signal-rarity-2</div>
+  <div class="sub">Build: signal-rarity-4</div>
 </div>
 
 <div class="nav">
@@ -2596,15 +2596,16 @@ button, a, select { font: inherit; }
   };
   const RARITY_COLORS = { Base: '#94a3b8', Select: '#60a5fa', Epic: '#c084fc', Legendary: '#fbbf24' };
   const PULL_ODDS = [
-    { rarity: 'Base', weight: 84.4 },
-    { rarity: 'Select', weight: 14.5 },
-    { rarity: 'Epic', weight: 1.0 },
+    { rarity: 'Base', weight: 85.1 },
+    { rarity: 'Select', weight: 13.9 },
+    { rarity: 'Epic', weight: 0.9 },
     { rarity: 'Legendary', weight: 0.1 }
   ];
   const PERSON_INSERT_CHANCE = 0.34;
   const PERSON_INSERT_CHANCE_GOLD = 0.58;
   const PERSON_RARITY_FLOORS = {
     'martin scorsese': 'Legendary',
+    'buster keaton': 'Legendary',
     'alfred hitchcock': 'Legendary',
     'akira kurosawa': 'Legendary',
     'ingmar bergman': 'Legendary',
@@ -2640,6 +2641,7 @@ button, a, select { font: inherit; }
     'terrence malick': 'Epic',
     'toni scott': 'Select',
     'robert de niro': 'Epic',
+    'cameron diaz': 'Epic',
     'anna karina': 'Legendary',
     'giulietta masina': 'Legendary',
     'ingrid bergman': 'Legendary',
