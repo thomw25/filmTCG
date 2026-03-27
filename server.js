@@ -172,6 +172,13 @@ const TITLE_RARITY_FLOORS = {
   'yi yi': 'Legendary'
 };
 
+const EPIC_PROMOTION_TITLES = new Set([
+  'finding nemo',
+  'thief',
+  'paper moon',
+  'the french connection'
+]);
+
 const THEME_SOURCE_LABELS = {
   all: 'All Cinema',
   horror: 'Scary Movie Night',
@@ -676,6 +683,9 @@ function computeMovieSignals(movie) {
   const originalLanguage = String(movie && movie.original_language || '').toLowerCase();
   const isInternational = originalLanguage && originalLanguage !== 'en';
   const isCultFriendlyGenre = movieHasGenreId(movie, [27, 53, 9648, 80, 35, 14, 878, 16, 10402, 10749]);
+  const isPrestigeGenre = movieHasGenreId(movie, [18, 36, 10402, 10752]);
+  const isIconicAnimation = movieHasGenreId(movie, 16);
+  const isGenreLandmarkLane = movieHasGenreId(movie, [80, 27, 53, 9648, 878, 28]);
 
   let recognition = 0;
   if (popularity >= 12) recognition += 1;
@@ -705,11 +715,22 @@ function computeMovieSignals(movie) {
   if (isInternational && year && year <= 2005 && voteAverage >= 7.9 && voteCount >= 100) canon += 1;
   if (voteAverage >= 8.4 && voteCount >= 2200) canon += 2;
 
+  const prestigeProxy = isPrestigeGenre && recognition >= 3 && respect >= 3;
+  const iconicAnimationProxy = isIconicAnimation && recognition >= 4 && respect >= 2;
+  const genreLandmarkProxy = isGenreLandmarkLane && (cult >= 3 || (respect >= 3 && recognition >= 2));
+  const recognitionEvent = recognition >= 5 && respect >= 2;
+  const titlePromotion = EPIC_PROMOTION_TITLES.has(titleKey(movie && movie.title));
+
   return {
     recognition: recognition,
     respect: respect,
     cult: cult,
     canon: canon,
+    prestigeProxy: prestigeProxy,
+    iconicAnimationProxy: iconicAnimationProxy,
+    genreLandmarkProxy: genreLandmarkProxy,
+    recognitionEvent: recognitionEvent,
+    titlePromotion: titlePromotion,
     year: year,
     popularity: popularity,
     voteAverage: voteAverage,
@@ -793,6 +814,10 @@ function rarityFloorForMovie(movie) {
     floor = maxRarity(floor, 'Select');
   }
 
+  if (signals.recognitionEvent) {
+    floor = maxRarity(floor, 'Select');
+  }
+
   if (signals.recognition >= 5 && signals.respect >= 3) {
     floor = maxRarity(floor, 'Epic');
   }
@@ -802,6 +827,10 @@ function rarityFloorForMovie(movie) {
   }
 
   if (signals.cult >= 4 && signals.respect >= 3) {
+    floor = maxRarity(floor, 'Epic');
+  }
+
+  if (signals.prestigeProxy || signals.iconicAnimationProxy || signals.genreLandmarkProxy || signals.titlePromotion) {
     floor = maxRarity(floor, 'Epic');
   }
 
