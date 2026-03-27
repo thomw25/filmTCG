@@ -9,14 +9,21 @@ const PORT = Number(process.env.PORT || 3001);
 const TMDB_BEARER_TOKEN = process.env.TMDB_BEARER_TOKEN || process.env.TMDB_API_READ_ACCESS_TOKEN || '';
 const TMDB_API_BASE = 'https://api.themoviedb.org/3';
 const STATIC_ROOT = __dirname;
+const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const POOL_SNAPSHOT_VERSION = 'server-rotation-2';
-const SNAPSHOT_ROOT = path.join(STATIC_ROOT, '.cache');
+const POOL_SNAPSHOT_VERSION = 'server-rotation-3';
+const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom'];
-const BASE_REEL_COUNT = 4;
-const THEME_REEL_COUNT = 3;
+const BASE_REEL_COUNT = 3;
+const THEME_REEL_COUNT = 2;
+const MAX_REQUEST_POOL_LIMIT = 1000;
+const BASE_PREWARM_LIMIT = 900;
+const THEME_PREWARM_LIMIT = 540;
+const MAX_HOT_CARD_POOLS = 5;
+const MAX_MOVIE_ART_CACHE = 120;
+const MAX_MOVIE_CREDITS_CACHE = 180;
 
 if (typeof fetch !== 'function') {
   throw new Error('This server requires Node 18+ because it uses the built-in fetch API.');
@@ -86,15 +93,17 @@ const FEMALE_DIRECTOR_NAMES = {
 
 const RARITY_ORDER = {
   Prolific: 1,
+  Base: 1,
   Common: 1,
   Respected: 2,
+  Select: 2,
   Uncommon: 2,
-  Awarded: 3,
-  Rare: 3,
-  Iconic: 4,
-  Epic: 4,
-  Canon: 5,
-  Legendary: 5
+  Rare: 2,
+  Awarded: 2,
+  Epic: 3,
+  Iconic: 3,
+  Legendary: 4,
+  Canon: 4
 };
 
 const TITLE_RARITY_FLOORS = {
@@ -131,7 +140,7 @@ const TITLE_RARITY_FLOORS = {
   'mirror': 'Epic',
   'mulholland drive': 'Legendary',
   'nights of cabiria': 'Epic',
-  'paper moon': 'Rare',
+  'paper moon': 'Select',
   'parasite': 'Epic',
   'paris, texas': 'Epic',
   'paris is burning': 'Epic',
@@ -145,7 +154,7 @@ const TITLE_RARITY_FLOORS = {
   'the 400 blows': 'Epic',
   'the battle of algiers': 'Epic',
   'the color of pomegranates': 'Epic',
-  'the french connection': 'Rare',
+  'the french connection': 'Select',
   'the godfather': 'Legendary',
   'the godfather part ii': 'Legendary',
   'the long goodbye': 'Epic',
@@ -182,12 +191,11 @@ function titleKey(value) {
 
 function rarityByRank(rank) {
   return {
-    1: 'Prolific',
-    2: 'Respected',
-    3: 'Awarded',
-    4: 'Iconic',
-    5: 'Canon'
-  }[Math.max(1, Math.min(5, Number(rank) || 1))] || 'Prolific';
+    1: 'Base',
+    2: 'Select',
+    3: 'Epic',
+    4: 'Legendary'
+  }[Math.max(1, Math.min(4, Number(rank) || 1))] || 'Base';
 }
 
 function normalizeRarityLabel(value) {
@@ -282,12 +290,28 @@ function writePoolSnapshot(cacheKey, movies) {
   }
 }
 
+function touchMapEntry(map, key, value) {
+  if (!map || !key) return;
+  if (map.has(key)) map.delete(key);
+  map.set(key, value);
+}
+
+function trimMapBySize(map, maxSize) {
+  if (!map || !maxSize || map.size <= maxSize) return;
+  while (map.size > maxSize) {
+    const oldestKey = map.keys().next().value;
+    if (oldestKey == null) break;
+    map.delete(oldestKey);
+  }
+}
+
 function cacheCardPool(cacheKey, movies, expiresAt) {
   const pool = Array.isArray(movies) ? movies : [];
-  cache.cardPools.set(cacheKey, {
+  touchMapEntry(cache.cardPools, cacheKey, {
     value: pool,
     expiresAt: expiresAt || (Date.now() + CACHE_TTL_MS)
   });
+  trimMapBySize(cache.cardPools, MAX_HOT_CARD_POOLS);
   writePoolSnapshot(cacheKey, pool);
   return pool;
 }
@@ -644,12 +668,12 @@ function computeScore(movie) {
   const voteAverage = Number(movie.vote_average) || 0;
   const voteCount = Number(movie.vote_count) || 0;
   const acclaimScore = voteAverage * 11.5;
-  const footprintScore = Math.log10(voteCount + 1) * 10.5;
-  const recognitionScore = Math.min(24, Math.sqrt(Math.max(popularity, 0)) * 3.6);
+  const footprintScore = Math.log10(voteCount + 1) * 11.2;
+  const recognitionScore = Math.min(26, Math.sqrt(Math.max(popularity, 0)) * 3.8);
   const legacyScore = year ? Math.max(0, Math.min(20, (2012 - Math.min(year, 2012)) / 6)) : 0;
-  const worldCinemaBonus = String(movie.original_language || '').toLowerCase() !== 'en' ? 2.5 : 0;
-  const nicheLoveBonus = voteAverage >= 7.7 && voteCount >= 80 && popularity <= 18 ? 3.5 : 0;
-  const obscurityPenalty = voteCount < 20 ? 20 : voteCount < 45 ? 11 : voteCount < 80 ? 5 : 0;
+  const worldCinemaBonus = String(movie.original_language || '').toLowerCase() !== 'en' ? 2.2 : 0;
+  const nicheLoveBonus = voteAverage >= 7.7 && voteCount >= 80 && popularity <= 18 ? 2.0 : 0;
+  const obscurityPenalty = voteCount < 20 ? 24 : voteCount < 45 ? 15 : voteCount < 80 ? 7 : 0;
   const recencyPenalty = year >= 2025 ? 8 : year >= 2023 ? 4 : year >= 2020 ? 1.5 : 0;
   const blockbusterPenalty = popularity > 65 ? (popularity - 65) * 0.18 : 0;
   return acclaimScore
@@ -693,11 +717,10 @@ function selectDiversifiedPool(movies, limit) {
 
 function assignRarity(rank, total) {
   const percentile = total ? (rank + 1) / total : 1;
-  if (percentile <= 0.008) return 'Canon';
-  if (percentile <= 0.04) return 'Iconic';
-  if (percentile <= 0.17) return 'Awarded';
-  if (percentile <= 0.5) return 'Respected';
-  return 'Prolific';
+  if (percentile <= 0.012) return 'Legendary';
+  if (percentile <= 0.065) return 'Epic';
+  if (percentile <= 0.24) return 'Select';
+  return 'Base';
 }
 
 function rarityFloorForMovie(movie) {
@@ -710,48 +733,48 @@ function rarityFloorForMovie(movie) {
   const popularity = Number(movie && movie.popularity) || 0;
   const originalLanguage = String(movie && movie.original_language || '').toLowerCase();
 
-  let floor = 'Prolific';
+  let floor = 'Base';
 
   if (voteAverage >= 7.3 && voteCount >= 220) {
-    floor = maxRarity(floor, 'Respected');
+    floor = maxRarity(floor, 'Select');
   }
 
   if (year && year <= 2000 && voteAverage >= 7.1 && voteCount >= 120) {
-    floor = maxRarity(floor, 'Respected');
+    floor = maxRarity(floor, 'Select');
   }
 
   if (originalLanguage && originalLanguage !== 'en' && voteAverage >= 7.3 && voteCount >= 60) {
-    floor = maxRarity(floor, 'Respected');
+    floor = maxRarity(floor, 'Select');
   }
 
   if (voteAverage >= 8.4 && voteCount >= 1800) {
-    floor = maxRarity(floor, 'Iconic');
+    floor = maxRarity(floor, 'Legendary');
   } else if (voteAverage >= 8.1 && voteCount >= 900) {
-    floor = maxRarity(floor, 'Awarded');
+    floor = maxRarity(floor, 'Epic');
   }
 
   if (year && year <= 1975 && voteAverage >= 8.2 && voteCount >= 220) {
-    floor = maxRarity(floor, 'Iconic');
+    floor = maxRarity(floor, 'Legendary');
   } else if (year && year <= 1990 && voteAverage >= 8.0 && voteCount >= 180) {
-    floor = maxRarity(floor, 'Awarded');
+    floor = maxRarity(floor, 'Epic');
   }
 
   if (year && year <= 1985 && voteAverage >= 7.7 && voteCount >= 140) {
-    floor = maxRarity(floor, 'Awarded');
+    floor = maxRarity(floor, 'Select');
   }
 
   if (year && year <= 1975 && voteAverage >= 7.6 && voteCount >= 90) {
-    floor = maxRarity(floor, 'Awarded');
+    floor = maxRarity(floor, 'Select');
   }
 
   if (originalLanguage && originalLanguage !== 'en' && voteAverage >= 8.0 && voteCount >= 180) {
-    floor = maxRarity(floor, year && year <= 1980 ? 'Iconic' : 'Awarded');
+    floor = maxRarity(floor, year && year <= 1980 ? 'Legendary' : 'Epic');
   } else if (originalLanguage && originalLanguage !== 'en' && year && year <= 1985 && voteAverage >= 7.7 && voteCount >= 70) {
-    floor = maxRarity(floor, 'Awarded');
+    floor = maxRarity(floor, 'Select');
   }
 
   if (popularity >= 45 && voteAverage >= 7.8 && voteCount >= 3500) {
-    floor = maxRarity(floor, 'Awarded');
+    floor = maxRarity(floor, 'Epic');
   }
 
   return floor;
@@ -759,7 +782,7 @@ function rarityFloorForMovie(movie) {
 
 function rarityCeilingForMovie(movie) {
   if (TITLE_RARITY_FLOORS[titleKey(movie && movie.title)]) {
-    return 'Canon';
+    return 'Legendary';
   }
 
   const year = Number(extractYear(movie && movie.release_date)) || 0;
@@ -767,23 +790,23 @@ function rarityCeilingForMovie(movie) {
   const voteCount = Number(movie && movie.vote_count) || 0;
   const popularity = Number(movie && movie.popularity) || 0;
 
-  if (voteCount < 20 && popularity < 4) {
-    return 'Respected';
+  if (voteCount < 20 && popularity < 4 && voteAverage < 8.9) {
+    return 'Base';
   }
 
-  if (voteCount < 60 && popularity < 8 && voteAverage < 8.4) {
-    return 'Awarded';
+  if (voteCount < 60 && popularity < 8 && voteAverage < 8.5) {
+    return 'Select';
   }
 
-  if (voteCount < 140 && popularity < 12 && voteAverage < 8.2) {
-    return 'Iconic';
+  if (voteCount < 140 && popularity < 12 && voteAverage < 8.3) {
+    return 'Epic';
   }
 
   if (year >= 2023 && voteCount < 350 && popularity < 18 && voteAverage < 8.4) {
-    return 'Awarded';
+    return 'Epic';
   }
 
-  return 'Canon';
+  return 'Legendary';
 }
 
 function normalizeMovie(configuration, genreMap, movie) {
@@ -816,14 +839,16 @@ async function getMovieCredits(movieId) {
 
   const cached = cache.movieCredits.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
+    touchMapEntry(cache.movieCredits, cacheKey, cached);
     return cached.value;
   }
 
   const credits = await tmdbJson('/movie/' + movieId + '/credits');
-  cache.movieCredits.set(cacheKey, {
+  touchMapEntry(cache.movieCredits, cacheKey, {
     value: credits,
     expiresAt: Date.now() + CACHE_TTL_MS
   });
+  trimMapBySize(cache.movieCredits, MAX_MOVIE_CREDITS_CACHE);
   return credits;
 }
 
@@ -925,13 +950,13 @@ async function buildCardPool(limit) {
 
 async function buildThemePool(limit, theme) {
   const normalizedTheme = String(theme || '').trim().toLowerCase();
-  const targetLimit = Math.max(100, Math.min(1200, Number(limit) || 600));
+  const targetLimit = Math.max(100, Math.min(MAX_REQUEST_POOL_LIMIT, Number(limit) || 600));
   let themedPool = [];
   let attempts = 0;
 
-  while (themedPool.length < Math.min(targetLimit, 880) && attempts < 8) {
+  while (themedPool.length < Math.min(targetLimit, 720) && attempts < 6) {
     attempts += 1;
-    const basePool = await buildCardPool(1200);
+    const basePool = await buildCardPool(BASE_PREWARM_LIMIT);
     themedPool = mergeUniqueMovies(themedPool, filterPoolByTheme(basePool, normalizedTheme));
   }
 
@@ -965,14 +990,14 @@ function refreshPoolInBackground(cacheKey, limit, theme) {
 async function prewarmStartupPools() {
   for (let reelIndex = 0; reelIndex < BASE_REEL_COUNT; reelIndex += 1) {
     setTimeout(function () {
-      refreshPoolInBackground(buildPoolCacheKey(1200, '', reelIndex), 1200, '');
+      refreshPoolInBackground(buildPoolCacheKey(BASE_PREWARM_LIMIT, '', reelIndex), BASE_PREWARM_LIMIT, '');
     }, reelIndex * 180);
   }
 
   try {
     const baseBuilds = [];
     for (let reelIndex = 0; reelIndex < BASE_REEL_COUNT; reelIndex += 1) {
-      const build = cache.poolBuilds.get(buildPoolCacheKey(1200, '', reelIndex));
+      const build = cache.poolBuilds.get(buildPoolCacheKey(BASE_PREWARM_LIMIT, '', reelIndex));
       if (build) baseBuilds.push(build);
     }
     if (baseBuilds.length) {
@@ -984,14 +1009,14 @@ async function prewarmStartupPools() {
   STARTUP_PREWARM_THEMES.forEach(function (themeKey, index) {
     for (let reelIndex = 0; reelIndex < THEME_REEL_COUNT; reelIndex += 1) {
       setTimeout(function () {
-        refreshPoolInBackground(buildPoolCacheKey(1200, themeKey, reelIndex), 1200, themeKey);
+        refreshPoolInBackground(buildPoolCacheKey(THEME_PREWARM_LIMIT, themeKey, reelIndex), THEME_PREWARM_LIMIT, themeKey);
       }, (index * THEME_REEL_COUNT * 250) + (reelIndex * 250));
     }
   });
 }
 
 async function getCardPool(limit, refresh, theme, rotationMode) {
-  const normalizedLimit = Math.max(100, Math.min(1200, Number(limit) || 600));
+  const normalizedLimit = Math.max(100, Math.min(MAX_REQUEST_POOL_LIMIT, Number(limit) || 600));
   const normalizedTheme = String(theme || '').trim().toLowerCase();
   const reelCount = reelCountForTheme(normalizedTheme);
   const requestedReelIndex = rotationMode === 'auto'
@@ -1006,24 +1031,27 @@ async function getCardPool(limit, refresh, theme, rotationMode) {
 
   const cached = cache.cardPools.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
+    touchMapEntry(cache.cardPools, cacheKey, cached);
     return cached.value;
   }
 
   const diskSnapshot = readPoolSnapshot(cacheKey, false);
   if (diskSnapshot) {
-    cache.cardPools.set(cacheKey, {
+    touchMapEntry(cache.cardPools, cacheKey, {
       value: diskSnapshot.movies,
       expiresAt: diskSnapshot.expiresAt
     });
+    trimMapBySize(cache.cardPools, MAX_HOT_CARD_POOLS);
     return diskSnapshot.movies;
   }
 
   const staleSnapshot = readPoolSnapshot(cacheKey, true);
   if (staleSnapshot) {
-    cache.cardPools.set(cacheKey, {
+    touchMapEntry(cache.cardPools, cacheKey, {
       value: staleSnapshot.movies,
       expiresAt: staleSnapshot.expiresAt
     });
+    trimMapBySize(cache.cardPools, MAX_HOT_CARD_POOLS);
     refreshPoolInBackground(cacheKey, normalizedLimit, normalizedTheme);
     return staleSnapshot.movies;
   }
@@ -1061,6 +1089,7 @@ async function getMovieArt(title) {
 
   const cached = cache.movieArt.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
+    touchMapEntry(cache.movieArt, cacheKey, cached);
     return cached.value;
   }
 
@@ -1094,10 +1123,11 @@ async function getMovieArt(title) {
   };
   art.packs = derivePacks(art);
 
-  cache.movieArt.set(cacheKey, {
+  touchMapEntry(cache.movieArt, cacheKey, {
     value: art,
     expiresAt: Date.now() + CACHE_TTL_MS
   });
+  trimMapBySize(cache.movieArt, MAX_MOVIE_ART_CACHE);
 
   return art;
 }
@@ -1226,7 +1256,7 @@ async function routeApi(req, res, url) {
   writeJson(res, 404, { error: 'Not found.' });
 }
 
-const server = http.createServer(async function (req, res) {
+async function handleRequest(req, res) {
   const url = new URL(req.url, 'http://localhost:' + PORT);
 
   try {
@@ -1241,14 +1271,20 @@ const server = http.createServer(async function (req, res) {
       error: error.message
     });
   }
-});
+}
 
-server.listen(PORT, function () {
-  console.log('filmTCG server running on http://localhost:' + PORT);
-  if (!hasTmdbToken()) {
-    console.log('Set TMDB_BEARER_TOKEN to enable live film data.');
-    return;
-  }
+if (require.main === module) {
+  const server = http.createServer(handleRequest);
 
-  prewarmStartupPools();
-});
+  server.listen(PORT, function () {
+    console.log('filmTCG server running on http://localhost:' + PORT);
+    if (!hasTmdbToken()) {
+      console.log('Set TMDB_BEARER_TOKEN to enable live film data.');
+      return;
+    }
+
+    prewarmStartupPools();
+  });
+} else {
+  module.exports = handleRequest;
+}
