@@ -315,16 +315,15 @@ button, a, select { font: inherit; }
 .pack.is-gold .pack-twinkle::after {
   content: "";
   position: absolute;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   background:
-    linear-gradient(90deg, transparent 44%, rgba(255,245,213,.95) 44% 56%, transparent 56%),
-    linear-gradient(0deg, transparent 44%, rgba(255,245,213,.95) 44% 56%, transparent 56%),
-    linear-gradient(45deg, transparent 47%, rgba(255,245,213,.82) 47% 53%, transparent 53%),
-    linear-gradient(-45deg, transparent 47%, rgba(255,245,213,.82) 47% 53%, transparent 53%);
-  filter: drop-shadow(0 0 8px rgba(251,191,36,.4));
-  border-radius: 999px;
-  opacity: 0.78;
+    radial-gradient(circle at 50% 50%, rgba(255,252,240,.96) 0 18%, rgba(255,245,213,.78) 18% 32%, transparent 32%),
+    linear-gradient(0deg, transparent 0 24%, rgba(255,248,228,.92) 24% 76%, transparent 76% 100%),
+    linear-gradient(90deg, transparent 0 24%, rgba(255,248,228,.92) 24% 76%, transparent 76% 100%);
+  clip-path: polygon(50% 0%, 63% 37%, 100% 50%, 63% 63%, 50% 100%, 37% 63%, 0% 50%, 37% 37%);
+  filter: drop-shadow(0 0 8px rgba(251,191,36,.42));
+  opacity: 0.74;
 }
 
 .pack.is-gold .pack-twinkle::before {
@@ -2347,7 +2346,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: signal-rarity-4</div>
+  <div class="sub">Build: signal-rarity-5</div>
 </div>
 
 <div class="nav">

@@ -119,13 +119,17 @@ const TITLE_RARITY_FLOORS = {
   'barry lyndon': 'Epic',
   'beau travail': 'Epic',
   'bicycle thieves': 'Epic',
+  'coming to america': 'Select',
   'chungking express': 'Epic',
   'citizen kane': 'Legendary',
   'city of god': 'Epic',
   'cleo from 5 to 7': 'Epic',
   'close-up': 'Epic',
   'come and see': 'Legendary',
+  'dazed and confused': 'Epic',
   'do the right thing': 'Legendary',
+  'e.t. the extra-terrestrial': 'Epic',
+  'et the extra-terrestrial': 'Epic',
   'goodfellas': 'Legendary',
   'grave of the fireflies': 'Epic',
   'harakiri': 'Legendary',
@@ -134,6 +138,7 @@ const TITLE_RARITY_FLOORS = {
   'in the mood for love': 'Legendary',
   'jeanne dielman, 23, quai du commerce, 1080 bruxelles': 'Legendary',
   'la haine': 'Epic',
+  'la la land': 'Epic',
   'late spring': 'Epic',
   'le cercle rouge': 'Epic',
   'le trou': 'Epic',
@@ -147,6 +152,7 @@ const TITLE_RARITY_FLOORS = {
   'persona': 'Legendary',
   'playtime': 'Epic',
   'rashomon': 'Legendary',
+  'robocop': 'Epic',
   'seven samurai': 'Legendary',
   'stalker': 'Legendary',
   'sunrise: a song of two humans': 'Epic',
@@ -162,6 +168,8 @@ const TITLE_RARITY_FLOORS = {
   'the passion of joan of arc': 'Legendary',
   'the red shoes': 'Epic',
   'the rules of the game': 'Legendary',
+  'the sandlot': 'Epic',
+  'the terminator': 'Epic',
   'the third man': 'Epic',
   'the umbrellas of cherbourg': 'Epic',
   'the wizard of oz': 'Epic',
@@ -169,6 +177,7 @@ const TITLE_RARITY_FLOORS = {
   'tokyo story': 'Legendary',
   'vertigo': 'Legendary',
   'woman in the dunes': 'Epic',
+  'apollo 13': 'Epic',
   'yi yi': 'Legendary'
 };
 
@@ -176,7 +185,11 @@ const EPIC_PROMOTION_TITLES = new Set([
   'finding nemo',
   'thief',
   'paper moon',
-  'the french connection'
+  'the french connection',
+  'spider-man',
+  'spiderman',
+  'spider-man 2',
+  'spider-man 2002'
 ]);
 
 const THEME_SOURCE_LABELS = {
@@ -686,6 +699,8 @@ function computeMovieSignals(movie) {
   const isPrestigeGenre = movieHasGenreId(movie, [18, 36, 10402, 10752]);
   const isIconicAnimation = movieHasGenreId(movie, 16);
   const isGenreLandmarkLane = movieHasGenreId(movie, [80, 27, 53, 9648, 878, 28]);
+  const isFamilyLane = movieHasGenreId(movie, [16, 10751, 12, 14]);
+  const isCrowdPleaserLane = movieHasGenreId(movie, [35, 12, 10749, 10402, 10751]);
 
   let recognition = 0;
   if (popularity >= 12) recognition += 1;
@@ -719,6 +734,10 @@ function computeMovieSignals(movie) {
   const iconicAnimationProxy = isIconicAnimation && recognition >= 4 && respect >= 2;
   const genreLandmarkProxy = isGenreLandmarkLane && (cult >= 3 || (respect >= 3 && recognition >= 2));
   const recognitionEvent = recognition >= 5 && respect >= 2;
+  const broadCulturalStapleProxy = isCrowdPleaserLane && recognition >= 4 && (respect >= 1 || cult >= 1);
+  const prestigeCrowdPleaserProxy = isPrestigeGenre && recognition >= 3 && respect >= 2 && voteCount >= 900;
+  const familyAnimationStapleProxy = isFamilyLane && recognition >= 4 && respect >= 2;
+  const blockbusterRespectProxy = recognition >= 5 && respect >= 3 && voteAverage >= 7.0;
   const titlePromotion = EPIC_PROMOTION_TITLES.has(titleKey(movie && movie.title));
 
   return {
@@ -730,6 +749,10 @@ function computeMovieSignals(movie) {
     iconicAnimationProxy: iconicAnimationProxy,
     genreLandmarkProxy: genreLandmarkProxy,
     recognitionEvent: recognitionEvent,
+    broadCulturalStapleProxy: broadCulturalStapleProxy,
+    prestigeCrowdPleaserProxy: prestigeCrowdPleaserProxy,
+    familyAnimationStapleProxy: familyAnimationStapleProxy,
+    blockbusterRespectProxy: blockbusterRespectProxy,
     titlePromotion: titlePromotion,
     year: year,
     popularity: popularity,
@@ -818,6 +841,10 @@ function rarityFloorForMovie(movie) {
     floor = maxRarity(floor, 'Select');
   }
 
+  if (signals.broadCulturalStapleProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
   if (signals.recognition >= 5 && signals.respect >= 3) {
     floor = maxRarity(floor, 'Epic');
   }
@@ -830,7 +857,15 @@ function rarityFloorForMovie(movie) {
     floor = maxRarity(floor, 'Epic');
   }
 
-  if (signals.prestigeProxy || signals.iconicAnimationProxy || signals.genreLandmarkProxy || signals.titlePromotion) {
+  if (
+    signals.prestigeProxy ||
+    signals.iconicAnimationProxy ||
+    signals.genreLandmarkProxy ||
+    signals.prestigeCrowdPleaserProxy ||
+    signals.familyAnimationStapleProxy ||
+    signals.blockbusterRespectProxy ||
+    signals.titlePromotion
+  ) {
     floor = maxRarity(floor, 'Epic');
   }
 
