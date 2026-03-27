@@ -662,29 +662,81 @@ function derivePacks(movie) {
   return Array.from(tags);
 }
 
+function movieHasGenreId(movie, ids) {
+  const genreIds = Array.isArray(movie && movie.genre_ids) ? movie.genre_ids : [];
+  const wanted = Array.isArray(ids) ? ids : [ids];
+  return wanted.some(function (id) { return genreIds.indexOf(Number(id)) !== -1; });
+}
+
+function computeMovieSignals(movie) {
+  const year = Number(extractYear(movie && movie.release_date)) || 0;
+  const popularity = Number(movie && movie.popularity) || 0;
+  const voteAverage = Number(movie && movie.vote_average) || 0;
+  const voteCount = Number(movie && movie.vote_count) || 0;
+  const originalLanguage = String(movie && movie.original_language || '').toLowerCase();
+  const isInternational = originalLanguage && originalLanguage !== 'en';
+  const isCultFriendlyGenre = movieHasGenreId(movie, [27, 53, 9648, 80, 35, 14, 878, 16, 10402, 10749]);
+
+  let recognition = 0;
+  if (popularity >= 12) recognition += 1;
+  if (popularity >= 25) recognition += 1;
+  if (popularity >= 45) recognition += 1;
+  if (voteCount >= 250) recognition += 1;
+  if (voteCount >= 1500) recognition += 1;
+  if (voteCount >= 7000) recognition += 1;
+
+  let respect = 0;
+  if (voteAverage >= 7.0 && voteCount >= 70) respect += 1;
+  if (voteAverage >= 7.5 && voteCount >= 220) respect += 1;
+  if (voteAverage >= 7.9 && voteCount >= 700) respect += 1;
+  if (voteAverage >= 8.2 && voteCount >= 1800) respect += 1;
+  if (year && year <= 2000 && voteAverage >= 7.7 && voteCount >= 120) respect += 1;
+  if (isInternational && voteAverage >= 7.7 && voteCount >= 80) respect += 1;
+
+  let cult = 0;
+  if (voteAverage >= 7.1 && voteCount >= 40 && voteCount <= 1800 && popularity >= 3 && popularity <= 36) cult += 1;
+  if (year && year <= 2010 && voteAverage >= 7.0 && voteCount >= 70 && popularity <= 28) cult += 1;
+  if (isCultFriendlyGenre && voteAverage >= 6.8 && voteCount >= 60) cult += 1;
+  if (isInternational && voteAverage >= 7.3 && voteCount >= 45 && popularity <= 26) cult += 1;
+
+  let canon = 0;
+  if (year && year <= 1985 && voteAverage >= 8.0 && voteCount >= 120) canon += 1;
+  if (year && year <= 2005 && voteAverage >= 8.1 && voteCount >= 420) canon += 1;
+  if (isInternational && year && year <= 2005 && voteAverage >= 7.9 && voteCount >= 100) canon += 1;
+  if (voteAverage >= 8.4 && voteCount >= 2200) canon += 2;
+
+  return {
+    recognition: recognition,
+    respect: respect,
+    cult: cult,
+    canon: canon,
+    year: year,
+    popularity: popularity,
+    voteAverage: voteAverage,
+    voteCount: voteCount,
+    isInternational: isInternational
+  };
+}
+
 function computeScore(movie) {
-  const year = Number(extractYear(movie.release_date)) || 0;
-  const popularity = Number(movie.popularity) || 0;
-  const voteAverage = Number(movie.vote_average) || 0;
-  const voteCount = Number(movie.vote_count) || 0;
-  const acclaimScore = voteAverage * 11.5;
-  const footprintScore = Math.log10(voteCount + 1) * 11.2;
-  const recognitionScore = Math.min(26, Math.sqrt(Math.max(popularity, 0)) * 3.8);
-  const legacyScore = year ? Math.max(0, Math.min(20, (2012 - Math.min(year, 2012)) / 6)) : 0;
-  const worldCinemaBonus = String(movie.original_language || '').toLowerCase() !== 'en' ? 2.2 : 0;
-  const nicheLoveBonus = voteAverage >= 7.7 && voteCount >= 80 && popularity <= 18 ? 2.0 : 0;
-  const obscurityPenalty = voteCount < 20 ? 24 : voteCount < 45 ? 15 : voteCount < 80 ? 7 : 0;
-  const recencyPenalty = year >= 2025 ? 8 : year >= 2023 ? 4 : year >= 2020 ? 1.5 : 0;
-  const blockbusterPenalty = popularity > 65 ? (popularity - 65) * 0.18 : 0;
+  const signals = computeMovieSignals(movie);
+  const legacyScore = signals.year ? Math.max(0, Math.min(18, (2010 - Math.min(signals.year, 2010)) / 7)) : 0;
+  const acclaimScore = signals.voteAverage * 10.5;
+  const footprintScore = Math.log10(signals.voteCount + 1) * 9.8;
+  const blockbusterPenalty = signals.popularity > 78 && signals.voteAverage < 7.5 ? (signals.popularity - 78) * 0.22 : 0;
+  const recencyPenalty = signals.year >= 2025 ? 7 : signals.year >= 2023 ? 3.5 : signals.year >= 2020 ? 1.2 : 0;
+  const obscurityPenalty = signals.voteCount < 18 ? 18 : signals.voteCount < 40 ? 10 : 0;
+
   return acclaimScore
     + footprintScore
-    + recognitionScore
+    + (signals.recognition * 11)
+    + (signals.respect * 15)
+    + (signals.cult * 9)
+    + (signals.canon * 18)
     + legacyScore
-    + worldCinemaBonus
-    + nicheLoveBonus
-    - obscurityPenalty
+    - blockbusterPenalty
     - recencyPenalty
-    - blockbusterPenalty;
+    - obscurityPenalty;
 }
 
 function selectDiversifiedPool(movies, limit) {
@@ -726,55 +778,39 @@ function assignRarity(rank, total) {
 function rarityFloorForMovie(movie) {
   const titleFloor = TITLE_RARITY_FLOORS[titleKey(movie && movie.title)];
   if (titleFloor) return normalizeRarityLabel(titleFloor);
-
-  const year = Number(extractYear(movie && movie.release_date)) || 0;
-  const voteAverage = Number(movie && movie.vote_average) || 0;
-  const voteCount = Number(movie && movie.vote_count) || 0;
-  const popularity = Number(movie && movie.popularity) || 0;
-  const originalLanguage = String(movie && movie.original_language || '').toLowerCase();
-
+  const signals = computeMovieSignals(movie);
   let floor = 'Base';
 
-  if (voteAverage >= 7.3 && voteCount >= 220) {
+  if (signals.recognition >= 3) {
     floor = maxRarity(floor, 'Select');
   }
 
-  if (year && year <= 2000 && voteAverage >= 7.1 && voteCount >= 120) {
+  if (signals.respect >= 2) {
     floor = maxRarity(floor, 'Select');
   }
 
-  if (originalLanguage && originalLanguage !== 'en' && voteAverage >= 7.3 && voteCount >= 60) {
+  if (signals.cult >= 2) {
     floor = maxRarity(floor, 'Select');
   }
 
-  if (voteAverage >= 8.4 && voteCount >= 1800) {
+  if (signals.recognition >= 5 && signals.respect >= 3) {
+    floor = maxRarity(floor, 'Epic');
+  }
+
+  if (signals.respect >= 4 || signals.canon >= 2) {
+    floor = maxRarity(floor, 'Epic');
+  }
+
+  if (signals.cult >= 4 && signals.respect >= 3) {
+    floor = maxRarity(floor, 'Epic');
+  }
+
+  if (signals.canon >= 4 || signals.respect >= 5) {
     floor = maxRarity(floor, 'Legendary');
-  } else if (voteAverage >= 8.1 && voteCount >= 900) {
-    floor = maxRarity(floor, 'Epic');
   }
 
-  if (year && year <= 1975 && voteAverage >= 8.2 && voteCount >= 220) {
+  if (signals.recognition >= 6 && signals.respect >= 4) {
     floor = maxRarity(floor, 'Legendary');
-  } else if (year && year <= 1990 && voteAverage >= 8.0 && voteCount >= 180) {
-    floor = maxRarity(floor, 'Epic');
-  }
-
-  if (year && year <= 1985 && voteAverage >= 7.7 && voteCount >= 140) {
-    floor = maxRarity(floor, 'Select');
-  }
-
-  if (year && year <= 1975 && voteAverage >= 7.6 && voteCount >= 90) {
-    floor = maxRarity(floor, 'Select');
-  }
-
-  if (originalLanguage && originalLanguage !== 'en' && voteAverage >= 8.0 && voteCount >= 180) {
-    floor = maxRarity(floor, year && year <= 1980 ? 'Legendary' : 'Epic');
-  } else if (originalLanguage && originalLanguage !== 'en' && year && year <= 1985 && voteAverage >= 7.7 && voteCount >= 70) {
-    floor = maxRarity(floor, 'Select');
-  }
-
-  if (popularity >= 45 && voteAverage >= 7.8 && voteCount >= 3500) {
-    floor = maxRarity(floor, 'Epic');
   }
 
   return floor;
@@ -784,25 +820,25 @@ function rarityCeilingForMovie(movie) {
   if (TITLE_RARITY_FLOORS[titleKey(movie && movie.title)]) {
     return 'Legendary';
   }
+  const signals = computeMovieSignals(movie);
 
-  const year = Number(extractYear(movie && movie.release_date)) || 0;
-  const voteAverage = Number(movie && movie.vote_average) || 0;
-  const voteCount = Number(movie && movie.vote_count) || 0;
-  const popularity = Number(movie && movie.popularity) || 0;
-
-  if (voteCount < 20 && popularity < 4 && voteAverage < 8.9) {
+  if (signals.voteCount < 12 && signals.popularity < 2.5 && signals.respect < 4) {
     return 'Base';
   }
 
-  if (voteCount < 60 && popularity < 8 && voteAverage < 8.5) {
+  if (signals.voteCount < 35 && signals.popularity < 6 && signals.respect < 3 && signals.cult < 2) {
+    return 'Base';
+  }
+
+  if (signals.voteCount < 80 && signals.popularity < 10 && signals.respect < 4) {
     return 'Select';
   }
 
-  if (voteCount < 140 && popularity < 12 && voteAverage < 8.3) {
-    return 'Epic';
+  if (signals.year >= 2023 && signals.voteCount < 180 && signals.popularity < 12 && signals.respect < 4) {
+    return 'Select';
   }
 
-  if (year >= 2023 && voteCount < 350 && popularity < 18 && voteAverage < 8.4) {
+  if (signals.canon < 4 && signals.respect < 5 && !(signals.recognition >= 6 && signals.respect >= 4)) {
     return 'Epic';
   }
 

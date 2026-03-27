@@ -2347,7 +2347,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: rarity-reset-1</div>
+  <div class="sub">Build: signal-rarity-1</div>
 </div>
 
 <div class="nav">
@@ -3529,23 +3529,59 @@ button, a, select { font: inherit; }
     return weights;
   }
 
-  function derivePersonRarity(candidate, sourceMovie) {
+  function computePersonSignals(candidate, sourceMovie, explicitFloor) {
     const sourceRank = rarityRank(sourceMovie && sourceMovie.rarity);
     const popularity = Number(candidate && candidate.popularity) || 0;
+    const isDirector = candidate && candidate.roleKey === 'director';
+
+    let recognition = 0;
+    if (popularity >= 8) recognition += 1;
+    if (popularity >= 18) recognition += 1;
+    if (popularity >= 32) recognition += 1;
+    if (popularity >= 55) recognition += 1;
+
+    let respect = 0;
+    if (sourceRank >= 2) respect += 1;
+    if (sourceRank >= 3) respect += 1;
+    if (isDirector && sourceRank >= 3) respect += 1;
+    if (isDirector && popularity >= 12) respect += 1;
+    if (!isDirector && sourceRank >= 4 && popularity >= 14) respect += 1;
+
+    let cult = 0;
+    if (popularity >= 10 && popularity <= 30 && sourceRank >= 2) cult += 1;
+    if (sourceRank >= 3 && popularity <= 28) cult += 1;
+
+    const floorRank = explicitFloor ? rarityRank(explicitFloor) : 0;
+    const canon = floorRank >= 4 ? 1 : 0;
+
+    return {
+      recognition: recognition,
+      respect: respect,
+      cult: cult,
+      canon: canon,
+      sourceRank: sourceRank,
+      popularity: popularity,
+      floorRank: floorRank,
+      isDirector: isDirector
+    };
+  }
+
+  function derivePersonRarity(candidate, sourceMovie) {
     const explicitFloor = PERSON_RARITY_FLOORS[personKey(candidate && candidate.name)];
-    let rank = Math.max(1, sourceRank - 1);
+    const signals = computePersonSignals(candidate, sourceMovie, explicitFloor);
+    let rank = 1;
 
-    if (candidate.personType === 'director') rank = Math.max(rank, sourceRank);
-    if (candidate.personType === 'actor') rank = Math.max(rank, sourceRank - 1);
+    if (signals.recognition >= 2 || signals.respect >= 2 || signals.cult >= 2) {
+      rank = Math.max(rank, 2);
+    }
 
-    if (candidate.roleKey === 'director') rank = Math.max(rank, 2);
-    if (candidate.roleKey === 'director' && popularity >= 10) rank = Math.max(rank, 3);
-    if (candidate.roleKey === 'actor' && popularity >= 22) rank = Math.max(rank, 2);
-    if (popularity >= 25) rank += 1;
-    if (popularity >= 45) rank += 1;
-    if (candidate.roleKey === 'director' && sourceRank >= 3) rank = Math.max(rank, 3);
-    if (candidate.roleKey === 'actor' && sourceRank >= 4 && popularity >= 20) rank = Math.max(rank, 3);
-    if (explicitFloor) rank = Math.max(rank, rarityRank(explicitFloor));
+    if (signals.respect >= 4 || (signals.recognition >= 3 && signals.respect >= 2) || signals.floorRank >= 3) {
+      rank = Math.max(rank, 3);
+    }
+
+    if (signals.floorRank >= 4 || signals.canon || (signals.isDirector && signals.recognition >= 3 && signals.respect >= 3)) {
+      rank = Math.max(rank, 4);
+    }
 
     return rarityByRank(rank);
   }
