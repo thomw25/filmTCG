@@ -2774,6 +2774,7 @@ button, a, select { font: inherit; }
     'park chan-wook': 'Epic',
     'sam raimi': 'Select',
     'jamie foxx': 'Select',
+    'ian mckellen': 'Epic',
     'tom hardy': 'Select',
     'terrence malick': 'Epic',
     'toni scott': 'Select',
@@ -3251,6 +3252,7 @@ button, a, select { font: inherit; }
       if (explicitPersonFloor && rarityRank(explicitPersonFloor) > rarityRank(normalized.rarity)) {
         normalized.rarity = explicitPersonFloor;
       }
+      normalized.character = '';
     }
     normalized.artMode = normalized.cardType === 'person' ? 'profile' : chooseArtMode(normalized);
     return normalized;
@@ -3627,11 +3629,12 @@ button, a, select { font: inherit; }
   }
 
   function letterboxdUrl(movie) {
-    const query = buildLetterboxdSearchQuery(movie);
-    if (query) {
-      return 'https://letterboxd.com/search/' + encodeURIComponent(query) + '/';
+    const slug = slugifyLetterboxd(movie && movie.title ? movie.title : '');
+    const year = movie && movie.year ? String(movie.year).trim() : '';
+    if (slug && year) {
+      return 'https://letterboxd.com/film/' + slug + '-' + year + '/';
     }
-    return 'https://letterboxd.com/film/' + slugifyLetterboxd(movie.title) + '/';
+    return 'https://letterboxd.com/film/' + slug + '/';
   }
 
   function slugifyLetterboxdPerson(name) {
@@ -4112,7 +4115,7 @@ button, a, select { font: inherit; }
         + '<div class="card-frame"></div>'
         + '<div class="person-header"><div class="person-role-badge">' + escapeHtml(roleLabelForDisplay(movie)) + '</div><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div></div>'
         + '<div class="card-img-wrap person-portrait-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait"' + cardImageAttrs('low') + ' data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
-        + '<div class="person-bottom"><div class="person-name">' + escapeHtml(movie.title) + '</div><div class="person-role-line">' + escapeHtml(bottomLine) + '</div>' + (movie.character ? '<div class="person-source-line">' + escapeHtml(movie.character) + '</div>' : '') + '</div>'
+        + '<div class="person-bottom"><div class="person-name">' + escapeHtml(movie.title) + '</div><div class="person-role-line">' + escapeHtml(bottomLine) + '</div></div>'
         + '</div>';
     }
 

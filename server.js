@@ -141,6 +141,7 @@ const TITLE_RARITY_FLOORS = {
   'goodfellas': 'Legendary',
   'grey gardens': 'Epic',
   'grave of the fireflies': 'Epic',
+  'little shop of horrors': 'Select',
   'harakiri': 'Legendary',
   'high and low': 'Epic',
   'ikiru': 'Legendary',
@@ -148,6 +149,8 @@ const TITLE_RARITY_FLOORS = {
   'jeanne dielman, 23, quai du commerce, 1080 bruxelles': 'Legendary',
   'la haine': 'Epic',
   'la la land': 'Epic',
+  'oklahoma': 'Select',
+  'oklahoma!': 'Select',
   'late spring': 'Epic',
   'le cercle rouge': 'Epic',
   'le trou': 'Epic',
@@ -994,7 +997,7 @@ function assignRarity(movie) {
   const score = computeRarityScore(movie);
   if (score >= 78) return 'Legendary';
   if (score >= 55) return 'Epic';
-  if (score >= 35) return 'Select';
+  if (score >= 33) return 'Select';
   return 'Base';
 }
 
