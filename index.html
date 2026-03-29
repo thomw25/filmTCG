@@ -1016,6 +1016,8 @@ button, a, select { font: inherit; }
   opacity: 0.9;
   white-space: nowrap;
   padding-top: 2px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 .card.epic .card-rarity,
@@ -1181,6 +1183,14 @@ button, a, select { font: inherit; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.person-known-for-label {
+  font-size: 0.66rem;
+  color: rgba(255,255,255,.62);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 800;
 }
 
 .person-source-line {
@@ -2476,7 +2486,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: people-reward-2</div>
+  <div class="sub">Build: people-reward-3</div>
 </div>
 
 <div class="nav">
@@ -2808,14 +2818,14 @@ button, a, select { font: inherit; }
   };
   const PERSON_ROLE_WEIGHTS = {
     actor: 30,
-    director: 39
+    director: 46
   };
   const PERSON_ROLE_THEME_BONUS = {
-    horror: { actor: 6, director: 4 },
-    animation: { actor: 5, director: 4 },
-    eighties: { actor: 6, director: 4 },
-    noir: { actor: 6, director: 5 },
-    romcom: { actor: 7, director: 4 },
+    horror: { actor: 6, director: 5 },
+    animation: { actor: 5, director: 5 },
+    eighties: { actor: 6, director: 5 },
+    noir: { actor: 6, director: 6 },
+    romcom: { actor: 7, director: 5 },
     all: {}
   };
   const RECENT_PULL_MEMORY = 140;
@@ -4106,13 +4116,18 @@ button, a, select { font: inherit; }
 
     if (movie.cardType === 'person') {
       const personClass = movie.personType === 'actor' ? 'person-actor' : (movie.personType === 'director' ? 'person-director' : 'person-crew');
-      const bottomLine = roleLabelForDisplay(movie);
-      const knownForLine = movie.desc ? '<div class="person-source-line">' + escapeHtml(movie.desc) + '</div>' : '';
+      const knownForTitles = Array.isArray(movie.knownForTitles) ? movie.knownForTitles.filter(Boolean).slice(0, 3) : [];
+      const knownForText = knownForTitles.length
+        ? knownForTitles.join(' · ')
+        : (movie.desc ? String(movie.desc).replace(/^Known for:\s*/i, '').replace(/\.$/, '') : '');
+      const knownForMarkup = knownForText
+        ? '<div class="person-known-for-label">Known For:</div><div class="person-source-line">' + escapeHtml(knownForText) + '</div>'
+        : '';
       return '<div class="card person-card ' + personClass + ' ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
         + '<div class="card-frame"></div>'
         + '<div class="person-header"><div class="person-role-badge">' + escapeHtml(roleLabelForDisplay(movie)) + '</div><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div></div>'
         + '<div class="card-img-wrap person-portrait-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait"' + cardImageAttrs('low') + ' data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
-        + '<div class="person-bottom"><div class="person-name">' + escapeHtml(movie.title) + '</div><div class="person-role-line">' + escapeHtml(bottomLine) + '</div>' + knownForLine + '</div>'
+        + '<div class="person-bottom"><div class="person-name">' + escapeHtml(movie.title) + '</div>' + knownForMarkup + '</div>'
         + '</div>';
     }
 
