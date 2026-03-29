@@ -1081,7 +1081,7 @@ button, a, select { font: inherit; }
 }
 
 .person-card {
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 216px minmax(116px, 1fr);
   padding: 10px;
 }
 
@@ -1125,7 +1125,7 @@ button, a, select { font: inherit; }
 }
 
 .person-portrait-wrap {
-  height: 226px;
+  height: 216px;
 }
 
 .person-actor .person-portrait-wrap::after,
@@ -1159,8 +1159,7 @@ button, a, select { font: inherit; }
   padding: 6px 8px 12px;
   display: grid;
   gap: 4px;
-  min-height: 0;
-  min-height: 96px;
+  min-height: 116px;
   overflow: hidden;
   align-content: start;
 }
@@ -1200,6 +1199,7 @@ button, a, select { font: inherit; }
   line-height: 1.22;
   display: grid;
   gap: 1px;
+  grid-auto-rows: min-content;
   overflow: hidden;
 }
 

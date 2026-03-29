@@ -38,7 +38,8 @@ const cache = {
   poolRotationCursor: new Map(),
   movieArt: new Map(),
   movieCredits: new Map(),
-  personMovieCredits: new Map()
+  personMovieCredits: new Map(),
+  personCombinedCredits: new Map()
 };
 
 const DISCOVER_RECIPES = [
@@ -746,6 +747,25 @@ async function getPersonMovieCredits(personId) {
   return credits;
 }
 
+async function getPersonCombinedCredits(personId) {
+  const cacheKey = String(personId || '');
+  if (!cacheKey) return null;
+
+  const cached = cache.personCombinedCredits.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    touchMapEntry(cache.personCombinedCredits, cacheKey, cached);
+    return cached.value;
+  }
+
+  const credits = await tmdbJson('/person/' + personId + '/combined_credits');
+  touchMapEntry(cache.personCombinedCredits, cacheKey, {
+    value: credits,
+    expiresAt: Date.now() + CACHE_TTL_MS
+  });
+  trimMapBySize(cache.personCombinedCredits, MAX_PERSON_CREDITS_CACHE);
+  return credits;
+}
+
 function buildKnownForMovieRecord(movie, roleKey) {
   if (!movie || !movie.id || !movie.title) return null;
   return {
@@ -762,12 +782,18 @@ function buildKnownForMovieRecord(movie, roleKey) {
 }
 
 function getRelevantKnownForCredits(credits, roleKey) {
+  const isCombined = Array.isArray(credits && credits.cast) && credits.cast.some(function (item) {
+    return item && item.media_type;
+  });
   if (roleKey === 'director') {
     return (Array.isArray(credits && credits.crew) ? credits.crew : []).filter(function (movie) {
-      return movie && movie.job === 'Director';
+      if (!movie || movie.job !== 'Director') return false;
+      return !isCombined || movie.media_type === 'movie';
     });
   }
-  return Array.isArray(credits && credits.cast) ? credits.cast : [];
+  return (Array.isArray(credits && credits.cast) ? credits.cast : []).filter(function (movie) {
+    return !isCombined || movie.media_type === 'movie';
+  });
 }
 
 function summarizeKnownForMovies(credits, roleKey) {
@@ -832,7 +858,22 @@ async function getPersonKnownFor(personId, roleKey) {
 
   try {
     const credits = await getPersonMovieCredits(personId);
-    return summarizeKnownForMovies(credits, roleKey);
+    const summary = summarizeKnownForMovies(credits, roleKey);
+    if ((summary.knownForTitles || []).length >= 3) {
+      return summary;
+    }
+
+    const combinedCredits = await getPersonCombinedCredits(personId);
+    const combinedSummary = summarizeKnownForMovies(combinedCredits, roleKey);
+    const mergedTitles = (summary.knownForTitles || []).concat(combinedSummary.knownForTitles || []).filter(function (title, index, items) {
+      return title && items.indexOf(title) === index;
+    }).slice(0, 3);
+
+    return {
+      knownForTitles: mergedTitles,
+      knownForPeakRank: Math.max(summary.knownForPeakRank || 0, combinedSummary.knownForPeakRank || 0),
+      knownForDepth: Math.max(summary.knownForDepth || 0, combinedSummary.knownForDepth || 0)
+    };
   } catch (error) {
     return { knownForTitles: [], knownForPeakRank: 0, knownForDepth: 0 };
   }
