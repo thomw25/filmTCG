@@ -124,6 +124,7 @@ const TITLE_RARITY_FLOORS = {
   'barry lyndon': 'Epic',
   'beau travail': 'Epic',
   'bicycle thieves': 'Epic',
+  'black hawk down': 'Select',
   'coming to america': 'Select',
   'chungking express': 'Epic',
   'citizen kane': 'Legendary',
@@ -148,6 +149,8 @@ const TITLE_RARITY_FLOORS = {
   'ikiru': 'Legendary',
   'in the mood for love': 'Legendary',
   'jeanne dielman, 23, quai du commerce, 1080 bruxelles': 'Legendary',
+  'karate kid': 'Select',
+  'the karate kid': 'Select',
   'la haine': 'Epic',
   'la la land': 'Epic',
   'oklahoma': 'Select',
@@ -626,6 +629,7 @@ function normalizePersonCandidate(configuration, person, roleConfig, sourceMovie
   return {
     personId: person.id,
     sourceMovieId: Number(sourceMovieId) || null,
+    sourceMovieIds: sourceMovieId ? [Number(sourceMovieId)] : [],
     cardType: 'person',
     personType: roleConfig.type,
     roleKey: roleConfig.key,
@@ -689,8 +693,23 @@ async function getMoviePeople(movieIds) {
 
     buildPeopleCandidatesForMovie(configuration, movieId, credits).forEach(function (candidate) {
       const key = String(candidate.personId);
-      if (!byPerson.has(key) || (Number(candidate.popularity) || 0) > (Number(byPerson.get(key).popularity) || 0)) {
+      if (!byPerson.has(key)) {
         byPerson.set(key, candidate);
+        return;
+      }
+      const existing = byPerson.get(key);
+      const mergedSourceMovieIds = Array.from(new Set(
+        (Array.isArray(existing.sourceMovieIds) ? existing.sourceMovieIds : [])
+          .concat(Array.isArray(candidate.sourceMovieIds) ? candidate.sourceMovieIds : [])
+          .filter(Boolean)
+      ));
+      if ((Number(candidate.popularity) || 0) > (Number(existing.popularity) || 0)) {
+        byPerson.set(key, Object.assign({}, candidate, {
+          sourceMovieIds: mergedSourceMovieIds
+        }));
+      } else {
+        existing.sourceMovieIds = mergedSourceMovieIds;
+        byPerson.set(key, existing);
       }
     });
   }
@@ -887,6 +906,7 @@ function computeMovieSignals(movie) {
   const prestigeCrowdPleaserProxy = isPrestigeGenre && recognition >= 3 && respect >= 2 && voteCount >= 900;
   const familyAnimationStapleProxy = isFamilyLane && recognition >= 4 && respect >= 2;
   const blockbusterRespectProxy = recognition >= 5 && respect >= 3 && voteAverage >= 7.0;
+  const legacyStudioStapleProxy = year >= 1960 && year <= 2010 && voteCount >= 180 && popularity >= 7 && (respect >= 1 || cult >= 1);
   const documentaryLandmarkProxy = isDocumentary && (
     respect >= 4 ||
     (recognition >= 3 && respect >= 3) ||
@@ -907,6 +927,7 @@ function computeMovieSignals(movie) {
     prestigeCrowdPleaserProxy: prestigeCrowdPleaserProxy,
     familyAnimationStapleProxy: familyAnimationStapleProxy,
     blockbusterRespectProxy: blockbusterRespectProxy,
+    legacyStudioStapleProxy: legacyStudioStapleProxy,
     documentaryLandmarkProxy: documentaryLandmarkProxy,
     titlePromotion: titlePromotion,
     year: year,
@@ -955,6 +976,7 @@ function computeRarityScore(movie) {
   if (signals.prestigeCrowdPleaserProxy) bonus += 4;
   if (signals.familyAnimationStapleProxy) bonus += 4;
   if (signals.blockbusterRespectProxy) bonus += 4;
+  if (signals.legacyStudioStapleProxy) bonus += 3;
   if (signals.documentaryLandmarkProxy) bonus += 5;
   if (signals.titlePromotion) bonus += 5;
 
@@ -1040,6 +1062,10 @@ function rarityFloorForMovie(movie) {
   }
 
   if (signals.broadCulturalStapleProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
+  if (signals.legacyStudioStapleProxy) {
     floor = maxRarity(floor, 'Select');
   }
 

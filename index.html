@@ -2486,7 +2486,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: people-reward-3</div>
+  <div class="sub">Build: people-reward-4</div>
 </div>
 
 <div class="nav">
@@ -3246,6 +3246,7 @@ button, a, select { font: inherit; }
       roleKey: movie.roleKey || null,
       roleLabel: movie.roleLabel || null,
       profile: movie.profile || movie.profileUrl || null,
+      sourceMovieIds: Array.isArray(movie.sourceMovieIds) ? movie.sourceMovieIds.filter(Boolean) : [],
       knownForTitles: Array.isArray(movie.knownForTitles) ? movie.knownForTitles.filter(Boolean).slice(0, 3) : [],
       knownForPeakRank: Number(movie.knownForPeakRank) || 0,
       knownForDepth: Number(movie.knownForDepth) || 0,
@@ -3832,6 +3833,12 @@ button, a, select { font: inherit; }
     if (knownForTitles.length) {
       return 'Known for: ' + knownForTitles.join(', ') + '.';
     }
+    const fallbackTitles = Array.isArray(candidate && candidate.fallbackKnownForTitles)
+      ? candidate.fallbackKnownForTitles.filter(Boolean).slice(0, 3)
+      : [];
+    if (fallbackTitles.length) {
+      return 'Known for: ' + fallbackTitles.join(', ') + '.';
+    }
     const role = candidate && candidate.roleLabel ? candidate.roleLabel : 'Film Figure';
     return role + ' card.';
   }
@@ -3849,6 +3856,7 @@ button, a, select { font: inherit; }
       roleLabel: candidate.roleLabel,
       personType: candidate.personType,
       personId: candidate.personId,
+      sourceMovieIds: candidate.sourceMovieIds || [],
       knownForTitles: candidate.knownForTitles || [],
       knownForPeakRank: candidate.knownForPeakRank || 0,
       knownForDepth: candidate.knownForDepth || 0,
@@ -3938,8 +3946,17 @@ button, a, select { font: inherit; }
         knownForDepth: 0
       };
     });
+    const fallbackKnownForTitles = (Array.isArray(picked.sourceMovieIds) ? picked.sourceMovieIds : [])
+      .map(function (movieId) {
+        const sourceMovie = sourceById[String(movieId)];
+        return sourceMovie && sourceMovie.title ? sourceMovie.title : '';
+      })
+      .filter(Boolean)
+      .slice(0, 3);
 
-    return buildPersonCard(Object.assign({}, picked, knownFor), sourceById[String(picked.sourceMovieId)] || validMovies[0]);
+    return buildPersonCard(Object.assign({}, picked, knownFor, {
+      fallbackKnownForTitles: fallbackKnownForTitles
+    }), sourceById[String(picked.sourceMovieId)] || validMovies[0]);
   }
 
   function buildFlavorTags(movie) {
