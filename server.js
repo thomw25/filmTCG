@@ -991,8 +991,13 @@ function selectDiversifiedPool(movies, limit) {
         addedThisRound = true;
       }
     }
-    for (let i = 0; i < modernDecadeKeys.length && selected.length < limit; i += 1) {
-      const bucket = buckets.get(modernDecadeKeys[i]);
+    const modernCandidates = modernDecadeKeys.filter(function (decade) {
+      const bucket = buckets.get(decade);
+      return bucket && bucket.length;
+    });
+    if (modernCandidates.length && selected.length < limit) {
+      const chosenDecade = modernCandidates[Math.floor(Math.random() * modernCandidates.length)];
+      const bucket = buckets.get(chosenDecade);
       if (bucket && bucket.length) {
         selected.push(bucket.shift());
         addedThisRound = true;
