@@ -135,6 +135,7 @@ const TITLE_RARITY_FLOORS = {
   'dazed and confused': 'Epic',
   'do the right thing': 'Legendary',
   'dumbo': 'Select',
+  'easy rider': 'Select',
   'e.t. the extra-terrestrial': 'Epic',
   'et the extra-terrestrial': 'Epic',
   'friday the 13th': 'Select',
@@ -976,12 +977,22 @@ function selectDiversifiedPool(movies, limit) {
   });
 
   const decadeKeys = Array.from(buckets.keys()).sort();
+  const modernDecadeKeys = decadeKeys.filter(function (decade) {
+    return Number(decade) >= 1980;
+  });
   const selected = [];
 
   while (selected.length < limit) {
     let addedThisRound = false;
     for (let i = 0; i < decadeKeys.length && selected.length < limit; i += 1) {
       const bucket = buckets.get(decadeKeys[i]);
+      if (bucket && bucket.length) {
+        selected.push(bucket.shift());
+        addedThisRound = true;
+      }
+    }
+    for (let i = 0; i < modernDecadeKeys.length && selected.length < limit; i += 1) {
+      const bucket = buckets.get(modernDecadeKeys[i]);
       if (bucket && bucket.length) {
         selected.push(bucket.shift());
         addedThisRound = true;
@@ -996,7 +1007,7 @@ function selectDiversifiedPool(movies, limit) {
 function assignRarity(movie) {
   const score = computeRarityScore(movie);
   if (score >= 78) return 'Legendary';
-  if (score >= 55) return 'Epic';
+  if (score >= 57) return 'Epic';
   if (score >= 33) return 'Select';
   return 'Base';
 }

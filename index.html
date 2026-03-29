@@ -2476,7 +2476,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: people-reward-1</div>
+  <div class="sub">Build: people-reward-2</div>
 </div>
 
 <div class="nav">
@@ -3620,20 +3620,8 @@ button, a, select { font: inherit; }
     return title.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
   }
 
-  function buildLetterboxdSearchQuery(movie) {
-    const parts = [];
-    if (movie && movie.title) parts.push(String(movie.title).trim());
-    if (movie && movie.year) parts.push(String(movie.year).trim());
-    if (movie && movie.directorName) parts.push(String(movie.directorName).trim());
-    return parts.filter(Boolean).join(' ');
-  }
-
   function letterboxdUrl(movie) {
     const slug = slugifyLetterboxd(movie && movie.title ? movie.title : '');
-    const year = movie && movie.year ? String(movie.year).trim() : '';
-    if (slug && year) {
-      return 'https://letterboxd.com/film/' + slug + '-' + year + '/';
-    }
     return 'https://letterboxd.com/film/' + slug + '/';
   }
 
