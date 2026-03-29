@@ -160,6 +160,7 @@ const TITLE_RARITY_FLOORS = {
   'late spring': 'Epic',
   'le cercle rouge': 'Epic',
   'le trou': 'Epic',
+  'lost in translation': 'Epic',
   'mirror': 'Epic',
   'mulholland drive': 'Legendary',
   'nights of cabiria': 'Epic',
@@ -203,6 +204,9 @@ const TITLE_RARITY_FLOORS = {
   'alien': 'Epic',
   'the thing': 'Epic',
   'suspiria': 'Epic'
+  ,
+  'the little mermaid': 'Epic',
+  'little mermaid': 'Epic'
 };
 
 const CANON_SHORT_TITLES = [
@@ -935,6 +939,8 @@ function computeMovieSignals(movie) {
     (recognition >= 3 && respect >= 3) ||
     (cult >= 3 && respect >= 2)
   );
+  const iconicFamilyAnimationProxy = isFamilyLane && isIconicAnimation && recognition >= 4 && (respect >= 2 || cult >= 1);
+  const modernAuteurLandmarkProxy = year >= 1990 && year <= 2015 && respect >= 3 && (cult >= 2 || (recognition >= 2 && popularity <= 32));
   const mainstreamRecognitionProxy = voteCount >= 220 && popularity >= 7 && year >= 1970 && year <= 2022;
   const acclaimedModernGenreProxy = year >= 1990 && isGenreLandmarkLane && recognition >= 3 && respect >= 3;
   const belovedStudioClassicProxy = year >= 1970 && year <= 2015 && voteCount >= 300 && (recognition >= 2 || popularity >= 10) && (respect >= 1 || cult >= 1);
@@ -958,6 +964,8 @@ function computeMovieSignals(movie) {
     classicFamilyMusicalProxy: classicFamilyMusicalProxy,
     newHollywoodStapleProxy: newHollywoodStapleProxy,
     documentaryLandmarkProxy: documentaryLandmarkProxy,
+    iconicFamilyAnimationProxy: iconicFamilyAnimationProxy,
+    modernAuteurLandmarkProxy: modernAuteurLandmarkProxy,
     mainstreamRecognitionProxy: mainstreamRecognitionProxy,
     acclaimedModernGenreProxy: acclaimedModernGenreProxy,
     belovedStudioClassicProxy: belovedStudioClassicProxy,
@@ -1013,6 +1021,8 @@ function computeRarityScore(movie) {
   if (signals.classicFamilyMusicalProxy) bonus += 3;
   if (signals.newHollywoodStapleProxy) bonus += 3;
   if (signals.documentaryLandmarkProxy) bonus += 5;
+  if (signals.iconicFamilyAnimationProxy) bonus += 5;
+  if (signals.modernAuteurLandmarkProxy) bonus += 4;
   if (signals.mainstreamRecognitionProxy) bonus += 3;
   if (signals.acclaimedModernGenreProxy) bonus += 4;
   if (signals.belovedStudioClassicProxy) bonus += 3;
@@ -1142,12 +1152,14 @@ function rarityFloorForMovie(movie) {
   if (
     signals.prestigeProxy ||
     signals.iconicAnimationProxy ||
+    signals.iconicFamilyAnimationProxy ||
     signals.genreLandmarkProxy ||
     signals.prestigeCrowdPleaserProxy ||
     signals.familyAnimationStapleProxy ||
     signals.blockbusterRespectProxy ||
     signals.classicHorrorLandmarkProxy ||
     signals.documentaryLandmarkProxy ||
+    signals.modernAuteurLandmarkProxy ||
     signals.acclaimedModernGenreProxy ||
     signals.titlePromotion
   ) {
