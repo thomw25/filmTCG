@@ -1197,10 +1197,16 @@ button, a, select { font: inherit; }
   font-size: 0.68rem;
   color: rgba(255,255,255,.7);
   line-height: 1.28;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  display: grid;
+  gap: 2px;
   overflow: hidden;
+}
+
+.person-source-line span {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-body {
@@ -2486,7 +2492,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: people-reward-4</div>
+  <div class="sub">Build: people-reward-10</div>
 </div>
 
 <div class="nav">
@@ -2758,6 +2764,7 @@ button, a, select { font: inherit; }
     'abbas kiarostami': 'Legendary',
     'billy wilder': 'Legendary',
     'david lynch': 'Legendary',
+    'david cronenberg': 'Epic',
     'edward yang': 'Legendary',
     'francis ford coppola': 'Legendary',
     'howard hawks': 'Legendary',
@@ -2775,13 +2782,18 @@ button, a, select { font: inherit; }
     'claire denis': 'Epic',
     'chantal akerman': 'Epic',
     'celine sciamma': 'Epic',
+    'brian de palma': 'Epic',
     'jane campion': 'Epic',
     'john cassavetes': 'Epic',
+    'john carpenter': 'Epic',
     'krzysztof kieslowski': 'Epic',
     'lucrecia martel': 'Epic',
     'mikio naruse': 'Epic',
     'michael haneke': 'Epic',
+    'michael mann': 'Epic',
     'park chan-wook': 'Epic',
+    'ridley scott': 'Epic',
+    'robert altman': 'Epic',
     'sam raimi': 'Select',
     'jamie foxx': 'Select',
     'ian mckellen': 'Epic',
@@ -3777,20 +3789,26 @@ button, a, select { font: inherit; }
     if (knownForDepth >= 2) respect += 1;
     if (isDirector && referenceRank >= 3) respect += 1;
     if (isDirector && popularity >= 12) respect += 1;
+    if (isDirector && knownForPeakRank >= 3 && knownForDepth >= 3) respect += 1;
     if (!isDirector && referenceRank >= 3 && popularity >= 14) respect += 1;
 
     let cult = 0;
     if (popularity >= 10 && popularity <= 30 && referenceRank >= 2) cult += 1;
     if (referenceRank >= 3 && popularity <= 32) cult += 1;
+    if (isDirector && knownForPeakRank >= 3 && knownForDepth >= 2 && popularity <= 30) cult += 1;
 
     const floorRank = explicitFloor ? rarityRank(explicitFloor) : 0;
     const canon = floorRank >= 4 ? 1 : 0;
+    const auteurDirectorProxy = Boolean(isDirector && knownForPeakRank >= 3 && knownForDepth >= 3);
+    const directorPantheonProxy = Boolean(isDirector && knownForPeakRank >= 4 && knownForDepth >= 4);
 
     return {
       recognition: recognition,
       respect: respect,
       cult: cult,
       canon: canon,
+      auteurDirectorProxy: auteurDirectorProxy,
+      directorPantheonProxy: directorPantheonProxy,
       sourceRank: sourceRank,
       knownForPeakRank: knownForPeakRank,
       knownForDepth: knownForDepth,
@@ -3814,12 +3832,18 @@ button, a, select { font: inherit; }
       signals.respect >= 4
       || (signals.recognition >= 3 && signals.respect >= 2)
       || (signals.knownForPeakRank >= 3 && signals.knownForDepth >= 2)
+      || signals.auteurDirectorProxy
       || signals.floorRank >= 3
     ) {
       rank = Math.max(rank, 3);
     }
 
-    if (signals.floorRank >= 4 || signals.canon || (signals.isDirector && signals.recognition >= 3 && signals.respect >= 3)) {
+    if (
+      signals.floorRank >= 4
+      || signals.canon
+      || signals.directorPantheonProxy
+      || (signals.isDirector && signals.recognition >= 3 && signals.respect >= 3)
+    ) {
       rank = Math.max(rank, 4);
     }
 
@@ -3827,17 +3851,17 @@ button, a, select { font: inherit; }
   }
 
   function buildPersonDescription(candidate, sourceMovie) {
-    const knownForTitles = Array.isArray(candidate && candidate.knownForTitles)
-      ? candidate.knownForTitles.filter(Boolean).slice(0, 3)
-      : [];
-    if (knownForTitles.length) {
-      return 'Known for: ' + knownForTitles.join(', ') + '.';
-    }
     const fallbackTitles = Array.isArray(candidate && candidate.fallbackKnownForTitles)
       ? candidate.fallbackKnownForTitles.filter(Boolean).slice(0, 3)
       : [];
-    if (fallbackTitles.length) {
-      return 'Known for: ' + fallbackTitles.join(', ') + '.';
+    const knownForTitles = Array.isArray(candidate && candidate.knownForTitles)
+      ? candidate.knownForTitles.filter(Boolean).slice(0, 3)
+      : [];
+    const mergedTitles = knownForTitles.concat(fallbackTitles).filter(function (title, index, items) {
+      return title && items.indexOf(title) === index;
+    }).slice(0, 3);
+    if (mergedTitles.length) {
+      return 'Known for: ' + mergedTitles.join(', ') + '.';
     }
     const role = candidate && candidate.roleLabel ? candidate.roleLabel : 'Film Figure';
     return role + ' card.';
@@ -3857,7 +3881,11 @@ button, a, select { font: inherit; }
       personType: candidate.personType,
       personId: candidate.personId,
       sourceMovieIds: candidate.sourceMovieIds || [],
-      knownForTitles: candidate.knownForTitles || [],
+      knownForTitles: (Array.isArray(candidate.knownForTitles) ? candidate.knownForTitles : []).concat(
+        Array.isArray(candidate.fallbackKnownForTitles) ? candidate.fallbackKnownForTitles : []
+      ).filter(function (title, index, items) {
+        return title && items.indexOf(title) === index;
+      }).slice(0, 3),
       knownForPeakRank: candidate.knownForPeakRank || 0,
       knownForDepth: candidate.knownForDepth || 0,
       sourceTitle: sourceMovie ? sourceMovie.title : null,
@@ -4134,11 +4162,15 @@ button, a, select { font: inherit; }
     if (movie.cardType === 'person') {
       const personClass = movie.personType === 'actor' ? 'person-actor' : (movie.personType === 'director' ? 'person-director' : 'person-crew');
       const knownForTitles = Array.isArray(movie.knownForTitles) ? movie.knownForTitles.filter(Boolean).slice(0, 3) : [];
-      const knownForText = knownForTitles.length
-        ? knownForTitles.join(' · ')
-        : (movie.desc ? String(movie.desc).replace(/^Known for:\s*/i, '').replace(/\.$/, '') : '');
-      const knownForMarkup = knownForText
-        ? '<div class="person-known-for-label">Known For:</div><div class="person-source-line">' + escapeHtml(knownForText) + '</div>'
+      const fallbackKnownForText = movie.desc ? String(movie.desc).replace(/^Known for:\s*/i, '').replace(/\.$/, '') : '';
+      const fallbackKnownForTitles = fallbackKnownForText
+        ? fallbackKnownForText.split(/\s*,\s*/).filter(Boolean).slice(0, 3)
+        : [];
+      const displayKnownForTitles = (knownForTitles.length ? knownForTitles : fallbackKnownForTitles).slice(0, 3);
+      const knownForMarkup = displayKnownForTitles.length
+        ? '<div class="person-known-for-label">Known For:</div><div class="person-source-line">' + displayKnownForTitles.map(function (title) {
+          return '<span>' + escapeHtml(title) + '</span>';
+        }).join('') + '</div>'
         : '';
       return '<div class="card person-card ' + personClass + ' ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
         + '<div class="card-frame"></div>'

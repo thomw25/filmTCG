@@ -143,7 +143,9 @@ const TITLE_RARITY_FLOORS = {
   'goodfellas': 'Legendary',
   'grey gardens': 'Epic',
   'grave of the fireflies': 'Epic',
+  'halloween': 'Epic',
   'little shop of horrors': 'Select',
+  'sleeping beauty': 'Select',
   'harakiri': 'Legendary',
   'high and low': 'Epic',
   'ikiru': 'Legendary',
@@ -175,6 +177,7 @@ const TITLE_RARITY_FLOORS = {
   'taste of cherry': 'Epic',
   'the 400 blows': 'Epic',
   'the battle of algiers': 'Epic',
+  'the birds': 'Epic',
   'the color of pomegranates': 'Epic',
   'the french connection': 'Select',
   'the godfather': 'Legendary',
@@ -196,7 +199,10 @@ const TITLE_RARITY_FLOORS = {
   'vertigo': 'Legendary',
   'woman in the dunes': 'Epic',
   'apollo 13': 'Epic',
-  'yi yi': 'Legendary'
+  'yi yi': 'Legendary',
+  'alien': 'Epic',
+  'the thing': 'Epic',
+  'suspiria': 'Epic'
 };
 
 const CANON_SHORT_TITLES = [
@@ -782,9 +788,10 @@ function summarizeKnownForMovies(credits, roleKey) {
 
     const priority = (
       rarityRank(rarity) * 100000000
-      + computeRarityScore(movie) * 100000
-      + (Number(movie.vote_count) || 0) * 20
-      + Math.round((Number(movie.popularity) || 0) * 100)
+      + Math.min(6000, Number(movie.vote_count) || 0) * 500
+      + Math.round((Number(movie.popularity) || 0) * 4000)
+      + computeRarityScore(movie) * 1000
+      + Math.round((Number(movie.vote_average) || 0) * 100)
     );
 
     return {
@@ -863,6 +870,8 @@ function computeMovieSignals(movie) {
   const isFamilyLane = movieHasGenreId(movie, [16, 10751, 12, 14]);
   const isCrowdPleaserLane = movieHasGenreId(movie, [35, 12, 10749, 10402, 10751]);
   const isDocumentary = movieHasGenreId(movie, 99);
+  const isMusicalLane = movieHasGenreId(movie, 10402);
+  const isHorrorThrillerLane = movieHasGenreId(movie, [27, 53, 9648]);
 
   let recognition = 0;
   if (popularity >= 12) recognition += 1;
@@ -904,9 +913,12 @@ function computeMovieSignals(movie) {
   const recognitionEvent = recognition >= 5 && respect >= 2;
   const broadCulturalStapleProxy = isCrowdPleaserLane && recognition >= 4 && (respect >= 1 || cult >= 1);
   const prestigeCrowdPleaserProxy = isPrestigeGenre && recognition >= 3 && respect >= 2 && voteCount >= 900;
-  const familyAnimationStapleProxy = isFamilyLane && recognition >= 4 && respect >= 2;
+  const familyAnimationStapleProxy = isFamilyLane && recognition >= 3 && respect >= 2;
   const blockbusterRespectProxy = recognition >= 5 && respect >= 3 && voteAverage >= 7.0;
   const legacyStudioStapleProxy = year >= 1960 && year <= 2010 && voteCount >= 180 && popularity >= 7 && (respect >= 1 || cult >= 1);
+  const classicHorrorLandmarkProxy = isHorrorThrillerLane && year >= 1960 && year <= 1999 && voteCount >= 120 && (cult >= 2 || respect >= 2);
+  const classicFamilyMusicalProxy = year && year <= 1989 && (isFamilyLane || isMusicalLane) && recognition >= 2 && respect >= 2;
+  const newHollywoodStapleProxy = year >= 1967 && year <= 1985 && voteCount >= 140 && recognition >= 2 && (respect >= 2 || cult >= 2);
   const documentaryLandmarkProxy = isDocumentary && (
     respect >= 4 ||
     (recognition >= 3 && respect >= 3) ||
@@ -928,6 +940,9 @@ function computeMovieSignals(movie) {
     familyAnimationStapleProxy: familyAnimationStapleProxy,
     blockbusterRespectProxy: blockbusterRespectProxy,
     legacyStudioStapleProxy: legacyStudioStapleProxy,
+    classicHorrorLandmarkProxy: classicHorrorLandmarkProxy,
+    classicFamilyMusicalProxy: classicFamilyMusicalProxy,
+    newHollywoodStapleProxy: newHollywoodStapleProxy,
     documentaryLandmarkProxy: documentaryLandmarkProxy,
     titlePromotion: titlePromotion,
     year: year,
@@ -977,6 +992,9 @@ function computeRarityScore(movie) {
   if (signals.familyAnimationStapleProxy) bonus += 4;
   if (signals.blockbusterRespectProxy) bonus += 4;
   if (signals.legacyStudioStapleProxy) bonus += 3;
+  if (signals.classicHorrorLandmarkProxy) bonus += 4;
+  if (signals.classicFamilyMusicalProxy) bonus += 3;
+  if (signals.newHollywoodStapleProxy) bonus += 3;
   if (signals.documentaryLandmarkProxy) bonus += 5;
   if (signals.titlePromotion) bonus += 5;
 
@@ -1069,6 +1087,14 @@ function rarityFloorForMovie(movie) {
     floor = maxRarity(floor, 'Select');
   }
 
+  if (signals.classicFamilyMusicalProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
+  if (signals.newHollywoodStapleProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
   if (signals.recognition >= 5 && signals.respect >= 3) {
     floor = maxRarity(floor, 'Epic');
   }
@@ -1088,6 +1114,7 @@ function rarityFloorForMovie(movie) {
     signals.prestigeCrowdPleaserProxy ||
     signals.familyAnimationStapleProxy ||
     signals.blockbusterRespectProxy ||
+    signals.classicHorrorLandmarkProxy ||
     signals.documentaryLandmarkProxy ||
     signals.titlePromotion
   ) {
