@@ -24,6 +24,7 @@ const THEME_PREWARM_LIMIT = 540;
 const MAX_HOT_CARD_POOLS = 5;
 const MAX_MOVIE_ART_CACHE = 120;
 const MAX_MOVIE_CREDITS_CACHE = 180;
+const MAX_PERSON_CREDITS_CACHE = 120;
 
 if (typeof fetch !== 'function') {
   throw new Error('This server requires Node 18+ because it uses the built-in fetch API.');
@@ -36,7 +37,8 @@ const cache = {
   poolBuilds: new Map(),
   poolRotationCursor: new Map(),
   movieArt: new Map(),
-  movieCredits: new Map()
+  movieCredits: new Map(),
+  personMovieCredits: new Map()
 };
 
 const DISCOVER_RECIPES = [
@@ -631,7 +633,10 @@ function normalizePersonCandidate(configuration, person, roleConfig, sourceMovie
     character: person.character || '',
     department: person.known_for_department || person.department || '',
     job: person.job || '',
-    linkUrl: 'https://www.themoviedb.org/person/' + person.id
+    linkUrl: 'https://www.themoviedb.org/person/' + person.id,
+    knownForTitles: [],
+    knownForPeakRank: 0,
+    knownForDepth: 0
   };
 }
 
@@ -687,6 +692,105 @@ async function getMoviePeople(movieIds) {
   }
 
   return Array.from(byPerson.values());
+}
+
+async function getPersonMovieCredits(personId) {
+  const cacheKey = String(personId || '');
+  if (!cacheKey) return null;
+
+  const cached = cache.personMovieCredits.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    touchMapEntry(cache.personMovieCredits, cacheKey, cached);
+    return cached.value;
+  }
+
+  const credits = await tmdbJson('/person/' + personId + '/movie_credits');
+  touchMapEntry(cache.personMovieCredits, cacheKey, {
+    value: credits,
+    expiresAt: Date.now() + CACHE_TTL_MS
+  });
+  trimMapBySize(cache.personMovieCredits, MAX_PERSON_CREDITS_CACHE);
+  return credits;
+}
+
+function buildKnownForMovieRecord(movie, roleKey) {
+  if (!movie || !movie.id || !movie.title) return null;
+  return {
+    id: movie.id,
+    title: movie.title,
+    release_date: movie.release_date || '',
+    popularity: Number(movie.popularity) || 0,
+    vote_average: Number(movie.vote_average) || 0,
+    vote_count: Number(movie.vote_count) || 0,
+    original_language: movie.original_language || '',
+    genre_ids: Array.isArray(movie.genre_ids) ? movie.genre_ids.slice() : [],
+    department: roleKey === 'director' ? 'Directing' : 'Acting'
+  };
+}
+
+function getRelevantKnownForCredits(credits, roleKey) {
+  if (roleKey === 'director') {
+    return (Array.isArray(credits && credits.crew) ? credits.crew : []).filter(function (movie) {
+      return movie && movie.job === 'Director';
+    });
+  }
+  return Array.isArray(credits && credits.cast) ? credits.cast : [];
+}
+
+function summarizeKnownForMovies(credits, roleKey) {
+  const seen = new Set();
+  const normalized = getRelevantKnownForCredits(credits, roleKey).map(function (movie) {
+    return buildKnownForMovieRecord(movie, roleKey);
+  }).filter(function (movie) {
+    if (!movie || !movie.title) return false;
+    const key = String(movie.id || movie.title).trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  const ranked = normalized.map(function (movie) {
+    const assignedRarity = assignRarity(movie);
+    const flooredRarity = rarityFloorForMovie(movie);
+    const ceiling = rarityCeilingForMovie(movie);
+    let rarity = assignedRarity;
+    if (flooredRarity && rarityRank(flooredRarity) > rarityRank(rarity)) rarity = flooredRarity;
+    if (ceiling && rarityRank(ceiling) < rarityRank(rarity)) rarity = ceiling;
+
+    const priority = (
+      rarityRank(rarity) * 100000000
+      + computeRarityScore(movie) * 100000
+      + (Number(movie.vote_count) || 0) * 20
+      + Math.round((Number(movie.popularity) || 0) * 100)
+    );
+
+    return {
+      title: movie.title,
+      rarity: rarity,
+      priority: priority
+    };
+  }).sort(function (a, b) {
+    return b.priority - a.priority;
+  });
+
+  return {
+    knownForTitles: ranked.slice(0, 3).map(function (movie) { return movie.title; }),
+    knownForPeakRank: ranked.length ? rarityRank(ranked[0].rarity) : 0,
+    knownForDepth: ranked.filter(function (movie) { return rarityRank(movie.rarity) >= 2; }).length
+  };
+}
+
+async function getPersonKnownFor(personId, roleKey) {
+  if (!personId) {
+    return { knownForTitles: [], knownForPeakRank: 0, knownForDepth: 0 };
+  }
+
+  try {
+    const credits = await getPersonMovieCredits(personId);
+    return summarizeKnownForMovies(credits, roleKey);
+  } catch (error) {
+    return { knownForTitles: [], knownForPeakRank: 0, knownForDepth: 0 };
+  }
 }
 
 function isFemaleDirectedMovie(movie) {
@@ -1425,6 +1529,22 @@ async function routeApi(req, res, url) {
       count: people.length,
       people: people
     });
+    return;
+  }
+
+  if (url.pathname === '/api/person-known-for') {
+    const personId = Number(url.searchParams.get('personId') || 0);
+    const roleKey = String(url.searchParams.get('role') || 'actor').toLowerCase() === 'director'
+      ? 'director'
+      : 'actor';
+
+    if (!personId) {
+      writeJson(res, 400, { error: 'Missing personId parameter.' });
+      return;
+    }
+
+    const knownFor = await getPersonKnownFor(personId, roleKey);
+    writeJson(res, 200, knownFor);
     return;
   }
 

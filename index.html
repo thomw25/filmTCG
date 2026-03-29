@@ -2476,7 +2476,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: signal-rarity-11</div>
+  <div class="sub">Build: people-reward-1</div>
 </div>
 
 <div class="nav">
@@ -2773,6 +2773,8 @@ button, a, select { font: inherit; }
     'michael haneke': 'Epic',
     'park chan-wook': 'Epic',
     'sam raimi': 'Select',
+    'jamie foxx': 'Select',
+    'tom hardy': 'Select',
     'terrence malick': 'Epic',
     'toni scott': 'Select',
     'robert de niro': 'Epic',
@@ -2865,6 +2867,7 @@ button, a, select { font: inherit; }
   let activeReelSeenTitles = new Set();
   let lastPeelDirection = 'next';
   const artCache = new Map();
+  const personKnownForCache = new Map();
 
   const pullPage = document.getElementById('pull');
   const collectionPage = document.getElementById('collection');
@@ -3057,10 +3060,14 @@ button, a, select { font: inherit; }
   function loadProgress() {
     try {
       const stored = JSON.parse(localStorage.getItem('filmtcg.progress') || '{}');
+      const storedRewardThemes = Array.isArray(stored.featuredRewardThemes)
+        ? stored.featuredRewardThemes.filter(Boolean).slice(0, 2)
+        : (stored.featuredRewardTheme ? [stored.featuredRewardTheme] : []);
       return {
         standardPacksOpened: Number(stored.standardPacksOpened) || 0,
         rewardChoicesAvailable: Number(stored.rewardChoicesAvailable != null ? stored.rewardChoicesAvailable : stored.goldPacksAvailable) || 0,
-        featuredRewardTheme: stored.featuredRewardTheme || null,
+        featuredRewardThemes: storedRewardThemes,
+        featuredRewardTheme: stored.featuredRewardTheme || storedRewardThemes[0] || null,
         allPacksCinemaStreak: Number(stored.allPacksCinemaStreak) || 0,
         recentPullTitles: Array.isArray(stored.recentPullTitles) ? stored.recentPullTitles.filter(Boolean).slice(0, RECENT_PULL_MEMORY) : []
       };
@@ -3068,6 +3075,7 @@ button, a, select { font: inherit; }
       return {
         standardPacksOpened: 0,
         rewardChoicesAvailable: 0,
+        featuredRewardThemes: [],
         featuredRewardTheme: null,
         allPacksCinemaStreak: 0,
         recentPullTitles: []
@@ -3079,6 +3087,10 @@ button, a, select { font: inherit; }
     progress.recentPullTitles = Array.isArray(progress.recentPullTitles)
       ? progress.recentPullTitles.filter(Boolean).slice(0, RECENT_PULL_MEMORY)
       : [];
+    progress.featuredRewardThemes = Array.isArray(progress.featuredRewardThemes)
+      ? progress.featuredRewardThemes.filter(Boolean).slice(0, 2)
+      : [];
+    progress.featuredRewardTheme = progress.featuredRewardThemes[0] || null;
     localStorage.setItem('filmtcg.progress', JSON.stringify(progress));
   }
 
@@ -3109,7 +3121,7 @@ button, a, select { font: inherit; }
     }).slice(0, RECENT_PULL_MEMORY);
   }
 
-  function packsUntilGoldPack() {
+  function packsUntilReward() {
     const remainder = progress.standardPacksOpened % REEL_REFRESH_INTERVAL;
     return remainder === 0 ? REEL_REFRESH_INTERVAL : (REEL_REFRESH_INTERVAL - remainder);
   }
@@ -3127,7 +3139,7 @@ button, a, select { font: inherit; }
       return '<div class="pack-hook"><strong>Choose 1</strong> reward pack</div>';
     }
 
-    return '<div class="pack-hook">' + escapeHtml(String(packsUntilGoldPack())) + ' packs until <strong>gold</strong></div>';
+    return '<div class="pack-hook">' + escapeHtml(String(packsUntilReward())) + ' packs until <strong>reward</strong></div>';
   }
 
   function escapeHtml(value) {
@@ -3223,6 +3235,9 @@ button, a, select { font: inherit; }
       roleKey: movie.roleKey || null,
       roleLabel: movie.roleLabel || null,
       profile: movie.profile || movie.profileUrl || null,
+      knownForTitles: Array.isArray(movie.knownForTitles) ? movie.knownForTitles.filter(Boolean).slice(0, 3) : [],
+      knownForPeakRank: Number(movie.knownForPeakRank) || 0,
+      knownForDepth: Number(movie.knownForDepth) || 0,
       sourceTitle: movie.sourceTitle || null,
       sourceYear: movie.sourceYear || null,
       character: movie.character || '',
@@ -3231,6 +3246,12 @@ button, a, select { font: inherit; }
 
     if (!normalized.packs.length && normalized.cardType === 'film') normalized.packs = derivePacks(normalized);
     if (!normalized.packs.length && normalized.cardType === 'person') normalized.packs = ['all'];
+    if (normalized.cardType === 'person') {
+      const explicitPersonFloor = PERSON_RARITY_FLOORS[personKey(normalized.title)];
+      if (explicitPersonFloor && rarityRank(explicitPersonFloor) > rarityRank(normalized.rarity)) {
+        normalized.rarity = explicitPersonFloor;
+      }
+    }
     normalized.artMode = normalized.cardType === 'person' ? 'profile' : chooseArtMode(normalized);
     return normalized;
   }
@@ -3404,6 +3425,31 @@ button, a, select { font: inherit; }
     return data && Array.isArray(data.people) ? data.people : [];
   }
 
+  async function fetchPersonKnownFor(personId, roleKey) {
+    const normalizedPersonId = Number(personId) || 0;
+    if (!normalizedPersonId) {
+      return {
+        knownForTitles: [],
+        knownForPeakRank: 0,
+        knownForDepth: 0
+      };
+    }
+
+    const cacheKey = String(normalizedPersonId) + ':' + (roleKey === 'director' ? 'director' : 'actor');
+    if (personKnownForCache.has(cacheKey)) {
+      return personKnownForCache.get(cacheKey);
+    }
+
+    const data = await fetchBackendJson('/api/person-known-for?personId=' + encodeURIComponent(String(normalizedPersonId)) + '&role=' + encodeURIComponent(roleKey === 'director' ? 'director' : 'actor'));
+    const normalized = {
+      knownForTitles: Array.isArray(data && data.knownForTitles) ? data.knownForTitles.filter(Boolean).slice(0, 3) : [],
+      knownForPeakRank: Number(data && data.knownForPeakRank) || 0,
+      knownForDepth: Number(data && data.knownForDepth) || 0
+    };
+    personKnownForCache.set(cacheKey, normalized);
+    return normalized;
+  }
+
   async function hydrateMoviesFromBackend() {
     let successCount = 0;
     for (let i = 0; i < movies.length; i += 1) {
@@ -3491,12 +3537,33 @@ button, a, select { font: inherit; }
     return source[Math.floor(Math.random() * source.length)];
   }
 
-  function ensureFeaturedRewardTheme(forceNew) {
-    const needsNew = forceNew || !progress.featuredRewardTheme || getPackPool(progress.featuredRewardTheme).length < PACK_SIZE;
+  function chooseFeaturedRewardThemes(previousThemes) {
+    const availableThemes = getAvailableFeaturedRewardThemes();
+    if (!availableThemes.length) return [];
+
+    const prior = Array.isArray(previousThemes) ? previousThemes.filter(Boolean) : [];
+    const first = chooseFeaturedRewardTheme(prior[0]) || availableThemes[0];
+    const remaining = availableThemes.filter(function (themeKey) { return themeKey !== first; });
+    if (!remaining.length) return [first];
+
+    const preferredRemaining = remaining.filter(function (themeKey) {
+      return prior.indexOf(themeKey) === -1;
+    });
+    const secondSource = preferredRemaining.length ? preferredRemaining : remaining;
+    const second = secondSource[Math.floor(Math.random() * secondSource.length)];
+    return [first, second];
+  }
+
+  function ensureFeaturedRewardThemes(forceNew) {
+    const currentThemes = Array.isArray(progress.featuredRewardThemes) ? progress.featuredRewardThemes.filter(Boolean).slice(0, 2) : [];
+    const needsNew = forceNew
+      || currentThemes.length < 2
+      || currentThemes.some(function (themeKey) { return getPackPool(themeKey).length < PACK_SIZE; });
     if (needsNew) {
-      progress.featuredRewardTheme = chooseFeaturedRewardTheme(progress.featuredRewardTheme);
+      progress.featuredRewardThemes = chooseFeaturedRewardThemes(currentThemes);
+      progress.featuredRewardTheme = progress.featuredRewardThemes[0] || null;
     }
-    return progress.featuredRewardTheme;
+    return progress.featuredRewardThemes;
   }
 
   function resolvePackTheme(forceDifferent) {
@@ -3534,8 +3601,8 @@ button, a, select { font: inherit; }
   }
 
   function updatePackMeta() {
-    const rewardThemeKey = progress.rewardChoicesAvailable > 0 ? ensureFeaturedRewardTheme(false) : null;
-    const displayThemeKey = rewardThemeKey || currentPackTheme;
+    const rewardThemeKeys = progress.rewardChoicesAvailable > 0 ? ensureFeaturedRewardThemes(false) : [];
+    const displayThemeKey = rewardThemeKeys[0] || currentPackTheme;
     const pool = progress.rewardChoicesAvailable > 0
       ? movies
       : getPackPool(displayThemeKey === 'gold' ? 'all' : displayThemeKey);
@@ -3551,7 +3618,19 @@ button, a, select { font: inherit; }
     return title.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
   }
 
+  function buildLetterboxdSearchQuery(movie) {
+    const parts = [];
+    if (movie && movie.title) parts.push(String(movie.title).trim());
+    if (movie && movie.year) parts.push(String(movie.year).trim());
+    if (movie && movie.directorName) parts.push(String(movie.directorName).trim());
+    return parts.filter(Boolean).join(' ');
+  }
+
   function letterboxdUrl(movie) {
+    const query = buildLetterboxdSearchQuery(movie);
+    if (query) {
+      return 'https://letterboxd.com/search/' + encodeURIComponent(query) + '/';
+    }
     return 'https://letterboxd.com/film/' + slugifyLetterboxd(movie.title) + '/';
   }
 
@@ -3669,6 +3748,9 @@ button, a, select { font: inherit; }
 
   function computePersonSignals(candidate, sourceMovie, explicitFloor) {
     const sourceRank = rarityRank(sourceMovie && sourceMovie.rarity);
+    const knownForPeakRank = Number(candidate && candidate.knownForPeakRank) || 0;
+    const knownForDepth = Number(candidate && candidate.knownForDepth) || 0;
+    const referenceRank = Math.max(sourceRank, knownForPeakRank);
     const popularity = Number(candidate && candidate.popularity) || 0;
     const isDirector = candidate && candidate.roleKey === 'director';
 
@@ -3677,17 +3759,19 @@ button, a, select { font: inherit; }
     if (popularity >= 18) recognition += 1;
     if (popularity >= 32) recognition += 1;
     if (popularity >= 55) recognition += 1;
+    if (knownForPeakRank >= 3) recognition += 1;
 
     let respect = 0;
-    if (sourceRank >= 2) respect += 1;
-    if (sourceRank >= 3) respect += 1;
-    if (isDirector && sourceRank >= 3) respect += 1;
+    if (referenceRank >= 2) respect += 1;
+    if (referenceRank >= 3) respect += 1;
+    if (knownForDepth >= 2) respect += 1;
+    if (isDirector && referenceRank >= 3) respect += 1;
     if (isDirector && popularity >= 12) respect += 1;
-    if (!isDirector && sourceRank >= 4 && popularity >= 14) respect += 1;
+    if (!isDirector && referenceRank >= 3 && popularity >= 14) respect += 1;
 
     let cult = 0;
-    if (popularity >= 10 && popularity <= 30 && sourceRank >= 2) cult += 1;
-    if (sourceRank >= 3 && popularity <= 28) cult += 1;
+    if (popularity >= 10 && popularity <= 30 && referenceRank >= 2) cult += 1;
+    if (referenceRank >= 3 && popularity <= 32) cult += 1;
 
     const floorRank = explicitFloor ? rarityRank(explicitFloor) : 0;
     const canon = floorRank >= 4 ? 1 : 0;
@@ -3698,6 +3782,9 @@ button, a, select { font: inherit; }
       cult: cult,
       canon: canon,
       sourceRank: sourceRank,
+      knownForPeakRank: knownForPeakRank,
+      knownForDepth: knownForDepth,
+      referenceRank: referenceRank,
       popularity: popularity,
       floorRank: floorRank,
       isDirector: isDirector
@@ -3709,11 +3796,16 @@ button, a, select { font: inherit; }
     const signals = computePersonSignals(candidate, sourceMovie, explicitFloor);
     let rank = 1;
 
-    if (signals.recognition >= 2 || signals.respect >= 2 || signals.cult >= 2) {
+    if (signals.recognition >= 2 || signals.respect >= 2 || signals.cult >= 2 || signals.referenceRank >= 2) {
       rank = Math.max(rank, 2);
     }
 
-    if (signals.respect >= 4 || (signals.recognition >= 3 && signals.respect >= 2) || signals.floorRank >= 3) {
+    if (
+      signals.respect >= 4
+      || (signals.recognition >= 3 && signals.respect >= 2)
+      || (signals.knownForPeakRank >= 3 && signals.knownForDepth >= 2)
+      || signals.floorRank >= 3
+    ) {
       rank = Math.max(rank, 3);
     }
 
@@ -3725,12 +3817,14 @@ button, a, select { font: inherit; }
   }
 
   function buildPersonDescription(candidate, sourceMovie) {
-    const sourceTitle = sourceMovie && sourceMovie.title ? sourceMovie.title : 'this pull';
-    const role = candidate.roleLabel || 'Film Figure';
-    if (candidate.roleKey === 'actor' && candidate.character) {
-      return candidate.character + ' in ' + sourceTitle + '.';
+    const knownForTitles = Array.isArray(candidate && candidate.knownForTitles)
+      ? candidate.knownForTitles.filter(Boolean).slice(0, 3)
+      : [];
+    if (knownForTitles.length) {
+      return 'Known for: ' + knownForTitles.join(', ') + '.';
     }
-    return role + ' on ' + sourceTitle + '.';
+    const role = candidate && candidate.roleLabel ? candidate.roleLabel : 'Film Figure';
+    return role + ' card.';
   }
 
   function buildPersonCard(candidate, sourceMovie) {
@@ -3746,6 +3840,9 @@ button, a, select { font: inherit; }
       roleLabel: candidate.roleLabel,
       personType: candidate.personType,
       personId: candidate.personId,
+      knownForTitles: candidate.knownForTitles || [],
+      knownForPeakRank: candidate.knownForPeakRank || 0,
+      knownForDepth: candidate.knownForDepth || 0,
       sourceTitle: sourceMovie ? sourceMovie.title : null,
       sourceYear: sourceMovie ? sourceMovie.year : null,
       character: candidate.character || '',
@@ -3825,7 +3922,15 @@ button, a, select { font: inherit; }
     const picked = choosePersonCandidate(candidates, themeKey);
     if (!picked) return null;
 
-    return buildPersonCard(picked, sourceById[String(picked.sourceMovieId)] || validMovies[0]);
+    const knownFor = await fetchPersonKnownFor(picked.personId, picked.roleKey).catch(function () {
+      return {
+        knownForTitles: [],
+        knownForPeakRank: 0,
+        knownForDepth: 0
+      };
+    });
+
+    return buildPersonCard(Object.assign({}, picked, knownFor), sourceById[String(picked.sourceMovieId)] || validMovies[0]);
   }
 
   function buildFlavorTags(movie) {
@@ -4211,14 +4316,17 @@ button, a, select { font: inherit; }
 
   function buildPackMarkup() {
     if (progress.rewardChoicesAvailable > 0) {
-      const featuredThemeKey = ensureFeaturedRewardTheme(false) || 'horror';
-      const featuredTheme = PACK_THEMES[featuredThemeKey] || PACK_THEMES.horror;
+      const rewardThemes = ensureFeaturedRewardThemes(false);
+      const leftThemeKey = rewardThemes[0] || 'horror';
+      const rightThemeKey = rewardThemes[1] || chooseFeaturedRewardTheme(leftThemeKey) || 'animation';
+      const leftTheme = PACK_THEMES[leftThemeKey] || PACK_THEMES.horror;
+      const rightTheme = PACK_THEMES[rightThemeKey] || PACK_THEMES.animation;
       return buildPackHookMarkup()
         + '<div class="reward-choice-wrap">'
         + '<div class="reward-choice-copy">Choose your reward pack. Pick one, watch it snap forward, then crack it open.</div>'
         + '<div class="reward-choice-grid">'
-        + '<button class="reward-pack-option is-left" type="button" data-reward-choice="gold">' + buildPackFaceMarkup('gold') + '<div class="reward-pack-caption">Guaranteed purple or gold</div></button>'
-        + '<button class="reward-pack-option is-right" type="button" data-reward-choice="featured" data-reward-theme="' + escapeHtml(featuredThemeKey) + '">' + buildPackFaceMarkup(featuredThemeKey) + '<div class="reward-pack-caption">Featured: ' + escapeHtml(featuredTheme.label) + '</div></button>'
+        + '<button class="reward-pack-option is-left" type="button" data-reward-choice="featured" data-reward-theme="' + escapeHtml(leftThemeKey) + '">' + buildPackFaceMarkup(leftThemeKey) + '<div class="reward-pack-caption">Featured: ' + escapeHtml(leftTheme.label) + '</div></button>'
+        + '<button class="reward-pack-option is-right" type="button" data-reward-choice="featured" data-reward-theme="' + escapeHtml(rightThemeKey) + '">' + buildPackFaceMarkup(rightThemeKey) + '<div class="reward-pack-caption">Featured: ' + escapeHtml(rightTheme.label) + '</div></button>'
         + '</div></div>'
         + '<div class="status-line">Choose one reward pack to open.</div>';
     }
@@ -4290,15 +4398,12 @@ button, a, select { font: inherit; }
     if (isOpeningPack || isPoolLoading) return;
     isOpeningPack = true;
 
-    const rewardChoice = choiceKey === 'featured' ? 'featured' : 'gold';
-    const resolvedFeaturedTheme = rewardChoice === 'featured'
-      ? (themeKey || ensureFeaturedRewardTheme(false) || 'horror')
-      : null;
+    const rewardChoice = 'featured';
+    const rewardThemes = ensureFeaturedRewardThemes(false);
+    const resolvedFeaturedTheme = themeKey || rewardThemes[0] || 'horror';
 
     activeRewardSelection = rewardChoice;
-    if (resolvedFeaturedTheme) {
-      progress.featuredRewardTheme = resolvedFeaturedTheme;
-    }
+    progress.featuredRewardTheme = resolvedFeaturedTheme;
 
     const optionButtons = Array.from(pullArea.querySelectorAll('.reward-pack-option'));
     const rewardGrid = pullArea.querySelector('.reward-choice-grid');
@@ -4340,28 +4445,20 @@ button, a, select { font: inherit; }
       selectedPackFace.classList.add('is-loading');
     }
     if (statusLine) {
-      statusLine.textContent = rewardChoice === 'gold'
-        ? 'Loading your reward pack...'
-        : 'Loading your featured reward pack...';
+      statusLine.textContent = 'Loading your reward pack...';
     }
     await new Promise(function (resolve) { setTimeout(resolve, 180); });
 
     try {
       if (dataSourceLabel.indexOf('TMDB') !== -1) {
-        if (rewardChoice === 'gold') {
-          currentPackTheme = 'gold';
-          activeReelSeenTitles = new Set();
-          needsPoolRestoreAfterReward = selectedPackMode !== 'all-packs';
-        } else {
-          currentPackTheme = resolvedFeaturedTheme || 'horror';
-          if (getPackPool(currentPackTheme).length < Math.max(PACK_SIZE * 10, 80)) {
-            await fetchThemedDynamicCardPool(currentPackTheme, false).catch(function () { return false; });
-          }
-          activeReelSeenTitles = new Set();
-          needsPoolRestoreAfterReward = selectedPackMode === 'all-packs' || selectedPackMode !== currentPackTheme;
+        currentPackTheme = resolvedFeaturedTheme || 'horror';
+        if (getPackPool(currentPackTheme).length < Math.max(PACK_SIZE * 10, 80)) {
+          await fetchThemedDynamicCardPool(currentPackTheme, false).catch(function () { return false; });
         }
+        activeReelSeenTitles = new Set();
+        needsPoolRestoreAfterReward = selectedPackMode === 'all-packs' || selectedPackMode !== currentPackTheme;
       } else {
-        currentPackTheme = rewardChoice === 'gold' ? 'gold' : (resolvedFeaturedTheme || 'horror');
+        currentPackTheme = resolvedFeaturedTheme || 'horror';
         needsPoolRestoreAfterReward = false;
       }
 
@@ -4513,12 +4610,12 @@ button, a, select { font: inherit; }
     const seenTitles = new Set();
     const ownedTitles = buildOwnedFilmTitleSet();
     const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
-    const isGoldRewardPack = isRewardPack && activeRewardSelection === 'gold';
+    const isBoostedRewardPack = isRewardPack;
     const shouldTryPersonInsert = dataSourceLabel.indexOf('TMDB') !== -1;
     const filmSlots = shouldTryPersonInsert ? (PACK_SIZE - 1) : PACK_SIZE;
 
     for (let i = 0; i < filmSlots; i += 1) {
-      const movie = chooseMovieForPack(sourcePool, seenTitles, isGoldRewardPack && i === 0, ownedTitles);
+      const movie = chooseMovieForPack(sourcePool, seenTitles, isBoostedRewardPack && i === 0, ownedTitles);
       drafted.push(movie);
       if (sourcePool.length > PACK_SIZE) seenTitles.add(movie.title);
     }
@@ -4536,7 +4633,7 @@ button, a, select { font: inherit; }
       return Promise.resolve(fillFallbacks());
     }
 
-    return maybeBuildPersonInsert(drafted, currentPackTheme, isGoldRewardPack)
+    return maybeBuildPersonInsert(drafted, currentPackTheme, isBoostedRewardPack)
       .catch(function () { return null; })
       .then(function (personInsert) {
         if (personInsert) drafted.push(personInsert);
@@ -4629,7 +4726,6 @@ button, a, select { font: inherit; }
 
     pack = Array.isArray(draftedPack) && draftedPack.length ? draftedPack.slice() : await buildDraftPack(pool);
     const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
-    const isGoldRewardPack = isRewardPack && activeRewardSelection === 'gold';
     pack.forEach(function (card) {
       collection.unshift(card);
       activeReelSeenTitles.add(card.title);
@@ -4638,14 +4734,11 @@ button, a, select { font: inherit; }
     if (isRewardPack) {
       progress.rewardChoicesAvailable = Math.max(0, progress.rewardChoicesAvailable - 1);
       progress.featuredRewardTheme = null;
+      progress.featuredRewardThemes = [];
       progress.allPacksCinemaStreak = 0;
-      artworkStatus = isGoldRewardPack
-        ? (pack.some(function (card) { return card.cardType === 'person'; })
-          ? 'Gold pack cracked. Premium film plus a people insert delivered.'
-          : 'Gold pack cracked. Guaranteed purple or gold delivered.')
-        : (pack.some(function (card) { return card.cardType === 'person'; })
-          ? 'Featured pack cracked. Focused pull plus a people insert delivered.'
-          : 'Featured pack cracked. Focused pull delivered.');
+      artworkStatus = pack.some(function (card) { return card.cardType === 'person'; })
+        ? 'Reward pack cracked. Premium pull plus a people insert delivered.'
+        : 'Reward pack cracked. Premium pull delivered.';
       activeRewardSelection = null;
     } else {
       progress.standardPacksOpened += 1;
@@ -4658,8 +4751,8 @@ button, a, select { font: inherit; }
       }
       if (progress.standardPacksOpened % REEL_REFRESH_INTERVAL === 0) {
         progress.rewardChoicesAvailable += 1;
-        ensureFeaturedRewardTheme(true);
-        artworkStatus = 'Reward choice unlocked. Pick gold or featured.';
+        ensureFeaturedRewardThemes(true);
+        artworkStatus = 'Reward choice unlocked. Pick one of two featured packs.';
       } else if (pack.some(function (card) { return card.cardType === 'person'; })) {
         artworkStatus = 'People insert found in the sixth slot.';
       }
