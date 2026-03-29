@@ -830,6 +830,34 @@ function computeScore(movie) {
     - obscurityPenalty;
 }
 
+function computeRarityScore(movie) {
+  const signals = computeMovieSignals(movie);
+  const recognitionPoints = [0, 6, 11, 16, 21, 25, 28, 30][Math.max(0, Math.min(7, signals.recognition || 0))] || 0;
+  const respectPoints = [0, 7, 13, 19, 24, 28, 30, 30][Math.max(0, Math.min(7, signals.respect || 0))] || 0;
+  const cultPoints = [0, 4, 8, 12, 15, 18, 20, 20][Math.max(0, Math.min(7, signals.cult || 0))] || 0;
+  const canonPoints = [0, 7, 12, 17, 22, 25][Math.max(0, Math.min(5, signals.canon || 0))] || 0;
+
+  let bonus = 0;
+  if (signals.recognition >= 5 && signals.respect >= 2) bonus += 8;
+  if (signals.prestigeProxy) bonus += 5;
+  if (signals.iconicAnimationProxy) bonus += 5;
+  if (signals.genreLandmarkProxy) bonus += 5;
+  if (signals.recognitionEvent) bonus += 4;
+  if (signals.broadCulturalStapleProxy) bonus += 4;
+  if (signals.prestigeCrowdPleaserProxy) bonus += 4;
+  if (signals.familyAnimationStapleProxy) bonus += 4;
+  if (signals.blockbusterRespectProxy) bonus += 4;
+  if (signals.documentaryLandmarkProxy) bonus += 5;
+  if (signals.titlePromotion) bonus += 5;
+
+  let penalty = 0;
+  if (signals.voteCount < 18) penalty += 10;
+  else if (signals.voteCount < 40) penalty += 5;
+  if (signals.popularity < 2.5 && signals.respect < 4) penalty += 4;
+
+  return Math.max(0, Math.min(100, recognitionPoints + respectPoints + cultPoints + canonPoints + bonus - penalty));
+}
+
 function selectDiversifiedPool(movies, limit) {
   const buckets = new Map();
   const ordered = Array.isArray(movies) ? movies.slice() : [];
@@ -858,11 +886,11 @@ function selectDiversifiedPool(movies, limit) {
   return selected;
 }
 
-function assignRarity(rank, total) {
-  const percentile = total ? (rank + 1) / total : 1;
-  if (percentile <= 0.012) return 'Legendary';
-  if (percentile <= 0.065) return 'Epic';
-  if (percentile <= 0.24) return 'Select';
+function assignRarity(movie) {
+  const score = computeRarityScore(movie);
+  if (score >= 78) return 'Legendary';
+  if (score >= 55) return 'Epic';
+  if (score >= 35) return 'Select';
   return 'Base';
 }
 
@@ -1092,8 +1120,8 @@ async function buildCardPool(limit) {
     limit
   );
 
-  ranked.forEach(function (movie, index) {
-    const baseRarity = assignRarity(index, ranked.length);
+  ranked.forEach(function (movie) {
+    const baseRarity = assignRarity(movie);
     const raised = maxRarity(baseRarity, rarityFloorForMovie(movie));
     movie.rarity = minRarity(raised, rarityCeilingForMovie(movie));
   });

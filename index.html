@@ -818,8 +818,10 @@ button, a, select { font: inherit; }
     0 22px 58px rgba(0,0,0,.42);
 }
 
-.peel-card-wrap.is-peeling-out { animation: peelOut 280ms ease forwards; }
-.peel-card-wrap.is-peeling-in { animation: peelIn 320ms ease forwards; }
+.peel-card-wrap.is-peeling-out-next { animation: peelOutNext 280ms ease forwards; }
+.peel-card-wrap.is-peeling-out-prev { animation: peelOutPrev 280ms ease forwards; }
+.peel-card-wrap.is-peeling-in-next { animation: peelInNext 320ms ease forwards; }
+.peel-card-wrap.is-peeling-in-prev { animation: peelInPrev 320ms ease forwards; }
 
 .stack-arrow {
   position: absolute;
@@ -2092,13 +2094,23 @@ button, a, select { font: inherit; }
   50% { box-shadow: 0 20px 40px rgba(0,0,0,.4), 0 0 34px rgba(245,158,11,.42), 0 0 78px rgba(251,191,36,.2); }
 }
 
-@keyframes peelOut {
+@keyframes peelOutNext {
   0% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 1; }
   100% { transform: translateX(-84px) translateY(-10px) rotate(-7deg) scale(0.98); opacity: 1; }
 }
 
-@keyframes peelIn {
+@keyframes peelOutPrev {
+  0% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translateX(84px) translateY(-10px) rotate(7deg) scale(0.98); opacity: 1; }
+}
+
+@keyframes peelInNext {
   0% { transform: translateX(52px) translateY(6px) rotate(5deg) scale(0.985); opacity: 1; }
+  100% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes peelInPrev {
+  0% { transform: translateX(-52px) translateY(6px) rotate(-5deg) scale(0.985); opacity: 1; }
   100% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 1; }
 }
 
@@ -2464,7 +2476,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: signal-rarity-10</div>
+  <div class="sub">Build: signal-rarity-11</div>
 </div>
 
 <div class="nav">
@@ -2851,6 +2863,7 @@ button, a, select { font: inherit; }
   let dataSourceLabel = 'Sample Set';
   let activeReelCycleKey = null;
   let activeReelSeenTitles = new Set();
+  let lastPeelDirection = 'next';
   const artCache = new Map();
 
   const pullPage = document.getElementById('pull');
@@ -4703,17 +4716,22 @@ button, a, select { font: inherit; }
 
     const peelWrap = pullArea.querySelector('.peel-card-wrap');
     attachPackCardInteractions(peelWrap, current);
-    peelWrap.classList.add('is-peeling-in');
-    setTimeout(function () { peelWrap.classList.remove('is-peeling-in'); }, 320);
+    peelWrap.classList.add(lastPeelDirection === 'prev' ? 'is-peeling-in-prev' : 'is-peeling-in-next');
+    setTimeout(function () {
+      peelWrap.classList.remove('is-peeling-in-next');
+      peelWrap.classList.remove('is-peeling-in-prev');
+    }, 320);
   }
 
   function animateToCard(direction) {
     if (!pack.length || isAnimatingPeel) return;
     isAnimatingPeel = true;
+    lastPeelDirection = direction === 'prev' ? 'prev' : 'next';
     const wrap = pullArea.querySelector('.peel-card-wrap');
     if (wrap) {
-      wrap.classList.remove('is-peeling-in');
-      wrap.classList.add('is-peeling-out');
+      wrap.classList.remove('is-peeling-in-next');
+      wrap.classList.remove('is-peeling-in-prev');
+      wrap.classList.add(direction === 'prev' ? 'is-peeling-out-prev' : 'is-peeling-out-next');
     }
     setTimeout(function () {
       index = direction === 'next'
