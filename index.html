@@ -2492,7 +2492,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: people-reward-10</div>
+  <div class="sub">Build: people-reward-11</div>
 </div>
 
 <div class="nav">
@@ -2830,7 +2830,7 @@ button, a, select { font: inherit; }
   };
   const PERSON_ROLE_WEIGHTS = {
     actor: 30,
-    director: 46
+    director: 52
   };
   const PERSON_ROLE_THEME_BONUS = {
     horror: { actor: 6, director: 5 },
@@ -3851,20 +3851,28 @@ button, a, select { font: inherit; }
   }
 
   function buildPersonDescription(candidate, sourceMovie) {
-    const fallbackTitles = Array.isArray(candidate && candidate.fallbackKnownForTitles)
-      ? candidate.fallbackKnownForTitles.filter(Boolean).slice(0, 3)
-      : [];
-    const knownForTitles = Array.isArray(candidate && candidate.knownForTitles)
-      ? candidate.knownForTitles.filter(Boolean).slice(0, 3)
-      : [];
-    const mergedTitles = knownForTitles.concat(fallbackTitles).filter(function (title, index, items) {
-      return title && items.indexOf(title) === index;
-    }).slice(0, 3);
+    const mergedTitles = getMergedKnownForTitles(candidate, sourceMovie);
     if (mergedTitles.length) {
       return 'Known for: ' + mergedTitles.join(', ') + '.';
     }
     const role = candidate && candidate.roleLabel ? candidate.roleLabel : 'Film Figure';
     return role + ' card.';
+  }
+
+  function getMergedKnownForTitles(candidate, sourceMovie) {
+    const fromKnownFor = Array.isArray(candidate && candidate.knownForTitles)
+      ? candidate.knownForTitles.filter(Boolean)
+      : [];
+    const fromFallback = Array.isArray(candidate && candidate.fallbackKnownForTitles)
+      ? candidate.fallbackKnownForTitles.filter(Boolean)
+      : [];
+    const fromDesc = candidate && candidate.desc
+      ? String(candidate.desc).replace(/^Known for:\s*/i, '').replace(/\.$/, '').split(/\s*,\s*/).filter(Boolean)
+      : [];
+    const fromSource = sourceMovie && sourceMovie.title ? [sourceMovie.title] : [];
+    return fromKnownFor.concat(fromFallback, fromDesc, fromSource).filter(function (title, index, items) {
+      return title && items.indexOf(title) === index;
+    }).slice(0, 3);
   }
 
   function buildPersonCard(candidate, sourceMovie) {
@@ -3881,11 +3889,7 @@ button, a, select { font: inherit; }
       personType: candidate.personType,
       personId: candidate.personId,
       sourceMovieIds: candidate.sourceMovieIds || [],
-      knownForTitles: (Array.isArray(candidate.knownForTitles) ? candidate.knownForTitles : []).concat(
-        Array.isArray(candidate.fallbackKnownForTitles) ? candidate.fallbackKnownForTitles : []
-      ).filter(function (title, index, items) {
-        return title && items.indexOf(title) === index;
-      }).slice(0, 3),
+      knownForTitles: getMergedKnownForTitles(candidate, sourceMovie),
       knownForPeakRank: candidate.knownForPeakRank || 0,
       knownForDepth: candidate.knownForDepth || 0,
       sourceTitle: sourceMovie ? sourceMovie.title : null,
@@ -4161,12 +4165,7 @@ button, a, select { font: inherit; }
 
     if (movie.cardType === 'person') {
       const personClass = movie.personType === 'actor' ? 'person-actor' : (movie.personType === 'director' ? 'person-director' : 'person-crew');
-      const knownForTitles = Array.isArray(movie.knownForTitles) ? movie.knownForTitles.filter(Boolean).slice(0, 3) : [];
-      const fallbackKnownForText = movie.desc ? String(movie.desc).replace(/^Known for:\s*/i, '').replace(/\.$/, '') : '';
-      const fallbackKnownForTitles = fallbackKnownForText
-        ? fallbackKnownForText.split(/\s*,\s*/).filter(Boolean).slice(0, 3)
-        : [];
-      const displayKnownForTitles = (knownForTitles.length ? knownForTitles : fallbackKnownForTitles).slice(0, 3);
+      const displayKnownForTitles = getMergedKnownForTitles(movie).slice(0, 3);
       const knownForMarkup = displayKnownForTitles.length
         ? '<div class="person-known-for-label">Known For:</div><div class="person-source-line">' + displayKnownForTitles.map(function (title) {
           return '<span>' + escapeHtml(title) + '</span>';

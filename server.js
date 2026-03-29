@@ -786,12 +786,18 @@ function summarizeKnownForMovies(credits, roleKey) {
     if (flooredRarity && rarityRank(flooredRarity) > rarityRank(rarity)) rarity = flooredRarity;
     if (ceiling && rarityRank(ceiling) < rarityRank(rarity)) rarity = ceiling;
 
+    const score = computeRarityScore(movie);
+    const voteCount = Number(movie.vote_count) || 0;
+    const popularity = Number(movie.popularity) || 0;
+    const voteAverage = Number(movie.vote_average) || 0;
+    const crowdPriority = Math.min(12000, voteCount) * 140 + Math.round(popularity * 6000);
+    const staturePriority = rarityRank(rarity) * 25000000 + score * 120000 + Math.round(voteAverage * 6000);
+    const thinPenalty = voteCount < 20 && popularity < 4 && rarityRank(rarity) < 3 ? 9000000 : 0;
+
     const priority = (
-      rarityRank(rarity) * 100000000
-      + Math.min(6000, Number(movie.vote_count) || 0) * 500
-      + Math.round((Number(movie.popularity) || 0) * 4000)
-      + computeRarityScore(movie) * 1000
-      + Math.round((Number(movie.vote_average) || 0) * 100)
+      staturePriority
+      + crowdPriority
+      - thinPenalty
     );
 
     return {
@@ -803,8 +809,13 @@ function summarizeKnownForMovies(credits, roleKey) {
     return b.priority - a.priority;
   });
 
+  const preferred = ranked.filter(function (movie) {
+    return movie && (movie.priority >= 26000000 || rarityRank(movie.rarity) >= 2);
+  });
+  const source = preferred.length >= 3 ? preferred : ranked;
+
   return {
-    knownForTitles: ranked.slice(0, 3).map(function (movie) { return movie.title; }),
+    knownForTitles: source.slice(0, 3).map(function (movie) { return movie.title; }),
     knownForPeakRank: ranked.length ? rarityRank(ranked[0].rarity) : 0,
     knownForDepth: ranked.filter(function (movie) { return rarityRank(movie.rarity) >= 2; }).length
   };
@@ -924,6 +935,9 @@ function computeMovieSignals(movie) {
     (recognition >= 3 && respect >= 3) ||
     (cult >= 3 && respect >= 2)
   );
+  const mainstreamRecognitionProxy = voteCount >= 220 && popularity >= 7 && year >= 1970 && year <= 2022;
+  const acclaimedModernGenreProxy = year >= 1990 && isGenreLandmarkLane && recognition >= 3 && respect >= 3;
+  const belovedStudioClassicProxy = year >= 1970 && year <= 2015 && voteCount >= 300 && (recognition >= 2 || popularity >= 10) && (respect >= 1 || cult >= 1);
   const titlePromotion = EPIC_PROMOTION_TITLES.has(titleKey(movie && movie.title));
 
   return {
@@ -944,6 +958,9 @@ function computeMovieSignals(movie) {
     classicFamilyMusicalProxy: classicFamilyMusicalProxy,
     newHollywoodStapleProxy: newHollywoodStapleProxy,
     documentaryLandmarkProxy: documentaryLandmarkProxy,
+    mainstreamRecognitionProxy: mainstreamRecognitionProxy,
+    acclaimedModernGenreProxy: acclaimedModernGenreProxy,
+    belovedStudioClassicProxy: belovedStudioClassicProxy,
     titlePromotion: titlePromotion,
     year: year,
     popularity: popularity,
@@ -996,6 +1013,9 @@ function computeRarityScore(movie) {
   if (signals.classicFamilyMusicalProxy) bonus += 3;
   if (signals.newHollywoodStapleProxy) bonus += 3;
   if (signals.documentaryLandmarkProxy) bonus += 5;
+  if (signals.mainstreamRecognitionProxy) bonus += 3;
+  if (signals.acclaimedModernGenreProxy) bonus += 4;
+  if (signals.belovedStudioClassicProxy) bonus += 3;
   if (signals.titlePromotion) bonus += 5;
 
   let penalty = 0;
@@ -1052,8 +1072,8 @@ function selectDiversifiedPool(movies, limit) {
 function assignRarity(movie) {
   const score = computeRarityScore(movie);
   if (score >= 78) return 'Legendary';
-  if (score >= 57) return 'Epic';
-  if (score >= 33) return 'Select';
+  if (score >= 54) return 'Epic';
+  if (score >= 31) return 'Select';
   return 'Base';
 }
 
@@ -1087,6 +1107,14 @@ function rarityFloorForMovie(movie) {
     floor = maxRarity(floor, 'Select');
   }
 
+  if (signals.mainstreamRecognitionProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
+  if (signals.belovedStudioClassicProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
   if (signals.classicFamilyMusicalProxy) {
     floor = maxRarity(floor, 'Select');
   }
@@ -1096,6 +1124,10 @@ function rarityFloorForMovie(movie) {
   }
 
   if (signals.recognition >= 5 && signals.respect >= 3) {
+    floor = maxRarity(floor, 'Epic');
+  }
+
+  if (signals.recognition >= 4 && signals.respect >= 2 && (signals.cult >= 2 || signals.mainstreamRecognitionProxy)) {
     floor = maxRarity(floor, 'Epic');
   }
 
@@ -1116,6 +1148,7 @@ function rarityFloorForMovie(movie) {
     signals.blockbusterRespectProxy ||
     signals.classicHorrorLandmarkProxy ||
     signals.documentaryLandmarkProxy ||
+    signals.acclaimedModernGenreProxy ||
     signals.titlePromotion
   ) {
     floor = maxRarity(floor, 'Epic');
