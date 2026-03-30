@@ -53,7 +53,7 @@ const DISCOVER_RECIPES = [
   { key: 'animation', pages: 3, params: { sort_by: 'popularity.desc', with_genres: '16', 'primary_release_date.lte': '2015-12-31' } },
   { key: 'romcom', pages: 5, params: { sort_by: 'popularity.desc', with_genres: '10749,35', 'vote_count.gte': '80', 'primary_release_date.lte': '2020-12-31' } },
   { key: 'romantic-drama', pages: 4, params: { sort_by: 'vote_average.desc', with_genres: '10749,18', 'vote_count.gte': '120', 'primary_release_date.lte': '2018-12-31' } },
-  { key: 'documentary', pages: 4, params: { sort_by: 'vote_count.desc', with_genres: '99', 'vote_count.gte': '80', 'primary_release_date.lte': '2018-12-31' } },
+  { key: 'documentary', pages: 6, params: { sort_by: 'vote_count.desc', with_genres: '99', 'vote_count.gte': '40', 'primary_release_date.lte': '2021-12-31' } },
   { key: 'classics', pages: 8, params: { sort_by: 'vote_average.desc', 'primary_release_date.lte': '1990-12-31', 'vote_count.gte': '120' } },
   { key: 'scifi', pages: 3, params: { sort_by: 'popularity.desc', with_genres: '878', 'primary_release_date.lte': '2015-12-31' } },
   { key: 'world-cinema', pages: 8, params: { sort_by: 'vote_average.desc', 'vote_count.gte': '80', with_original_language: 'fr|ja|ko|es|it|de|pt|sv|da|zh|cn|hi', 'primary_release_date.lte': '2018-12-31' } },
@@ -145,6 +145,8 @@ const TITLE_RARITY_FLOORS = {
   'grey gardens': 'Epic',
   'grave of the fireflies': 'Epic',
   'halloween': 'Epic',
+  'hard boiled': 'Epic',
+  'his girl friday': 'Epic',
   'little shop of horrors': 'Select',
   'sleeping beauty': 'Select',
   'harakiri': 'Legendary',
@@ -165,6 +167,7 @@ const TITLE_RARITY_FLOORS = {
   'mirror': 'Epic',
   'mulholland drive': 'Legendary',
   'nights of cabiria': 'Epic',
+  'police story': 'Epic',
   'paper moon': 'Select',
   'parasite': 'Epic',
   'paris, texas': 'Epic',
@@ -173,7 +176,9 @@ const TITLE_RARITY_FLOORS = {
   'playtime': 'Epic',
   'rashomon': 'Legendary',
   'robocop': 'Epic',
+  'roman holiday': 'Epic',
   'seven samurai': 'Legendary',
+  'singin\' in the rain': 'Legendary',
   'stalker': 'Legendary',
   'sunrise: a song of two humans': 'Epic',
   'taste of cherry': 'Epic',
@@ -190,6 +195,8 @@ const TITLE_RARITY_FLOORS = {
   'the red shoes': 'Epic',
   'the rules of the game': 'Legendary',
   'the sandlot': 'Epic',
+  'some like it hot': 'Epic',
+  'sunset boulevard': 'Epic',
   'the swimmer': 'Select',
   'the terminator': 'Epic',
   'the third man': 'Epic',
@@ -199,6 +206,7 @@ const TITLE_RARITY_FLOORS = {
   'there will be blood': 'Legendary',
   'tokyo story': 'Legendary',
   'vertigo': 'Legendary',
+  'when harry met sally...': 'Epic',
   'woman in the dunes': 'Epic',
   'apollo 13': 'Epic',
   'yi yi': 'Legendary',
@@ -790,6 +798,32 @@ async function getPersonCombinedCredits(personId) {
   return credits;
 }
 
+async function searchPersonKnownFor(personId, nameQuery, roleKey) {
+  const query = String(nameQuery || '').trim();
+  if (!query) return [];
+
+  try {
+    const payload = await tmdbJson('/search/person', { query: query, page: 1, include_adult: 'false' });
+    const results = Array.isArray(payload && payload.results) ? payload.results : [];
+    const exact = results.find(function (person) {
+      return Number(person && person.id) === Number(personId);
+    }) || results.find(function (person) {
+      return titleKey(person && person.name) === titleKey(query);
+    });
+    const knownFor = Array.isArray(exact && exact.known_for) ? exact.known_for : [];
+    const entries = knownFor.filter(function (item) {
+      if (!item || !item.title) return false;
+      if (item.media_type && item.media_type !== 'movie') return false;
+      return roleKey === 'director'
+        ? (item.department === 'Directing' || item.job === 'Director' || item.known_for_department === 'Directing' || !item.media_type)
+        : true;
+    });
+    return entries.slice(0, 6);
+  } catch (error) {
+    return [];
+  }
+}
+
 function buildKnownForMovieRecord(movie, roleKey) {
   if (!movie || !movie.id || !movie.title) return null;
   return {
@@ -820,9 +854,9 @@ function getRelevantKnownForCredits(credits, roleKey) {
   });
 }
 
-function summarizeKnownForMovies(credits, roleKey) {
+function summarizeKnownForEntries(entries, roleKey) {
   const seen = new Set();
-  const normalized = getRelevantKnownForCredits(credits, roleKey).map(function (movie) {
+  const normalized = (Array.isArray(entries) ? entries : []).map(function (movie) {
     return buildKnownForMovieRecord(movie, roleKey);
   }).filter(function (movie) {
     if (!movie || !movie.title) return false;
@@ -875,29 +909,24 @@ function summarizeKnownForMovies(credits, roleKey) {
   };
 }
 
-async function getPersonKnownFor(personId, roleKey) {
+function summarizeKnownForMovies(credits, roleKey) {
+  return summarizeKnownForEntries(getRelevantKnownForCredits(credits, roleKey), roleKey);
+}
+
+async function getPersonKnownFor(personId, roleKey, nameQuery) {
   if (!personId) {
     return { knownForTitles: [], knownForPeakRank: 0, knownForDepth: 0 };
   }
 
   try {
     const credits = await getPersonMovieCredits(personId);
-    const summary = summarizeKnownForMovies(credits, roleKey);
-    if ((summary.knownForTitles || []).length >= 3) {
-      return summary;
-    }
-
     const combinedCredits = await getPersonCombinedCredits(personId);
-    const combinedSummary = summarizeKnownForMovies(combinedCredits, roleKey);
-    const mergedTitles = (summary.knownForTitles || []).concat(combinedSummary.knownForTitles || []).filter(function (title, index, items) {
-      return title && items.indexOf(title) === index;
-    }).slice(0, 3);
-
-    return {
-      knownForTitles: mergedTitles,
-      knownForPeakRank: Math.max(summary.knownForPeakRank || 0, combinedSummary.knownForPeakRank || 0),
-      knownForDepth: Math.max(summary.knownForDepth || 0, combinedSummary.knownForDepth || 0)
-    };
+    const searchedEntries = await searchPersonKnownFor(personId, nameQuery, roleKey);
+    const mergedEntries = []
+      .concat(getRelevantKnownForCredits(credits, roleKey) || [])
+      .concat(getRelevantKnownForCredits(combinedCredits, roleKey) || [])
+      .concat(Array.isArray(searchedEntries) ? searchedEntries : []);
+    return summarizeKnownForEntries(mergedEntries, roleKey);
   } catch (error) {
     return { knownForTitles: [], knownForPeakRank: 0, knownForDepth: 0 };
   }
@@ -952,7 +981,11 @@ function computeMovieSignals(movie) {
   const isCrowdPleaserLane = movieHasGenreId(movie, [35, 12, 10749, 10402, 10751]);
   const isDocumentary = movieHasGenreId(movie, 99);
   const isMusicalLane = movieHasGenreId(movie, 10402);
+  const isMusicDocumentary = isDocumentary && isMusicalLane;
   const isHorrorThrillerLane = movieHasGenreId(movie, [27, 53, 9648]);
+  const isComedyLane = movieHasGenreId(movie, 35);
+  const isActionCrimeLane = movieHasGenreId(movie, [28, 80, 53]);
+  const isHongKongLanguage = ['cn', 'zh'].indexOf(originalLanguage) !== -1;
 
   let recognition = 0;
   if (popularity >= 12) recognition += 1;
@@ -1004,12 +1037,46 @@ function computeMovieSignals(movie) {
     respect >= 4 ||
     (recognition >= 3 && respect >= 3) ||
     (cult >= 3 && respect >= 2)
+  ) && (
+    !isMusicDocumentary ||
+    respect >= 5 ||
+    canon >= 2
   );
+  const classicComedyLandmarkProxy = isComedyLane && year >= 1930 && year <= 2005 && recognition >= 2 && (respect >= 3 || cult >= 3);
+  const musicalLandmarkProxy = isMusicalLane && recognition >= 2 && (respect >= 3 || cult >= 2);
+  const hongKongActionProxy = isHongKongLanguage && isActionCrimeLane && year >= 1970 && year <= 2005 && (cult >= 2 || (recognition >= 2 && respect >= 2));
+  const comedyCrowdMemoryProxy = isComedyLane && recognition >= 4 && (respect >= 1 || cult >= 1);
   const iconicFamilyAnimationProxy = isFamilyLane && isIconicAnimation && recognition >= 4 && (respect >= 2 || cult >= 1);
   const modernAuteurLandmarkProxy = year >= 1990 && year <= 2015 && respect >= 3 && (cult >= 2 || (recognition >= 2 && popularity <= 32));
   const mainstreamRecognitionProxy = voteCount >= 220 && popularity >= 7 && year >= 1970 && year <= 2022;
   const acclaimedModernGenreProxy = year >= 1990 && isGenreLandmarkLane && recognition >= 3 && respect >= 3;
   const belovedStudioClassicProxy = year >= 1970 && year <= 2015 && voteCount >= 300 && (recognition >= 2 || popularity >= 10) && (respect >= 1 || cult >= 1);
+  const catalogStapleProxy = year >= 1950 && year <= 2015 && voteCount >= 120 && popularity >= 5 && (respect >= 1 || cult >= 1);
+  const cultThrillerMysteryProxy = year >= 1975 && year <= 2005 && movieHasGenreId(movie, [53, 9648, 80, 27]) && voteCount >= 80 && (cult >= 2 || (respect >= 2 && popularity >= 5));
+  const concertFandomDocProxy = isMusicDocumentary && popularity >= 10 && canon < 2 && respect < 5;
+  const lowSignalObscurityProxy = voteCount < 90 && popularity < 7 && recognition < 3 && canon < 2;
+  const microObscureOverperformerProxy = voteAverage >= 7.7 && voteCount < 50 && popularity < 5 && canon < 2;
+  const majorPromotionProxy = Boolean(
+    prestigeProxy
+    || iconicAnimationProxy
+    || genreLandmarkProxy
+    || recognitionEvent
+    || broadCulturalStapleProxy
+    || prestigeCrowdPleaserProxy
+    || familyAnimationStapleProxy
+    || blockbusterRespectProxy
+    || classicHorrorLandmarkProxy
+    || documentaryLandmarkProxy
+    || classicComedyLandmarkProxy
+    || musicalLandmarkProxy
+    || hongKongActionProxy
+    || comedyCrowdMemoryProxy
+    || iconicFamilyAnimationProxy
+    || modernAuteurLandmarkProxy
+    || mainstreamRecognitionProxy
+    || acclaimedModernGenreProxy
+    || belovedStudioClassicProxy
+  );
   const titlePromotion = EPIC_PROMOTION_TITLES.has(titleKey(movie && movie.title));
 
   return {
@@ -1030,11 +1097,21 @@ function computeMovieSignals(movie) {
     classicFamilyMusicalProxy: classicFamilyMusicalProxy,
     newHollywoodStapleProxy: newHollywoodStapleProxy,
     documentaryLandmarkProxy: documentaryLandmarkProxy,
+    classicComedyLandmarkProxy: classicComedyLandmarkProxy,
+    musicalLandmarkProxy: musicalLandmarkProxy,
+    hongKongActionProxy: hongKongActionProxy,
+    comedyCrowdMemoryProxy: comedyCrowdMemoryProxy,
     iconicFamilyAnimationProxy: iconicFamilyAnimationProxy,
     modernAuteurLandmarkProxy: modernAuteurLandmarkProxy,
     mainstreamRecognitionProxy: mainstreamRecognitionProxy,
     acclaimedModernGenreProxy: acclaimedModernGenreProxy,
     belovedStudioClassicProxy: belovedStudioClassicProxy,
+    catalogStapleProxy: catalogStapleProxy,
+    cultThrillerMysteryProxy: cultThrillerMysteryProxy,
+    concertFandomDocProxy: concertFandomDocProxy,
+    lowSignalObscurityProxy: lowSignalObscurityProxy,
+    microObscureOverperformerProxy: microObscureOverperformerProxy,
+    majorPromotionProxy: majorPromotionProxy,
     titlePromotion: titlePromotion,
     year: year,
     popularity: popularity,
@@ -1109,17 +1186,26 @@ function computeRarityScore(movie) {
   if (signals.classicFamilyMusicalProxy) bonus += 3;
   if (signals.newHollywoodStapleProxy) bonus += 3;
   if (signals.documentaryLandmarkProxy) bonus += 5;
+  if (signals.classicComedyLandmarkProxy) bonus += 4;
+  if (signals.musicalLandmarkProxy) bonus += 4;
+  if (signals.hongKongActionProxy) bonus += 4;
+  if (signals.comedyCrowdMemoryProxy) bonus += 3;
   if (signals.iconicFamilyAnimationProxy) bonus += 5;
   if (signals.modernAuteurLandmarkProxy) bonus += 4;
   if (signals.mainstreamRecognitionProxy) bonus += 3;
   if (signals.acclaimedModernGenreProxy) bonus += 4;
   if (signals.belovedStudioClassicProxy) bonus += 3;
+  if (signals.catalogStapleProxy) bonus += 3;
+  if (signals.cultThrillerMysteryProxy) bonus += 4;
   if (signals.titlePromotion) bonus += 5;
 
   let penalty = 0;
   if (signals.voteCount < 18) penalty += 10;
   else if (signals.voteCount < 40) penalty += 5;
   if (signals.popularity < 2.5 && signals.respect < 4) penalty += 4;
+  if (signals.lowSignalObscurityProxy) penalty += 6;
+  if (signals.microObscureOverperformerProxy) penalty += 6;
+  if (signals.concertFandomDocProxy) penalty += 7;
 
   return Math.max(0, Math.min(100, recognitionPoints + respectPoints + cultPoints + canonPoints + bonus - penalty));
 }
@@ -1229,7 +1315,7 @@ function assignRarity(movie) {
   const score = computeRarityScore(movie);
   if (score >= 78) return 'Legendary';
   if (score >= 54) return 'Epic';
-  if (score >= 31) return 'Select';
+  if (score >= 29) return 'Select';
   return 'Base';
 }
 
@@ -1271,11 +1357,19 @@ function rarityFloorForMovie(movie) {
     floor = maxRarity(floor, 'Select');
   }
 
+  if (signals.catalogStapleProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
   if (signals.classicFamilyMusicalProxy) {
     floor = maxRarity(floor, 'Select');
   }
 
   if (signals.newHollywoodStapleProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
+  if (signals.comedyCrowdMemoryProxy) {
     floor = maxRarity(floor, 'Select');
   }
 
@@ -1305,6 +1399,10 @@ function rarityFloorForMovie(movie) {
     signals.blockbusterRespectProxy ||
     signals.classicHorrorLandmarkProxy ||
     signals.documentaryLandmarkProxy ||
+    signals.classicComedyLandmarkProxy ||
+    signals.musicalLandmarkProxy ||
+    signals.hongKongActionProxy ||
+    signals.cultThrillerMysteryProxy ||
     signals.modernAuteurLandmarkProxy ||
     signals.acclaimedModernGenreProxy ||
     signals.titlePromotion
@@ -1338,6 +1436,33 @@ function rarityCeilingForMovie(movie) {
   }
 
   if (signals.voteCount < 80 && signals.popularity < 10 && signals.respect < 4) {
+    return 'Select';
+  }
+
+  if (
+    signals.concertFandomDocProxy
+    && signals.canon < 2
+    && signals.respect < 5
+  ) {
+    return 'Epic';
+  }
+
+  if (
+    signals.microObscureOverperformerProxy
+    && !signals.majorPromotionProxy
+    && !signals.titlePromotion
+    && signals.respect < 4
+  ) {
+    return 'Select';
+  }
+
+  if (
+    signals.lowSignalObscurityProxy
+    && !signals.majorPromotionProxy
+    && !signals.titlePromotion
+    && signals.respect < 5
+    && signals.canon < 3
+  ) {
     return 'Select';
   }
 
@@ -1483,7 +1608,7 @@ async function buildCardPool(limit) {
   });
 
   const ranked = selectDiversifiedPool(
-    Array.from(deduped.values()).sort(function (a, b) { return computeScore(b) - computeScore(a); }),
+    Array.from(deduped.values()).sort(function (a, b) { return computePoolSelectionScore(b) - computePoolSelectionScore(a); }),
     limit
   );
 
@@ -1505,8 +1630,10 @@ async function buildThemePool(limit, theme) {
   const targetLimit = Math.max(100, Math.min(MAX_REQUEST_POOL_LIMIT, Number(limit) || 600));
   let themedPool = [];
   let attempts = 0;
+  const minTarget = normalizedTheme === 'docs' ? Math.min(targetLimit, 880) : Math.min(targetLimit, 720);
+  const maxAttempts = normalizedTheme === 'docs' ? 8 : 6;
 
-  while (themedPool.length < Math.min(targetLimit, 720) && attempts < 6) {
+  while (themedPool.length < minTarget && attempts < maxAttempts) {
     attempts += 1;
     const basePool = await buildCardPool(BASE_PREWARM_LIMIT);
     themedPool = mergeUniqueMovies(themedPool, filterPoolByTheme(basePool, normalizedTheme));
@@ -1797,6 +1924,7 @@ async function routeApi(req, res, url) {
 
   if (url.pathname === '/api/person-known-for') {
     const personId = Number(url.searchParams.get('personId') || 0);
+    const nameQuery = String(url.searchParams.get('name') || '');
     const roleKey = String(url.searchParams.get('role') || 'actor').toLowerCase() === 'director'
       ? 'director'
       : 'actor';
@@ -1806,7 +1934,7 @@ async function routeApi(req, res, url) {
       return;
     }
 
-    const knownFor = await getPersonKnownFor(personId, roleKey);
+    const knownFor = await getPersonKnownFor(personId, roleKey, nameQuery);
     writeJson(res, 200, knownFor);
     return;
   }

@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>filmTCG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Fahkwang:wght@500;700&family=Mouse+Memoirs&family=Orbitron:wght@700&family=Pirata+One&family=Special+Elite&family=Spicy+Rice&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #0b0c10;
@@ -392,6 +395,7 @@ button, a, select { font: inherit; }
   letter-spacing: -0.04em;
   position: relative;
   z-index: 1;
+  font-family: var(--pack-title-font, inherit);
 }
 
 .pack-sub {
@@ -2493,7 +2497,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: tier-pass-2</div>
+  <div class="sub">Build: pack-fonts-1</div>
 </div>
 
 <div class="nav">
@@ -2521,11 +2525,11 @@ button, a, select { font: inherit; }
       <select id="packTheme" class="filter-select">
         <option value="all-packs">Pack: All Packs</option>
         <option value="all">Pack: All Cinema</option>
-        <option value="horror">Pack: Scary Movie Night</option>
+        <option value="horror">Pack: Horror</option>
         <option value="animation">Pack: Animation</option>
-        <option value="eighties">Pack: 80s</option>
+        <option value="eighties">Pack: 80'S</option>
         <option value="noir">Pack: Film Noir</option>
-        <option value="romcom">Pack: Rom Com</option>
+        <option value="romcom">Pack: Rom-Com's</option>
         <option value="docs">Pack: Documentary</option>
         <option value="actors">Pack: Actors</option>
       </select>
@@ -2623,6 +2627,7 @@ button, a, select { font: inherit; }
       ribbon: 'HOUSE',
       title: 'All Cinema',
       blurb: 'every movie, ever.',
+      titleFont: 'inherit',
       colors: ['#4338ca', '#6d28d9', '#9333ea'],
       tier: 'Base Pack',
       ink: '#f8fafc',
@@ -2633,10 +2638,11 @@ button, a, select { font: inherit; }
       ctaInk: 'rgba(255,255,255,.84)'
     },
     horror: {
-      label: 'Scary Movie Night',
+      label: 'Horror',
       ribbon: 'SCREAM',
-      title: 'Scary Movie Night',
+      title: 'Horror',
       blurb: 'scared for you tbh',
+      titleFont: '"Pirata One", serif',
       colors: ['#7f1d1d', '#991b1b', '#450a0a'],
       tier: 'Select Pack',
       ink: '#fff7ed',
@@ -2651,6 +2657,7 @@ button, a, select { font: inherit; }
       ribbon: 'ANIMATED',
       title: 'Animation',
       blurb: 'you’re drawn to this, I know it',
+      titleFont: '"Mouse Memoirs", sans-serif',
       colors: ['#0f766e', '#2563eb', '#7c3aed'],
       tier: 'Select Pack',
       ink: '#eff6ff',
@@ -2661,10 +2668,11 @@ button, a, select { font: inherit; }
       ctaInk: 'rgba(239,246,255,.82)'
     },
     eighties: {
-      label: '80s',
+      label: "80'S",
       ribbon: 'VHS',
-      title: '80s',
+      title: "80'S",
       blurb: 'a decade, indeed',
+      titleFont: '"Orbitron", sans-serif',
       colors: ['#db2777', '#7c3aed', '#312e81'],
       tier: 'Select Pack',
       ink: '#fff7fb',
@@ -2679,6 +2687,7 @@ button, a, select { font: inherit; }
       ribbon: 'NOIR',
       title: 'Film Noir',
       blurb: 'light a cigarette NOW',
+      titleFont: '"Special Elite", monospace',
       colors: ['#111827', '#334155', '#020617'],
       tier: 'Epic Pack',
       ink: '#f8fafc',
@@ -2689,10 +2698,11 @@ button, a, select { font: inherit; }
       ctaInk: 'rgba(248,250,252,.84)'
     },
     romcom: {
-      label: 'Rom Com',
+      label: "Rom-Com's",
       ribbon: 'MEET CUTE',
-      title: 'Rom Com',
+      title: "Rom-Com's",
       blurb: 'love is in the air',
+      titleFont: '"Spicy Rice", serif',
       colors: ['#fb7185', '#f472b6', '#f59e0b'],
       tier: 'Select Pack',
       ink: '#fff7fb',
@@ -2707,6 +2717,7 @@ button, a, select { font: inherit; }
       ribbon: 'NONFICTION',
       title: 'Documentary',
       blurb: 'truth, but make it cinema',
+      titleFont: '"Caprasimo", serif',
       colors: ['#0f172a', '#0f766e', '#164e63'],
       tier: 'Select Pack',
       ink: '#ecfeff',
@@ -2721,6 +2732,7 @@ button, a, select { font: inherit; }
       ribbon: 'STAR TURN',
       title: 'Actors',
       blurb: 'faces you know, chaos you do not',
+      titleFont: '"Fahkwang", sans-serif',
       colors: ['#3b0764', '#7e22ce', '#db2777'],
       tier: 'Select Pack',
       ink: '#fdf4ff',
@@ -3132,7 +3144,8 @@ button, a, select { font: inherit; }
         featuredRewardThemes: storedRewardThemes,
         featuredRewardTheme: stored.featuredRewardTheme || storedRewardThemes[0] || null,
         allPacksCinemaStreak: Number(stored.allPacksCinemaStreak) || 0,
-        recentPullTitles: Array.isArray(stored.recentPullTitles) ? stored.recentPullTitles.filter(Boolean).slice(0, RECENT_PULL_MEMORY) : []
+        recentPullTitles: Array.isArray(stored.recentPullTitles) ? stored.recentPullTitles.filter(Boolean).slice(0, RECENT_PULL_MEMORY) : [],
+        recentPullKeys: Array.isArray(stored.recentPullKeys) ? stored.recentPullKeys.filter(Boolean).slice(0, RECENT_PULL_MEMORY) : []
       };
     } catch (error) {
       return {
@@ -3141,7 +3154,8 @@ button, a, select { font: inherit; }
         featuredRewardThemes: [],
         featuredRewardTheme: null,
         allPacksCinemaStreak: 0,
-        recentPullTitles: []
+        recentPullTitles: [],
+        recentPullKeys: []
       };
     }
   }
@@ -3150,6 +3164,9 @@ button, a, select { font: inherit; }
     progress.recentPullTitles = Array.isArray(progress.recentPullTitles)
       ? progress.recentPullTitles.filter(Boolean).slice(0, RECENT_PULL_MEMORY)
       : [];
+    progress.recentPullKeys = Array.isArray(progress.recentPullKeys)
+      ? progress.recentPullKeys.filter(Boolean).slice(0, RECENT_PULL_MEMORY)
+      : [];
     progress.featuredRewardThemes = Array.isArray(progress.featuredRewardThemes)
       ? progress.featuredRewardThemes.filter(Boolean).slice(0, 2)
       : [];
@@ -3157,15 +3174,44 @@ button, a, select { font: inherit; }
     localStorage.setItem('filmtcg.progress', JSON.stringify(progress));
   }
 
+  function normalizeFilmIdentityText(value) {
+    return String(value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+  }
+
+  function filmIdentityKey(movie) {
+    if (!movie || movie.cardType === 'person') return '';
+    const tmdbId = Number(movie.tmdbId || movie.id) || 0;
+    if (tmdbId) return 'tmdb:' + String(tmdbId);
+    const normalizedTitle = normalizeFilmIdentityText(movie.title);
+    const year = movieYearNumber(movie) || '';
+    return normalizedTitle ? ('title:' + normalizedTitle + ':' + String(year || '')) : '';
+  }
+
   function buildRecentPullSet() {
+    const storedKeys = Array.isArray(progress.recentPullKeys) ? progress.recentPullKeys : [];
+    if (storedKeys.length) {
+      return new Set(storedKeys.slice(0, RECENT_PULL_HARD_EXCLUDE));
+    }
+    return new Set((progress.recentPullTitles || []).slice(0, RECENT_PULL_HARD_EXCLUDE).map(function (title) {
+      return 'title:' + normalizeFilmIdentityText(title) + ':';
+    }).filter(Boolean));
+  }
+
+  function buildRecentPersonSet() {
     return new Set((progress.recentPullTitles || []).slice(0, RECENT_PULL_HARD_EXCLUDE));
   }
 
   function buildOwnedFilmTitleSet() {
     const titles = new Set();
     collection.forEach(function (card) {
-      if (card && card.cardType !== 'person' && card.title) {
-        titles.add(card.title);
+      const key = filmIdentityKey(card);
+      if (key) {
+        titles.add(key);
       }
     });
     return titles;
@@ -3173,14 +3219,22 @@ button, a, select { font: inherit; }
 
   function rememberPulledTitles(cards) {
     const next = [];
+    const nextKeys = [];
     (cards || []).forEach(function (movie) {
       if (movie && movie.title && next.indexOf(movie.title) === -1) {
         next.push(movie.title);
+      }
+      const key = filmIdentityKey(movie);
+      if (key && nextKeys.indexOf(key) === -1) {
+        nextKeys.push(key);
       }
     });
 
     progress.recentPullTitles = next.concat(progress.recentPullTitles || []).filter(function (title, index, items) {
       return title && items.indexOf(title) === index;
+    }).slice(0, RECENT_PULL_MEMORY);
+    progress.recentPullKeys = nextKeys.concat(progress.recentPullKeys || []).filter(function (key, index, items) {
+      return key && items.indexOf(key) === index;
     }).slice(0, RECENT_PULL_MEMORY);
   }
 
@@ -3971,7 +4025,7 @@ button, a, select { font: inherit; }
 
   function choosePersonCandidate(candidates, themeKey) {
     const weights = buildPersonRoleWeights(themeKey);
-    const recentPulls = buildRecentPullSet();
+    const recentPulls = buildRecentPersonSet();
     const filtered = (Array.isArray(candidates) ? candidates : []).filter(function (candidate) {
       return candidate && candidate.name && !recentPulls.has(candidate.name);
     });
@@ -3998,17 +4052,19 @@ button, a, select { font: inherit; }
 
   function buildPersonSourceMovies(themeKey, currentPackMovies) {
     const packTitles = new Set((Array.isArray(currentPackMovies) ? currentPackMovies : []).map(function (movie) {
-      return movie && movie.title;
+      return filmIdentityKey(movie);
     }).filter(Boolean));
     const recentTitles = buildRecentPullSet();
     const themedPool = getPackPool(themeKey).filter(function (movie) {
-      return movie && movie.cardType !== 'person' && movie.tmdbId && !packTitles.has(movie.title) && !recentTitles.has(movie.title) && !activeReelSeenTitles.has(movie.title);
+      const key = filmIdentityKey(movie);
+      return movie && movie.cardType !== 'person' && movie.tmdbId && key && !packTitles.has(key) && !recentTitles.has(key) && !activeReelSeenTitles.has(key);
     });
 
     let sourcePool = themedPool;
     if (sourcePool.length < 8) {
       sourcePool = sourcePool.concat(movies.filter(function (movie) {
-        return movie && movie.cardType !== 'person' && movie.tmdbId && !packTitles.has(movie.title) && !recentTitles.has(movie.title) && !activeReelSeenTitles.has(movie.title);
+        const key = filmIdentityKey(movie);
+        return movie && movie.cardType !== 'person' && movie.tmdbId && key && !packTitles.has(key) && !recentTitles.has(key) && !activeReelSeenTitles.has(key);
       }));
     }
 
@@ -4155,6 +4211,7 @@ button, a, select { font: inherit; }
       + '; --pack-c:' + theme.colors[2]
       + '; --pack-ribbon-bg:rgba(255,255,255,.16)'
       + '; --pack-glow:radial-gradient(circle, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 68%)'
+      + '; --pack-title-font:' + (theme.titleFont || 'inherit')
       + '; --pack-ink:' + (theme.ink || '#f8fafc')
       + '; --pack-sub-ink:' + (theme.subInk || 'rgba(248,250,252,.84)')
       + '; --pack-tier-ink:' + (theme.tierInk || 'rgba(255,255,255,.84)')
@@ -4638,24 +4695,28 @@ button, a, select { font: inherit; }
     const avoided = avoidedTitles || new Set();
     const owned = ownedTitles || new Set();
     let filtered = (candidates || []).filter(function (movie) {
-      return !excluded.has(movie.title) && !avoided.has(movie.title) && !owned.has(movie.title);
+      const key = filmIdentityKey(movie);
+      return key && !excluded.has(key) && !avoided.has(key) && !owned.has(key);
     });
 
     if (!filtered.length) {
       filtered = (candidates || []).filter(function (movie) {
-        return !excluded.has(movie.title) && !avoided.has(movie.title);
+        const key = filmIdentityKey(movie);
+        return key && !excluded.has(key) && !avoided.has(key);
       });
     }
 
     if (!filtered.length) {
       filtered = (candidates || []).filter(function (movie) {
-        return !excluded.has(movie.title) && !owned.has(movie.title);
+        const key = filmIdentityKey(movie);
+        return key && !excluded.has(key) && !owned.has(key);
       });
     }
 
     if (!filtered.length) {
       filtered = (candidates || []).filter(function (movie) {
-        return !excluded.has(movie.title);
+        const key = filmIdentityKey(movie);
+        return key && !excluded.has(key);
       });
     }
 
@@ -4665,8 +4726,8 @@ button, a, select { font: inherit; }
 
   function buildAvoidedTitleSet() {
     const avoided = buildRecentPullSet();
-    activeReelSeenTitles.forEach(function (title) {
-      avoided.add(title);
+    activeReelSeenTitles.forEach(function (key) {
+      avoided.add(key);
     });
     return avoided;
   }
@@ -4679,6 +4740,20 @@ button, a, select { font: inherit; }
       if (!buckets[movie.rarity]) buckets[movie.rarity] = [];
       buckets[movie.rarity].push(movie);
     });
+
+    function chooseAcrossRarities(prioritizedRarities) {
+      const remainingRarities = Object.keys(buckets).filter(function (rarity) {
+        return prioritizedRarities.indexOf(rarity) === -1;
+      });
+      const orderedRarities = prioritizedRarities.concat(remainingRarities);
+      for (let i = 0; i < orderedRarities.length; i += 1) {
+        const rarity = orderedRarities[i];
+        const candidates = buckets[rarity] || [];
+        const pick = chooseCandidateWithAvoidance(candidates, excludedTitles, avoidedTitles, preferredOwnedTitles);
+        if (pick) return pick;
+      }
+      return null;
+    }
 
     if (guaranteedHighRarity) {
       let premiumCandidates = []
@@ -4693,7 +4768,7 @@ button, a, select { font: inherit; }
 
     const availableOdds = PULL_ODDS.filter(function (entry) { return buckets[entry.rarity] && buckets[entry.rarity].length; });
     const pickedRarity = availableOdds.length ? weightedChoice(availableOdds).rarity : 'Base';
-    let pickedMovie = chooseCandidateWithAvoidance(buckets[pickedRarity] || [], excludedTitles, avoidedTitles, preferredOwnedTitles);
+    let pickedMovie = chooseAcrossRarities([pickedRarity]);
 
     if (!pickedMovie) {
       pickedMovie = chooseCandidateWithAvoidance(pool, excludedTitles, avoidedTitles, preferredOwnedTitles);
@@ -4759,14 +4834,16 @@ button, a, select { font: inherit; }
     for (let i = 0; i < filmSlots; i += 1) {
       const movie = chooseMovieForPack(sourcePool, seenTitles, isBoostedRewardPack && i === 0, ownedTitles);
       drafted.push(movie);
-      if (sourcePool.length > PACK_SIZE) seenTitles.add(movie.title);
+      const movieKey = filmIdentityKey(movie);
+      if (sourcePool.length > PACK_SIZE && movieKey) seenTitles.add(movieKey);
     }
 
     const fillFallbacks = function () {
       while (drafted.length < PACK_SIZE) {
         const fallbackMovie = chooseMovieForPack(sourcePool, seenTitles, false, ownedTitles);
         drafted.push(fallbackMovie);
-        if (sourcePool.length > PACK_SIZE) seenTitles.add(fallbackMovie.title);
+        const fallbackKey = filmIdentityKey(fallbackMovie);
+        if (sourcePool.length > PACK_SIZE && fallbackKey) seenTitles.add(fallbackKey);
       }
       return drafted;
     };
@@ -4870,7 +4947,8 @@ button, a, select { font: inherit; }
     const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
     pack.forEach(function (card) {
       collection.unshift(card);
-      activeReelSeenTitles.add(card.title);
+      const cardKey = filmIdentityKey(card);
+      if (cardKey) activeReelSeenTitles.add(cardKey);
     });
 
     if (isRewardPack) {
