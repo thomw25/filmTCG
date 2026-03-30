@@ -2493,7 +2493,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-plus-1</div>
+  <div class="sub">Build: tier-pass-2</div>
 </div>
 
 <div class="nav">
@@ -2802,6 +2802,7 @@ button, a, select { font: inherit; }
     'jean-luc godard': 'Legendary',
     'john ford': 'Legendary',
     'orson welles': 'Legendary',
+    'quentin tarantino': 'Legendary',
     'robert bresson': 'Legendary',
     'satyajit ray': 'Legendary',
     'spike lee': 'Legendary',
@@ -2837,18 +2838,24 @@ button, a, select { font: inherit; }
     'giulietta masina': 'Legendary',
     'ingrid bergman': 'Legendary',
     'jeanne moreau': 'Legendary',
+    'jim carrey': 'Epic',
     'liv ullmann': 'Legendary',
     'marcello mastroianni': 'Legendary',
+    'pam grier': 'Epic',
+    'samuel l. jackson': 'Epic',
     'setsuko hara': 'Legendary',
+    'sigourney weaver': 'Epic',
     'takashi shimura': 'Legendary',
     'toshirô mifune': 'Legendary',
     'tatsuya nakadai': 'Epic',
     'delphine seyrig': 'Epic',
     'gena rowlands': 'Epic',
+    'harry dean stanton': 'Epic',
     'isabelle huppert': 'Epic',
     'maggie cheung': 'Epic',
     'max von sydow': 'Epic',
     'tony leung chiu-wai': 'Epic',
+    'winona ryder': 'Epic',
     'bernard herrmann': 'Epic',
     'ennio morricone': 'Epic',
     'gregg toland': 'Legendary',
@@ -3484,7 +3491,7 @@ button, a, select { font: inherit; }
     return data && Array.isArray(data.people) ? data.people : [];
   }
 
-  async function fetchPersonKnownFor(personId, roleKey) {
+  async function fetchPersonKnownFor(personId, roleKey, personName) {
     const normalizedPersonId = Number(personId) || 0;
     if (!normalizedPersonId) {
       return {
@@ -3499,7 +3506,7 @@ button, a, select { font: inherit; }
       return personKnownForCache.get(cacheKey);
     }
 
-    const data = await fetchBackendJson('/api/person-known-for?personId=' + encodeURIComponent(String(normalizedPersonId)) + '&role=' + encodeURIComponent(roleKey === 'director' ? 'director' : 'actor'));
+    const data = await fetchBackendJson('/api/person-known-for?personId=' + encodeURIComponent(String(normalizedPersonId)) + '&role=' + encodeURIComponent(roleKey === 'director' ? 'director' : 'actor') + '&name=' + encodeURIComponent(String(personName || '')));
     const normalized = {
       knownForTitles: Array.isArray(data && data.knownForTitles) ? data.knownForTitles.filter(Boolean).slice(0, 3) : [],
       knownForPeakRank: Number(data && data.knownForPeakRank) || 0,
@@ -3821,6 +3828,7 @@ button, a, select { font: inherit; }
     if (popularity >= 32) recognition += 1;
     if (popularity >= 55) recognition += 1;
     if (knownForPeakRank >= 3) recognition += 1;
+    if (isDirector && knownForDepth >= 3) recognition += 1;
 
     let respect = 0;
     if (referenceRank >= 2) respect += 1;
@@ -3829,6 +3837,7 @@ button, a, select { font: inherit; }
     if (isDirector && referenceRank >= 3) respect += 1;
     if (isDirector && popularity >= 12) respect += 1;
     if (isDirector && knownForPeakRank >= 3 && knownForDepth >= 3) respect += 1;
+    if (isDirector && knownForPeakRank >= 4 && knownForDepth >= 3) respect += 1;
     if (!isDirector && referenceRank >= 3 && popularity >= 14) respect += 1;
 
     let cult = 0;
@@ -3840,6 +3849,18 @@ button, a, select { font: inherit; }
     const canon = floorRank >= 4 ? 1 : 0;
     const auteurDirectorProxy = Boolean(isDirector && knownForPeakRank >= 3 && knownForDepth >= 3);
     const directorPantheonProxy = Boolean(isDirector && knownForPeakRank >= 4 && knownForDepth >= 4);
+    const modernAuteurMajorProxy = Boolean(isDirector && knownForPeakRank >= 3 && knownForDepth >= 3 && popularity >= 14);
+    const modernAuteurPantheonProxy = Boolean(isDirector && (
+      (knownForPeakRank >= 4 && knownForDepth >= 3)
+      || (knownForPeakRank >= 3 && knownForDepth >= 4 && popularity >= 18)
+      || (knownForPeakRank >= 3 && knownForDepth >= 3 && popularity >= 28)
+    ));
+    const iconicStarProxy = Boolean(!isDirector && (
+      (knownForPeakRank >= 3 && popularity >= 18)
+      || (knownForPeakRank >= 2 && knownForDepth >= 3 && popularity >= 24)
+      || (knownForPeakRank >= 2 && popularity >= 40)
+    ));
+    const characterActorProxy = Boolean(!isDirector && knownForPeakRank >= 2 && knownForDepth >= 3 && popularity >= 6);
 
     return {
       recognition: recognition,
@@ -3848,6 +3869,10 @@ button, a, select { font: inherit; }
       canon: canon,
       auteurDirectorProxy: auteurDirectorProxy,
       directorPantheonProxy: directorPantheonProxy,
+      modernAuteurMajorProxy: modernAuteurMajorProxy,
+      modernAuteurPantheonProxy: modernAuteurPantheonProxy,
+      iconicStarProxy: iconicStarProxy,
+      characterActorProxy: characterActorProxy,
       sourceRank: sourceRank,
       knownForPeakRank: knownForPeakRank,
       knownForDepth: knownForDepth,
@@ -3872,6 +3897,9 @@ button, a, select { font: inherit; }
       || (signals.recognition >= 3 && signals.respect >= 2)
       || (signals.knownForPeakRank >= 3 && signals.knownForDepth >= 2)
       || signals.auteurDirectorProxy
+      || signals.modernAuteurMajorProxy
+      || signals.iconicStarProxy
+      || signals.characterActorProxy
       || signals.floorRank >= 3
     ) {
       rank = Math.max(rank, 3);
@@ -3881,6 +3909,8 @@ button, a, select { font: inherit; }
       signals.floorRank >= 4
       || signals.canon
       || signals.directorPantheonProxy
+      || signals.modernAuteurPantheonProxy
+      || (!signals.isDirector && signals.iconicStarProxy && signals.knownForPeakRank >= 3 && signals.knownForDepth >= 3 && signals.popularity >= 28)
       || (signals.isDirector && signals.recognition >= 3 && signals.respect >= 3)
     ) {
       rank = Math.max(rank, 4);
@@ -4020,7 +4050,7 @@ button, a, select { font: inherit; }
     const picked = choosePersonCandidate(candidates, themeKey);
     if (!picked) return null;
 
-    const knownFor = await fetchPersonKnownFor(picked.personId, picked.roleKey).catch(function () {
+    const knownFor = await fetchPersonKnownFor(picked.personId, picked.roleKey, picked.name).catch(function () {
       return {
         knownForTitles: [],
         knownForPeakRank: 0,
