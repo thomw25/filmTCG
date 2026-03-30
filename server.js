@@ -13,8 +13,8 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const LOGIC_VERSION = 'logic-2026-03-30-1';
-const POOL_SNAPSHOT_VERSION = 'server-rotation-7';
+const LOGIC_VERSION = 'logic-2026-03-30-2';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-8';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -1117,10 +1117,13 @@ function computeMovieSignals(movie) {
   const iconicFamilyAnimationProxy = isFamilyLane && isIconicAnimation && recognition >= 4 && (respect >= 2 || cult >= 1);
   const modernAuteurLandmarkProxy = year >= 1990 && year <= 2015 && respect >= 3 && (cult >= 2 || (recognition >= 2 && popularity <= 32));
   const mainstreamRecognitionProxy = voteCount >= 220 && popularity >= 7 && year >= 1970 && year <= 2022;
+  const recognizableCatalogProxy = year >= 1960 && year <= 2022 && voteCount >= 400 && popularity >= 8;
   const acclaimedModernGenreProxy = year >= 1990 && isGenreLandmarkLane && recognition >= 3 && respect >= 3;
   const belovedStudioClassicProxy = year >= 1970 && year <= 2015 && voteCount >= 300 && (recognition >= 2 || popularity >= 10) && (respect >= 1 || cult >= 1);
   const catalogStapleProxy = year >= 1950 && year <= 2015 && voteCount >= 120 && popularity >= 5 && (respect >= 1 || cult >= 1);
   const cultThrillerMysteryProxy = year >= 1975 && year <= 2005 && movieHasGenreId(movie, [53, 9648, 80, 27]) && voteCount >= 80 && (cult >= 2 || (respect >= 2 && popularity >= 5));
+  const crowdMemoryComedyRomanceProxy = year >= 1975 && year <= 2015 && movieHasGenreId(movie, [35, 10749]) && voteCount >= 450 && popularity >= 8;
+  const horrorFranchiseStapleProxy = year >= 1970 && year <= 2015 && movieHasGenreId(movie, [27, 53]) && voteCount >= 300 && popularity >= 8;
   const concertFandomDocProxy = isMusicDocumentary && popularity >= 10 && canon < 2 && respect < 5;
   const lowSignalObscurityProxy = voteCount < 90 && popularity < 7 && recognition < 3 && canon < 2;
   const microObscureOverperformerProxy = voteAverage >= 7.7 && voteCount < 50 && popularity < 5 && canon < 2;
@@ -1144,8 +1147,11 @@ function computeMovieSignals(movie) {
     || iconicFamilyAnimationProxy
     || modernAuteurLandmarkProxy
     || mainstreamRecognitionProxy
+    || recognizableCatalogProxy
     || acclaimedModernGenreProxy
     || belovedStudioClassicProxy
+    || crowdMemoryComedyRomanceProxy
+    || horrorFranchiseStapleProxy
   );
   const titlePromotion = EPIC_PROMOTION_TITLES.has(titleKey(movie && movie.title));
 
@@ -1177,10 +1183,13 @@ function computeMovieSignals(movie) {
     iconicFamilyAnimationProxy: iconicFamilyAnimationProxy,
     modernAuteurLandmarkProxy: modernAuteurLandmarkProxy,
     mainstreamRecognitionProxy: mainstreamRecognitionProxy,
+    recognizableCatalogProxy: recognizableCatalogProxy,
     acclaimedModernGenreProxy: acclaimedModernGenreProxy,
     belovedStudioClassicProxy: belovedStudioClassicProxy,
     catalogStapleProxy: catalogStapleProxy,
     cultThrillerMysteryProxy: cultThrillerMysteryProxy,
+    crowdMemoryComedyRomanceProxy: crowdMemoryComedyRomanceProxy,
+    horrorFranchiseStapleProxy: horrorFranchiseStapleProxy,
     concertFandomDocProxy: concertFandomDocProxy,
     lowSignalObscurityProxy: lowSignalObscurityProxy,
     microObscureOverperformerProxy: microObscureOverperformerProxy,
@@ -1268,10 +1277,13 @@ function computeRarityScore(movie) {
   if (signals.iconicFamilyAnimationProxy) bonus += 5;
   if (signals.modernAuteurLandmarkProxy) bonus += 4;
   if (signals.mainstreamRecognitionProxy) bonus += 3;
+  if (signals.recognizableCatalogProxy) bonus += 3;
   if (signals.acclaimedModernGenreProxy) bonus += 4;
   if (signals.belovedStudioClassicProxy) bonus += 3;
   if (signals.catalogStapleProxy) bonus += 3;
   if (signals.cultThrillerMysteryProxy) bonus += 4;
+  if (signals.crowdMemoryComedyRomanceProxy) bonus += 3;
+  if (signals.horrorFranchiseStapleProxy) bonus += 3;
   if (signals.titlePromotion) bonus += 5;
 
   let penalty = 0;
@@ -1429,6 +1441,10 @@ function rarityFloorForMovie(movie) {
     floor = maxRarity(floor, 'Select');
   }
 
+  if (signals.recognizableCatalogProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
   if (signals.belovedStudioClassicProxy) {
     floor = maxRarity(floor, 'Select');
   }
@@ -1446,6 +1462,14 @@ function rarityFloorForMovie(movie) {
   }
 
   if (signals.prestigeRomanticDramaProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
+  if (signals.crowdMemoryComedyRomanceProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
+  if (signals.horrorFranchiseStapleProxy) {
     floor = maxRarity(floor, 'Select');
   }
 
@@ -1602,6 +1626,60 @@ function applyCurrentRarityToMovie(movie) {
   return Object.assign({}, movie, {
     rarity: normalizeRarityLabel(rarity)
   });
+}
+
+function explainMovieRarity(movie) {
+  const signals = computeMovieSignals(movie);
+  const score = computeRarityScore(movie);
+  const assigned = assignRarity(movie);
+  const floor = rarityFloorForMovie(movie);
+  const ceiling = rarityCeilingForMovie(movie);
+  const final = applyCurrentRarityToMovie(movie).rarity;
+  return {
+    logicVersion: LOGIC_VERSION,
+    snapshotVersion: POOL_SNAPSHOT_VERSION,
+    title: movie && movie.title ? movie.title : '',
+    year: Number((movie && movie.year) || extractYear(movie && (movie.releaseDate || movie.release_date))) || 0,
+    score: score,
+    assigned: assigned,
+    floor: floor,
+    ceiling: ceiling,
+    final: final,
+    signals: signals
+  };
+}
+
+async function findDebugMovie(title, year) {
+  const query = String(title || '').trim();
+  if (!query) return null;
+  const payload = await tmdbJson('/search/movie', {
+    query: query,
+    page: 1,
+    include_adult: 'false'
+  });
+  const results = Array.isArray(payload && payload.results) ? payload.results : [];
+  if (!results.length) return null;
+
+  const numericYear = Number(year) || 0;
+  const normalizedQuery = titleKey(query);
+  const scored = results.map(function (movie, index) {
+    const movieYear = Number(extractYear(movie && movie.release_date)) || 0;
+    let priority = 0;
+    if (titleKey(movie && movie.title) === normalizedQuery) priority += 12;
+    if (numericYear && movieYear === numericYear) priority += 10;
+    if (numericYear && Math.abs(movieYear - numericYear) <= 1) priority += 4;
+    priority += Math.min(8, (Number(movie && movie.popularity) || 0) / 8);
+    priority += Math.min(8, Math.log10((Number(movie && movie.vote_count) || 0) + 1) * 2);
+    priority -= index * 0.25;
+    return {
+      movie: movie,
+      priority: priority
+    };
+  }).sort(function (a, b) {
+    return b.priority - a.priority;
+  });
+
+  return scored[0] ? scored[0].movie : null;
 }
 
 function applyCurrentRarityToPool(movies) {
@@ -2018,6 +2096,35 @@ async function routeApi(req, res, url) {
       return;
     }
     writeJson(res, 200, art);
+    return;
+  }
+
+  if (url.pathname === '/api/debug-title') {
+    const title = String(url.searchParams.get('title') || '').trim();
+    const year = Number(url.searchParams.get('year') || 0);
+    if (!title) {
+      writeJson(res, 400, { error: 'Missing title parameter.' });
+      return;
+    }
+
+    const matched = await findDebugMovie(title, year);
+    if (!matched) {
+      writeJson(res, 404, { error: 'Movie not found.' });
+      return;
+    }
+
+    writeJson(res, 200, {
+      match: {
+        title: matched.title || title,
+        year: extractYear(matched.release_date),
+        tmdbId: matched.id || null,
+        popularity: Number(matched.popularity) || 0,
+        voteAverage: Number(matched.vote_average) || 0,
+        voteCount: Number(matched.vote_count) || 0,
+        genreIds: Array.isArray(matched.genre_ids) ? matched.genre_ids : []
+      },
+      debug: explainMovieRarity(matched)
+    });
     return;
   }
 
