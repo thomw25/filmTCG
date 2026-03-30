@@ -392,7 +392,7 @@ button, a, select { font: inherit; }
 
 .pack-title {
   font-size: 2rem;
-  letter-spacing: -0.04em;
+  letter-spacing: var(--pack-title-spacing, -0.04em);
   position: relative;
   z-index: 1;
   font-family: var(--pack-title-font, inherit);
@@ -2497,7 +2497,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: tier-cache-fix-2</div>
+  <div class="sub">Build: packs-people-tier-1</div>
 </div>
 
 <div class="nav">
@@ -2643,6 +2643,7 @@ button, a, select { font: inherit; }
       title: 'Horror',
       blurb: 'scared for you tbh',
       titleFont: '"Pirata One", serif',
+      titleSpacing: '0.02em',
       colors: ['#7f1d1d', '#991b1b', '#450a0a'],
       tier: 'Select Pack',
       ink: '#fff7ed',
@@ -2658,6 +2659,7 @@ button, a, select { font: inherit; }
       title: 'Animation',
       blurb: 'you’re drawn to this, I know it',
       titleFont: '"Mouse Memoirs", sans-serif',
+      titleSpacing: '0.025em',
       colors: ['#0f766e', '#2563eb', '#7c3aed'],
       tier: 'Select Pack',
       ink: '#eff6ff',
@@ -2673,6 +2675,7 @@ button, a, select { font: inherit; }
       title: "80'S",
       blurb: 'a decade, indeed',
       titleFont: '"Orbitron", sans-serif',
+      titleSpacing: '0.08em',
       colors: ['#db2777', '#7c3aed', '#312e81'],
       tier: 'Select Pack',
       ink: '#fff7fb',
@@ -2688,6 +2691,7 @@ button, a, select { font: inherit; }
       title: 'Film Noir',
       blurb: 'light a cigarette NOW',
       titleFont: '"Special Elite", monospace',
+      titleSpacing: '0.03em',
       colors: ['#111827', '#334155', '#020617'],
       tier: 'Epic Pack',
       ink: '#f8fafc',
@@ -2703,6 +2707,7 @@ button, a, select { font: inherit; }
       title: "Rom-Com's",
       blurb: 'love is in the air',
       titleFont: '"Spicy Rice", serif',
+      titleSpacing: '0.03em',
       colors: ['#fb7185', '#f472b6', '#f59e0b'],
       tier: 'Select Pack',
       ink: '#fff7fb',
@@ -2718,6 +2723,7 @@ button, a, select { font: inherit; }
       title: 'Documentary',
       blurb: 'truth, but make it cinema',
       titleFont: '"Caprasimo", serif',
+      titleSpacing: '0.02em',
       colors: ['#0f172a', '#0f766e', '#164e63'],
       tier: 'Select Pack',
       ink: '#ecfeff',
@@ -2733,6 +2739,7 @@ button, a, select { font: inherit; }
       title: 'Actors',
       blurb: 'faces you know, chaos you do not',
       titleFont: '"Fahkwang", sans-serif',
+      titleSpacing: '0.03em',
       colors: ['#3b0764', '#7e22ce', '#db2777'],
       tier: 'Select Pack',
       ink: '#fdf4ff',
@@ -2772,7 +2779,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'tier-cache-fix-2';
+  const BUILD_ID = 'packs-people-tier-1';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -4136,7 +4143,7 @@ button, a, select { font: inherit; }
     return shuffledCopy(deduped).slice(0, 12);
   }
 
-  async function maybeBuildPersonInsert(sourceMovies, themeKey, isGoldRewardPack) {
+  async function maybeBuildPersonInsert(sourceMovies, themeKey, isGoldRewardPack, existingPersonKeys) {
     const insertChance = themeKey === 'actors'
       ? 1
       : (isGoldRewardPack ? PERSON_INSERT_CHANCE_GOLD : PERSON_INSERT_CHANCE);
@@ -4158,6 +4165,13 @@ button, a, select { font: inherit; }
       if (actorCandidates.length) {
         candidates = actorCandidates;
       }
+    }
+    const existingKeys = existingPersonKeys || new Set();
+    if (existingKeys.size) {
+      const filteredCandidates = candidates.filter(function (candidate) {
+        return candidate && !existingKeys.has(personKey(candidate.name));
+      });
+      if (filteredCandidates.length) candidates = filteredCandidates;
     }
     const picked = choosePersonCandidate(candidates, themeKey);
     if (!picked) return null;
@@ -4268,6 +4282,7 @@ button, a, select { font: inherit; }
       + '; --pack-ribbon-bg:rgba(255,255,255,.16)'
       + '; --pack-glow:radial-gradient(circle, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 68%)'
       + '; --pack-title-font:' + (theme.titleFont || 'inherit')
+      + '; --pack-title-spacing:' + (theme.titleSpacing || '-0.04em')
       + '; --pack-ink:' + (theme.ink || '#f8fafc')
       + '; --pack-sub-ink:' + (theme.subInk || 'rgba(248,250,252,.84)')
       + '; --pack-tier-ink:' + (theme.tierInk || 'rgba(255,255,255,.84)')
@@ -4788,6 +4803,35 @@ button, a, select { font: inherit; }
     return avoided;
   }
 
+  function filterMovieCandidatesByFreshness(candidates, excludedTitles, avoidedTitles, ownedTitles) {
+    const excluded = excludedTitles || new Set();
+    const avoided = avoidedTitles || new Set();
+    const owned = ownedTitles || new Set();
+    const source = Array.isArray(candidates) ? candidates : [];
+    const fresh = source.filter(function (movie) {
+      const key = filmIdentityKey(movie);
+      return key && !excluded.has(key) && !avoided.has(key) && !owned.has(key);
+    });
+    if (fresh.length) return fresh;
+
+    const notRecent = source.filter(function (movie) {
+      const key = filmIdentityKey(movie);
+      return key && !excluded.has(key) && !avoided.has(key);
+    });
+    if (notRecent.length) return notRecent;
+
+    const notOwned = source.filter(function (movie) {
+      const key = filmIdentityKey(movie);
+      return key && !excluded.has(key) && !owned.has(key);
+    });
+    if (notOwned.length) return notOwned;
+
+    return source.filter(function (movie) {
+      const key = filmIdentityKey(movie);
+      return key && !excluded.has(key);
+    });
+  }
+
   function chooseMovieForPack(pool, excludedTitles, guaranteedHighRarity, ownedTitles) {
     const buckets = {};
     const avoidedTitles = buildAvoidedTitleSet();
@@ -4804,7 +4848,7 @@ button, a, select { font: inherit; }
       const orderedRarities = prioritizedRarities.concat(remainingRarities);
       for (let i = 0; i < orderedRarities.length; i += 1) {
         const rarity = orderedRarities[i];
-        const candidates = buckets[rarity] || [];
+        const candidates = filterMovieCandidatesByFreshness(buckets[rarity] || [], excludedTitles, avoidedTitles, preferredOwnedTitles);
         const pick = chooseCandidateWithAvoidance(candidates, excludedTitles, avoidedTitles, preferredOwnedTitles);
         if (pick) return pick;
       }
@@ -4885,7 +4929,9 @@ button, a, select { font: inherit; }
     const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
     const isBoostedRewardPack = isRewardPack;
     const shouldTryPersonInsert = dataSourceLabel.indexOf('TMDB') !== -1;
-    const filmSlots = shouldTryPersonInsert ? (PACK_SIZE - 1) : PACK_SIZE;
+    const actorPackPersonSlots = currentPackTheme === 'actors' && shouldTryPersonInsert ? 4 : 0;
+    const personSlots = actorPackPersonSlots || (shouldTryPersonInsert ? 1 : 0);
+    const filmSlots = Math.max(0, PACK_SIZE - personSlots);
 
     for (let i = 0; i < filmSlots; i += 1) {
       const movie = chooseMovieForPack(sourcePool, seenTitles, isBoostedRewardPack && i === 0, ownedTitles);
@@ -4908,10 +4954,28 @@ button, a, select { font: inherit; }
       return Promise.resolve(fillFallbacks());
     }
 
-    return maybeBuildPersonInsert(drafted, currentPackTheme, isBoostedRewardPack)
-      .catch(function () { return null; })
-      .then(function (personInsert) {
-        if (personInsert) drafted.push(personInsert);
+    const existingPersonKeys = new Set();
+    const personInserts = [];
+    let chain = Promise.resolve();
+
+    for (let personIndex = 0; personIndex < personSlots; personIndex += 1) {
+      chain = chain.then(function () {
+        return maybeBuildPersonInsert(drafted, currentPackTheme, isBoostedRewardPack, existingPersonKeys)
+          .catch(function () { return null; })
+          .then(function (personInsert) {
+            if (personInsert) {
+              existingPersonKeys.add(personKey(personInsert.title));
+              personInserts.push(personInsert);
+            }
+          });
+      });
+    }
+
+    return chain
+      .then(function () {
+        personInserts.forEach(function (personInsert) {
+          drafted.push(personInsert);
+        });
         return fillFallbacks();
       });
   }
