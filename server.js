@@ -13,7 +13,7 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const POOL_SNAPSHOT_VERSION = 'server-rotation-5';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-6';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -1033,6 +1033,7 @@ function computeMovieSignals(movie) {
   const classicHorrorLandmarkProxy = isHorrorThrillerLane && year >= 1960 && year <= 1999 && voteCount >= 120 && (cult >= 2 || respect >= 2);
   const classicFamilyMusicalProxy = year && year <= 1989 && (isFamilyLane || isMusicalLane) && recognition >= 2 && respect >= 2;
   const newHollywoodStapleProxy = year >= 1967 && year <= 1985 && voteCount >= 140 && recognition >= 2 && (respect >= 2 || cult >= 2);
+  const prestigeRomanticDramaProxy = year >= 1980 && year <= 2015 && movieHasGenreId(movie, [18, 10749]) && voteCount >= 220 && popularity >= 7 && (respect >= 1 || cult >= 1);
   const documentaryLandmarkProxy = isDocumentary && (
     respect >= 4 ||
     (recognition >= 3 && respect >= 3) ||
@@ -1066,6 +1067,7 @@ function computeMovieSignals(movie) {
     || familyAnimationStapleProxy
     || blockbusterRespectProxy
     || classicHorrorLandmarkProxy
+    || prestigeRomanticDramaProxy
     || documentaryLandmarkProxy
     || classicComedyLandmarkProxy
     || musicalLandmarkProxy
@@ -1096,6 +1098,7 @@ function computeMovieSignals(movie) {
     classicHorrorLandmarkProxy: classicHorrorLandmarkProxy,
     classicFamilyMusicalProxy: classicFamilyMusicalProxy,
     newHollywoodStapleProxy: newHollywoodStapleProxy,
+    prestigeRomanticDramaProxy: prestigeRomanticDramaProxy,
     documentaryLandmarkProxy: documentaryLandmarkProxy,
     classicComedyLandmarkProxy: classicComedyLandmarkProxy,
     musicalLandmarkProxy: musicalLandmarkProxy,
@@ -1185,6 +1188,7 @@ function computeRarityScore(movie) {
   if (signals.classicHorrorLandmarkProxy) bonus += 4;
   if (signals.classicFamilyMusicalProxy) bonus += 3;
   if (signals.newHollywoodStapleProxy) bonus += 3;
+  if (signals.prestigeRomanticDramaProxy) bonus += 3;
   if (signals.documentaryLandmarkProxy) bonus += 5;
   if (signals.classicComedyLandmarkProxy) bonus += 4;
   if (signals.musicalLandmarkProxy) bonus += 4;
@@ -1369,6 +1373,10 @@ function rarityFloorForMovie(movie) {
     floor = maxRarity(floor, 'Select');
   }
 
+  if (signals.prestigeRomanticDramaProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
   if (signals.comedyCrowdMemoryProxy) {
     floor = maxRarity(floor, 'Select');
   }
@@ -1398,6 +1406,7 @@ function rarityFloorForMovie(movie) {
     signals.familyAnimationStapleProxy ||
     signals.blockbusterRespectProxy ||
     signals.classicHorrorLandmarkProxy ||
+    signals.prestigeRomanticDramaProxy ||
     signals.documentaryLandmarkProxy ||
     signals.classicComedyLandmarkProxy ||
     signals.musicalLandmarkProxy ||
