@@ -13,7 +13,8 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const POOL_SNAPSHOT_VERSION = 'server-rotation-6';
+const LOGIC_VERSION = 'logic-2026-03-30-1';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-7';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -25,6 +26,25 @@ const MAX_HOT_CARD_POOLS = 5;
 const MAX_MOVIE_ART_CACHE = 120;
 const MAX_MOVIE_CREDITS_CACHE = 180;
 const MAX_PERSON_CREDITS_CACHE = 120;
+const GENRE_NAME_BY_ID = {
+  12: ['adventure'],
+  14: ['fantasy'],
+  16: ['animation'],
+  18: ['drama'],
+  27: ['horror'],
+  28: ['action'],
+  35: ['comedy'],
+  36: ['history'],
+  53: ['thriller'],
+  80: ['crime', 'noir'],
+  99: ['documentary'],
+  878: ['sci-fi', 'science fiction'],
+  9648: ['mystery', 'noir'],
+  10402: ['music', 'musical'],
+  10749: ['romance'],
+  10751: ['family'],
+  10752: ['war']
+};
 
 if (typeof fetch !== 'function') {
   throw new Error('This server requires Node 18+ because it uses the built-in fetch API.');
@@ -821,7 +841,12 @@ async function searchPersonKnownFor(personId, nameQuery, roleKey) {
         ? (item.department === 'Directing' || item.job === 'Director' || item.known_for_department === 'Directing' || !item.media_type)
         : true;
     });
-    return entries.slice(0, 6);
+    return entries.slice(0, 6).map(function (movie, index) {
+      return Object.assign({}, movie, {
+        __knownForSourceBoost: 3,
+        __knownForSearchIndex: index
+      });
+    });
   } catch (error) {
     return [];
   }
@@ -832,13 +857,17 @@ function buildKnownForMovieRecord(movie, roleKey) {
   return {
     id: movie.id,
     title: movie.title,
-    release_date: movie.release_date || '',
+    release_date: movie.release_date || movie.releaseDate || '',
     popularity: Number(movie.popularity) || 0,
-    vote_average: Number(movie.vote_average) || 0,
-    vote_count: Number(movie.vote_count) || 0,
-    original_language: movie.original_language || '',
+    vote_average: Number(movie.vote_average != null ? movie.vote_average : movie.voteAverage) || 0,
+    vote_count: Number(movie.vote_count != null ? movie.vote_count : movie.voteCount) || 0,
+    original_language: movie.original_language || movie.originalLanguage || '',
     genre_ids: Array.isArray(movie.genre_ids) ? movie.genre_ids.slice() : [],
-    department: roleKey === 'director' ? 'Directing' : 'Acting'
+    genreNames: Array.isArray(movie.genreNames) ? movie.genreNames.slice() : [],
+    genre: movie.genre || '',
+    department: roleKey === 'director' ? 'Directing' : 'Acting',
+    sourceBoost: Number(movie.__knownForSourceBoost) || 0,
+    searchIndex: Number(movie.__knownForSearchIndex) || 0
   };
 }
 
@@ -881,13 +910,17 @@ function summarizeKnownForEntries(entries, roleKey) {
     const voteCount = Number(movie.vote_count) || 0;
     const popularity = Number(movie.popularity) || 0;
     const voteAverage = Number(movie.vote_average) || 0;
+    const sourceBoost = Number(movie.sourceBoost) || 0;
+    const searchIndex = Number(movie.searchIndex) || 0;
     const crowdPriority = Math.min(12000, voteCount) * 140 + Math.round(popularity * 6000);
     const staturePriority = rarityRank(rarity) * 25000000 + score * 120000 + Math.round(voteAverage * 6000);
+    const sourcePriority = sourceBoost * 22000000 - (searchIndex * 250000);
     const thinPenalty = voteCount < 20 && popularity < 4 && rarityRank(rarity) < 3 ? 9000000 : 0;
 
     const priority = (
       staturePriority
       + crowdPriority
+      + sourcePriority
       - thinPenalty
     );
 
@@ -921,18 +954,21 @@ async function getPersonKnownFor(personId, roleKey, nameQuery) {
     return { knownForTitles: [], knownForPeakRank: 0, knownForDepth: 0 };
   }
 
-  try {
-    const credits = await getPersonMovieCredits(personId);
-    const combinedCredits = await getPersonCombinedCredits(personId);
-    const searchedEntries = await searchPersonKnownFor(personId, nameQuery, roleKey);
-    const mergedEntries = []
-      .concat(getRelevantKnownForCredits(credits, roleKey) || [])
-      .concat(getRelevantKnownForCredits(combinedCredits, roleKey) || [])
-      .concat(Array.isArray(searchedEntries) ? searchedEntries : []);
-    return summarizeKnownForEntries(mergedEntries, roleKey);
-  } catch (error) {
-    return { knownForTitles: [], knownForPeakRank: 0, knownForDepth: 0 };
-  }
+  const settled = await Promise.allSettled([
+    getPersonMovieCredits(personId),
+    getPersonCombinedCredits(personId),
+    searchPersonKnownFor(personId, nameQuery, roleKey)
+  ]);
+
+  const credits = settled[0].status === 'fulfilled' ? settled[0].value : null;
+  const combinedCredits = settled[1].status === 'fulfilled' ? settled[1].value : null;
+  const searchedEntries = settled[2].status === 'fulfilled' ? settled[2].value : [];
+  const mergedEntries = []
+    .concat(Array.isArray(searchedEntries) ? searchedEntries : [])
+    .concat(getRelevantKnownForCredits(credits, roleKey) || [])
+    .concat(getRelevantKnownForCredits(combinedCredits, roleKey) || []);
+
+  return summarizeKnownForEntries(mergedEntries, roleKey);
 }
 
 function isFemaleDirectedMovie(movie) {
@@ -965,16 +1001,42 @@ function derivePacks(movie) {
 
 function movieHasGenreId(movie, ids) {
   const genreIds = Array.isArray(movie && movie.genre_ids) ? movie.genre_ids : [];
+  const genreNameSet = new Set();
+  const genreNames = Array.isArray(movie && movie.genreNames) ? movie.genreNames : [];
+  genreNames.forEach(function (name) {
+    const normalized = String(name || '').trim().toLowerCase();
+    if (normalized) genreNameSet.add(normalized);
+  });
+  if (movie && movie.genre) {
+    const normalizedGenre = String(movie.genre).trim().toLowerCase();
+    if (normalizedGenre) genreNameSet.add(normalizedGenre);
+  }
+  genreIds.forEach(function (id) {
+    const aliases = GENRE_NAME_BY_ID[Number(id)] || [];
+    aliases.forEach(function (alias) {
+      genreNameSet.add(alias);
+    });
+  });
   const wanted = Array.isArray(ids) ? ids : [ids];
-  return wanted.some(function (id) { return genreIds.indexOf(Number(id)) !== -1; });
+  return wanted.some(function (id) {
+    const numericId = Number(id);
+    if (genreIds.indexOf(numericId) !== -1) return true;
+    const aliases = GENRE_NAME_BY_ID[numericId] || [];
+    return aliases.some(function (alias) {
+      return genreNameSet.has(alias);
+    });
+  });
 }
 
 function computeMovieSignals(movie) {
-  const year = Number(extractYear(movie && movie.release_date)) || 0;
+  const year = Number(
+    (movie && movie.year)
+    || extractYear(movie && (movie.releaseDate || movie.release_date))
+  ) || 0;
   const popularity = Number(movie && movie.popularity) || 0;
-  const voteAverage = Number(movie && movie.vote_average) || 0;
-  const voteCount = Number(movie && movie.vote_count) || 0;
-  const originalLanguage = String(movie && movie.original_language || '').toLowerCase();
+  const voteAverage = Number(movie && (movie.voteAverage != null ? movie.voteAverage : movie.vote_average)) || 0;
+  const voteCount = Number(movie && (movie.voteCount != null ? movie.voteCount : movie.vote_count)) || 0;
+  const originalLanguage = String(movie && (movie.originalLanguage || movie.original_language) || '').toLowerCase();
   const isInternational = originalLanguage && originalLanguage !== 'en';
   const isCultFriendlyGenre = movieHasGenreId(movie, [27, 53, 9648, 80, 35, 14, 878, 16, 10402, 10749]);
   const isPrestigeGenre = movieHasGenreId(movie, [18, 36, 10402, 10752]);
@@ -1911,7 +1973,9 @@ async function routeApi(req, res, url) {
   if (url.pathname === '/api/health') {
     writeJson(res, 200, {
       ok: true,
-      tmdbConfigured: hasTmdbToken()
+      tmdbConfigured: hasTmdbToken(),
+      logicVersion: LOGIC_VERSION,
+      snapshotVersion: POOL_SNAPSHOT_VERSION
     });
     return;
   }
@@ -1939,6 +2003,7 @@ async function routeApi(req, res, url) {
       sourceLabel: (theme && THEME_SOURCE_LABELS[theme] ? THEME_SOURCE_LABELS[theme] + ' TMDB' : 'TMDB')
         + (rotationMode === 'auto' ? ' Rotating Reel' : '')
         + (refresh ? ' Fresh Reel' : ''),
+      logicVersion: LOGIC_VERSION,
       count: movies.length,
       movies: movies
     });
@@ -1988,7 +2053,9 @@ async function routeApi(req, res, url) {
     }
 
     const knownFor = await getPersonKnownFor(personId, roleKey, nameQuery);
-    writeJson(res, 200, knownFor);
+    writeJson(res, 200, Object.assign({
+      logicVersion: LOGIC_VERSION
+    }, knownFor));
     return;
   }
 

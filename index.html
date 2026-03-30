@@ -391,7 +391,7 @@ button, a, select { font: inherit; }
 }
 
 .pack-title {
-  font-size: 2rem;
+  font-size: var(--pack-title-size, 2rem);
   letter-spacing: var(--pack-title-spacing, -0.04em);
   position: relative;
   z-index: 1;
@@ -2724,6 +2724,7 @@ button, a, select { font: inherit; }
       blurb: 'truth, but make it cinema',
       titleFont: '"Caprasimo", serif',
       titleSpacing: '0.02em',
+      titleSize: '1.74rem',
       colors: ['#0f172a', '#0f766e', '#164e63'],
       tier: 'Select Pack',
       ink: '#ecfeff',
@@ -2779,7 +2780,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'packs-people-tier-2';
+  const BUILD_ID = 'pack-type-tidy-1';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -4272,6 +4273,7 @@ button, a, select { font: inherit; }
       + '; --pack-ribbon-bg:rgba(255,255,255,.16)'
       + '; --pack-glow:radial-gradient(circle, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 68%)'
       + '; --pack-title-font:' + (theme.titleFont || 'inherit')
+      + '; --pack-title-size:' + (theme.titleSize || '2rem')
       + '; --pack-title-spacing:' + (theme.titleSpacing || '-0.04em')
       + '; --pack-ink:' + (theme.ink || '#f8fafc')
       + '; --pack-sub-ink:' + (theme.subInk || 'rgba(248,250,252,.84)')
@@ -4300,7 +4302,6 @@ button, a, select { font: inherit; }
       + '<div class="pack-grain"></div>'
       + '<div class="pack-twinkle"></div>'
       + '<div class="pack-title">' + escapeHtml(theme.title) + '</div>'
-      + '<div class="pack-sub">' + escapeHtml(theme.blurb) + '</div>'
       + '<div class="pack-tier">' + escapeHtml(theme.tier) + '</div>'
       + '<div class="pack-card-count">' + PACK_SIZE + ' cards</div>'
       + '</div>';
