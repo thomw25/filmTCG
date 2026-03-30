@@ -13,8 +13,8 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const LOGIC_VERSION = 'logic-2026-03-30-5';
-const POOL_SNAPSHOT_VERSION = 'server-rotation-11';
+const LOGIC_VERSION = 'logic-2026-03-30-6';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-12';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -26,6 +26,7 @@ const MAX_HOT_CARD_POOLS = 5;
 const MAX_MOVIE_ART_CACHE = 120;
 const MAX_MOVIE_CREDITS_CACHE = 180;
 const MAX_PERSON_CREDITS_CACHE = 120;
+const MAX_PERSON_DETAILS_CACHE = 120;
 const TV_MOVIE_GENRE_ID = 10770;
 const GENRE_NAME_BY_ID = {
   12: ['adventure'],
@@ -60,7 +61,8 @@ const cache = {
   movieArt: new Map(),
   movieCredits: new Map(),
   personMovieCredits: new Map(),
-  personCombinedCredits: new Map()
+  personCombinedCredits: new Map(),
+  personDetails: new Map()
 };
 
 const DISCOVER_RECIPES = [
@@ -445,7 +447,7 @@ function titleRepeatPenalty(movie, repeatCounts) {
   if (!key || !repeatCounts || !repeatCounts.has(key)) return 0;
   const count = Number(repeatCounts.get(key)) || 0;
   if (count <= 0) return 0;
-  return count >= 3 ? 28 : (count >= 2 ? 16 : 7);
+  return count >= 4 ? 64 : (count >= 3 ? 46 : (count >= 2 ? 28 : 14));
 }
 
 function isTvMovieLike(movie) {
@@ -459,15 +461,21 @@ function isTvMovieLike(movie) {
 function computeDiversifiedPoolScore(movie, theme, repeatCounts) {
   const normalizedTheme = normalizeThemeKey(theme);
   let score = computePoolSelectionScore(movie);
+  const signals = computeMovieSignals(movie);
 
   score -= titleRepeatPenalty(movie, repeatCounts);
+  if (repeatCounts && repeatCounts.has(movieIdentityKey(movie))) {
+    if (!signals.majorPromotionProxy) score -= 12;
+    if (signals.lowSignalObscurityProxy || signals.microObscureOverperformerProxy) score -= 16;
+    if (signals.voteCount < 240 && signals.popularity < 10) score -= 9;
+  }
 
   if (isTvMovieLike(movie)) score -= 26;
 
   if (normalizedTheme === 'docs' || normalizedTheme === 'all') {
-    const signals = computeMovieSignals(movie);
     if (signals.celebrityEventDocProxy) score -= 14;
     if (signals.concertFandomDocProxy) score -= 12;
+    if (signals.voteCount < 180 && !signals.documentaryLandmarkProxy) score -= 8;
   }
 
   return score;
@@ -858,7 +866,34 @@ async function getMoviePeople(movieIds) {
     });
   }
 
-  return Array.from(byPerson.values());
+  const candidates = Array.from(byPerson.values()).sort(function (a, b) {
+    return (Number(b.popularity) || 0) - (Number(a.popularity) || 0);
+  }).slice(0, 18);
+
+  if (!candidates.length) return [];
+
+  const enriched = await mapWithConcurrency(candidates, 4, async function (candidate) {
+    try {
+      const searchedEntries = await searchPersonKnownFor(candidate.personId, candidate.name, candidate.roleKey);
+      const knownFor = summarizeKnownForEntries(searchedEntries, candidate.roleKey);
+      return Object.assign({}, candidate, knownFor);
+    } catch (error) {
+      return candidate;
+    }
+  });
+
+  return enriched.sort(function (a, b) {
+    const aTitles = Array.isArray(a && a.knownForTitles) ? a.knownForTitles.length : 0;
+    const bTitles = Array.isArray(b && b.knownForTitles) ? b.knownForTitles.length : 0;
+    const aPeak = Number(a && a.knownForPeakRank) || 0;
+    const bPeak = Number(b && b.knownForPeakRank) || 0;
+    const aDepth = Number(a && a.knownForDepth) || 0;
+    const bDepth = Number(b && b.knownForDepth) || 0;
+    const aPopularity = Number(a && a.popularity) || 0;
+    const bPopularity = Number(b && b.popularity) || 0;
+    return ((bTitles * 100) + (bPeak * 20) + (bDepth * 4) + bPopularity)
+      - ((aTitles * 100) + (aPeak * 20) + (aDepth * 4) + aPopularity);
+  });
 }
 
 async function getPersonMovieCredits(personId) {
@@ -897,6 +932,25 @@ async function getPersonCombinedCredits(personId) {
   });
   trimMapBySize(cache.personCombinedCredits, MAX_PERSON_CREDITS_CACHE);
   return credits;
+}
+
+async function getPersonDetails(personId) {
+  const cacheKey = String(personId || '');
+  if (!cacheKey) return null;
+
+  const cached = cache.personDetails.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    touchMapEntry(cache.personDetails, cacheKey, cached);
+    return cached.value;
+  }
+
+  const details = await tmdbJson('/person/' + personId);
+  touchMapEntry(cache.personDetails, cacheKey, {
+    value: details,
+    expiresAt: Date.now() + CACHE_TTL_MS
+  });
+  trimMapBySize(cache.personDetails, MAX_PERSON_DETAILS_CACHE);
+  return details;
 }
 
 async function searchPersonKnownFor(personId, nameQuery, roleKey) {
@@ -2254,6 +2308,22 @@ async function routeApi(req, res, url) {
     writeJson(res, 200, Object.assign({
       logicVersion: LOGIC_VERSION
     }, knownFor));
+    return;
+  }
+
+  if (url.pathname === '/api/person-profile') {
+    const personId = Number(url.searchParams.get('personId') || 0);
+
+    if (!personId) {
+      writeJson(res, 400, { error: 'Missing personId parameter.' });
+      return;
+    }
+
+    const details = await getPersonDetails(personId).catch(function () { return null; });
+    writeJson(res, 200, {
+      logicVersion: LOGIC_VERSION,
+      biography: String(details && details.biography || '').trim()
+    });
     return;
   }
 

@@ -2686,7 +2686,7 @@ button, a, select { font: inherit; }
       blurb: 'a decade, indeed',
       titleFont: '"Orbitron", sans-serif',
       titleSpacing: '0.08em',
-      colors: ['#db2777', '#7c3aed', '#312e81'],
+      colors: ['#22d3ee', '#2563eb', '#312e81'],
       tier: 'Select Pack',
       ink: '#fff7fb',
       subInk: 'rgba(255,241,248,.9)',
@@ -2751,7 +2751,7 @@ button, a, select { font: inherit; }
       blurb: 'faces you know, chaos you do not',
       titleFont: '"Fahkwang", sans-serif',
       titleSpacing: '0.03em',
-      colors: ['#3b0764', '#7e22ce', '#db2777'],
+      colors: ['#4c0519', '#9f1239', '#e11d48'],
       tier: 'Select Pack',
       ink: '#fdf4ff',
       subInk: 'rgba(250,232,255,.88)',
@@ -2790,7 +2790,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-7';
+  const BUILD_ID = 'logic-sync-9';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -2965,6 +2965,7 @@ button, a, select { font: inherit; }
   let lastPeelDirection = 'next';
   const artCache = new Map();
   const personKnownForCache = new Map();
+  const personBioCache = new Map();
 
   const pullPage = document.getElementById('pull');
   const collectionPage = document.getElementById('collection');
@@ -3248,11 +3249,12 @@ button, a, select { font: inherit; }
 
   function countFreshFilmCandidates(pool) {
     const avoided = buildAvoidedTitleSet();
+    const owned = buildOwnedFilmTitleSet();
     const seen = new Set();
     return (Array.isArray(pool) ? pool : []).reduce(function (count, movie) {
       if (!movie || movie.cardType === 'person') return count;
       const key = filmIdentityKey(movie);
-      if (!key || avoided.has(key) || seen.has(key)) return count;
+      if (!key || avoided.has(key) || owned.has(key) || seen.has(key)) return count;
       seen.add(key);
       return count + 1;
     }, 0);
@@ -3394,6 +3396,7 @@ button, a, select { font: inherit; }
       roleKey: movie.roleKey || null,
       roleLabel: movie.roleLabel || null,
       profile: movie.profile || movie.profileUrl || null,
+      biography: movie.biography || '',
       sourceMovieIds: Array.isArray(movie.sourceMovieIds) ? movie.sourceMovieIds.filter(Boolean) : [],
       knownForTitles: Array.isArray(movie.knownForTitles) ? movie.knownForTitles.filter(Boolean).slice(0, 3) : [],
       knownForPeakRank: Number(movie.knownForPeakRank) || 0,
@@ -3618,8 +3621,30 @@ button, a, select { font: inherit; }
     return normalized;
   }
 
+  async function fetchPersonBio(personId, forceRefresh) {
+    const normalizedPersonId = Number(personId) || 0;
+    if (!normalizedPersonId) return '';
+    const cacheKey = String(normalizedPersonId);
+    if (!forceRefresh && personBioCache.has(cacheKey)) {
+      return personBioCache.get(cacheKey);
+    }
+    const data = await fetchBackendJson('/api/person-profile?personId=' + encodeURIComponent(String(normalizedPersonId)));
+    const biography = String(data && data.biography || '').trim();
+    if (biography) {
+      personBioCache.set(cacheKey, biography);
+    } else {
+      personBioCache.delete(cacheKey);
+    }
+    return biography;
+  }
+
   async function hydratePersonCardKnownFor(card) {
     if (!card || card.cardType !== 'person' || !card.personId) return card;
+    const biography = await fetchPersonBio(card.personId, false).catch(function () { return ''; });
+    if (biography && biography.length >= 48) {
+      card.biography = biography;
+      card.desc = biography;
+    }
     const existingTitles = getMergedKnownForTitles(card).slice(0, 3);
     if (existingTitles.length >= 3) {
       card.knownForTitles = existingTitles;
@@ -4086,6 +4111,10 @@ button, a, select { font: inherit; }
   }
 
   function buildPersonDescription(candidate, sourceMovie) {
+    const biography = String(candidate && candidate.biography || '').trim();
+    if (biography.length >= 48) {
+      return biography;
+    }
     const mergedTitles = getMergedKnownForTitles(candidate);
     if (mergedTitles.length) {
       return 'Known for: ' + mergedTitles.join(', ') + '.';
@@ -4119,6 +4148,7 @@ button, a, select { font: inherit; }
       roleLabel: candidate.roleLabel,
       personType: candidate.personType,
       personId: candidate.personId,
+      biography: candidate.biography || '',
       sourceMovieIds: candidate.sourceMovieIds || [],
       knownForTitles: getMergedKnownForTitles(candidate),
       fallbackKnownForTitles: [],
@@ -4160,16 +4190,23 @@ button, a, select { font: inherit; }
   }
 
   function buildPersonSourceMovies(themeKey, currentPackMovies) {
-    const packTitles = new Set((Array.isArray(currentPackMovies) ? currentPackMovies : []).map(function (movie) {
+    const packMovies = (Array.isArray(currentPackMovies) ? currentPackMovies : []).filter(function (movie) {
+      return movie && movie.cardType !== 'person' && movie.tmdbId;
+    });
+    const packTitles = new Set(packMovies.map(function (movie) {
       return filmIdentityKey(movie);
     }).filter(Boolean));
     const recentTitles = buildRecentPullSet();
+    const prioritizedPackMovies = packMovies.filter(function (movie) {
+      const key = filmIdentityKey(movie);
+      return key && !recentTitles.has(key);
+    });
     const themedPool = getPackPool(themeKey).filter(function (movie) {
       const key = filmIdentityKey(movie);
       return movie && movie.cardType !== 'person' && movie.tmdbId && key && !packTitles.has(key) && !recentTitles.has(key) && !activeReelSeenTitles.has(key);
     });
 
-    let sourcePool = themedPool;
+    let sourcePool = prioritizedPackMovies.concat(themedPool);
     if (sourcePool.length < 8) {
       sourcePool = sourcePool.concat(movies.filter(function (movie) {
         const key = filmIdentityKey(movie);
@@ -4234,16 +4271,14 @@ button, a, select { font: inherit; }
       });
       if (pickedIndex !== -1) candidatePool.splice(pickedIndex, 1);
 
-      const knownFor = await fetchPersonKnownFor(picked.personId, picked.roleKey, picked.name, true).catch(function () {
-        return {
-          knownForTitles: [],
-          knownForPeakRank: 0,
-          knownForDepth: 0
-        };
-      });
-
+      const seededKnownFor = {
+        knownForTitles: Array.isArray(picked.knownForTitles) ? picked.knownForTitles.filter(Boolean).slice(0, 3) : [],
+        knownForPeakRank: Number(picked.knownForPeakRank) || 0,
+        knownForDepth: Number(picked.knownForDepth) || 0
+      };
+      const knownFor = seededKnownFor;
       const titleCount = Array.isArray(knownFor.knownForTitles) ? knownFor.knownForTitles.length : 0;
-      const candidateScore = (titleCount * 100) + ((Number(knownFor.knownForPeakRank) || 0) * 10) + (Number(knownFor.knownForDepth) || 0);
+      const candidateScore = (titleCount * 100) + ((Number(knownFor.knownForPeakRank) || 0) * 10) + (Number(knownFor.knownForDepth) || 0) + Math.round(Number(picked.popularity) || 0);
 
       if (candidateScore > bestScore) {
         bestCandidate = picked;
@@ -4258,11 +4293,14 @@ button, a, select { font: inherit; }
       }
     }
 
-    if (!bestCandidate || !bestKnownFor || !Array.isArray(bestKnownFor.knownForTitles) || !bestKnownFor.knownForTitles.length) {
+    if (!bestCandidate) {
       return null;
     }
 
+    const biography = await fetchPersonBio(bestCandidate.personId, false).catch(function () { return ''; });
+
     return buildPersonCard(Object.assign({}, bestCandidate, bestKnownFor, {
+      biography: biography,
       fallbackKnownForTitles: []
     }), sourceById[String(bestCandidate.sourceMovieId)] || validMovies[0]);
   }
@@ -4443,17 +4481,12 @@ button, a, select { font: inherit; }
 
     if (movie.cardType === 'person') {
       const personClass = movie.personType === 'actor' ? 'person-actor' : (movie.personType === 'director' ? 'person-director' : 'person-crew');
-      const displayKnownForTitles = getMergedKnownForTitles(movie).slice(0, 3);
-      const knownForMarkup = displayKnownForTitles.length
-        ? '<div class="person-known-for-label">Known For:</div><div class="person-source-line">' + displayKnownForTitles.map(function (title) {
-          return '<span>' + escapeHtml(title) + '</span>';
-        }).join('') + '</div>'
-        : '';
+      const chips = ['<div class="chip">' + escapeHtml(roleLabelForDisplay(movie)) + '</div>'];
       return '<div class="card person-card ' + personClass + ' ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
         + '<div class="card-frame"></div>'
-        + '<div class="person-header"><div class="person-role-badge">' + escapeHtml(roleLabelForDisplay(movie)) + '</div><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div></div>'
+        + '<div class="card-header"><div class="card-title-meta"><div class="card-title">' + escapeHtml(movie.title) + '</div></div><div class="card-side-meta"><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div></div></div>'
         + '<div class="card-img-wrap person-portrait-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait"' + cardImageAttrs('low') + ' data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
-        + '<div class="person-bottom"><div class="person-name">' + escapeHtml(movie.title) + '</div>' + knownForMarkup + '</div>'
+        + '<div class="card-body"><div class="chips">' + chips.join('') + '</div><div class="desc">' + escapeHtml(movie.desc) + '</div></div>'
         + '</div>';
     }
 
@@ -5425,6 +5458,7 @@ button, a, select { font: inherit; }
         forceNextThemePoolRefresh = true;
         localStorage.setItem('filmtcg.buildId', BUILD_ID);
         personKnownForCache.clear();
+        personBioCache.clear();
       }
     } catch (error) {
     }
