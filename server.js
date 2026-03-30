@@ -13,8 +13,8 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const LOGIC_VERSION = 'logic-2026-03-30-2';
-const POOL_SNAPSHOT_VERSION = 'server-rotation-8';
+const LOGIC_VERSION = 'logic-2026-03-30-5';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-11';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -26,6 +26,7 @@ const MAX_HOT_CARD_POOLS = 5;
 const MAX_MOVIE_ART_CACHE = 120;
 const MAX_MOVIE_CREDITS_CACHE = 180;
 const MAX_PERSON_CREDITS_CACHE = 120;
+const TV_MOVIE_GENRE_ID = 10770;
 const GENRE_NAME_BY_ID = {
   12: ['adventure'],
   14: ['fantasy'],
@@ -158,6 +159,7 @@ const TITLE_RARITY_FLOORS = {
   'do the right thing': 'Legendary',
   'dumbo': 'Select',
   'easy rider': 'Select',
+  'election': 'Epic',
   'e.t. the extra-terrestrial': 'Epic',
   'et the extra-terrestrial': 'Epic',
   'friday the 13th': 'Select',
@@ -324,6 +326,11 @@ function mergeUniqueMovies(primary, secondary) {
   return Array.from(merged.values());
 }
 
+function normalizeThemeKey(theme) {
+  const normalized = String(theme || '').trim().toLowerCase();
+  return normalized || 'all';
+}
+
 function ensureSnapshotRoot() {
   if (!fs.existsSync(SNAPSHOT_ROOT)) {
     fs.mkdirSync(SNAPSHOT_ROOT, { recursive: true });
@@ -351,7 +358,8 @@ function readPoolSnapshot(cacheKey, allowStale) {
       return {
         movies: payload.movies,
         expiresAt: savedAt + POOL_SNAPSHOT_TTL_MS,
-        stale: false
+        stale: false,
+        themeKey: normalizeThemeKey(payload.themeKey)
       };
     }
 
@@ -359,7 +367,8 @@ function readPoolSnapshot(cacheKey, allowStale) {
       return {
         movies: payload.movies,
         expiresAt: Date.now() + 1000 * 60 * 5,
-        stale: true
+        stale: true,
+        themeKey: normalizeThemeKey(payload.themeKey)
       };
     }
   } catch (error) {
@@ -368,12 +377,13 @@ function readPoolSnapshot(cacheKey, allowStale) {
   return null;
 }
 
-function writePoolSnapshot(cacheKey, movies) {
+function writePoolSnapshot(cacheKey, movies, themeKey) {
   try {
     ensureSnapshotRoot();
     fs.writeFileSync(snapshotFilePath(cacheKey), JSON.stringify({
       version: POOL_SNAPSHOT_VERSION,
       savedAt: Date.now(),
+      themeKey: normalizeThemeKey(themeKey),
       movies: Array.isArray(movies) ? movies : []
     }));
   } catch (error) {
@@ -395,14 +405,82 @@ function trimMapBySize(map, maxSize) {
   }
 }
 
-function cacheCardPool(cacheKey, movies, expiresAt) {
+function movieIdentityKey(movie) {
+  return String(movie && (movie.tmdbId || movie.id || movie.title) || '').trim().toLowerCase();
+}
+
+function loadSnapshotRepeatCounts(theme) {
+  const counts = new Map();
+  const normalizedTheme = normalizeThemeKey(theme);
+
+  try {
+    if (!fs.existsSync(SNAPSHOT_ROOT)) return counts;
+    const files = fs.readdirSync(SNAPSHOT_ROOT).filter(function (name) {
+      return /^card-pool-.*\.json$/i.test(String(name || ''));
+    });
+
+    files.forEach(function (fileName) {
+      try {
+        const payload = JSON.parse(fs.readFileSync(path.join(SNAPSHOT_ROOT, fileName), 'utf8'));
+        if (!payload || payload.version !== POOL_SNAPSHOT_VERSION) return;
+        if (normalizeThemeKey(payload.themeKey) !== normalizedTheme) return;
+        const seenInSnapshot = new Set();
+        (Array.isArray(payload.movies) ? payload.movies : []).forEach(function (movie) {
+          const key = movieIdentityKey(movie);
+          if (!key || seenInSnapshot.has(key)) return;
+          seenInSnapshot.add(key);
+          counts.set(key, (counts.get(key) || 0) + 1);
+        });
+      } catch (error) {
+      }
+    });
+  } catch (error) {
+  }
+
+  return counts;
+}
+
+function titleRepeatPenalty(movie, repeatCounts) {
+  const key = movieIdentityKey(movie);
+  if (!key || !repeatCounts || !repeatCounts.has(key)) return 0;
+  const count = Number(repeatCounts.get(key)) || 0;
+  if (count <= 0) return 0;
+  return count >= 3 ? 28 : (count >= 2 ? 16 : 7);
+}
+
+function isTvMovieLike(movie) {
+  if (movieHasGenreId(movie, TV_MOVIE_GENRE_ID)) return true;
+  const genreNames = Array.isArray(movie && movie.genreNames) ? movie.genreNames : [];
+  return genreNames.some(function (name) {
+    return titleKey(name) === 'tv movie';
+  });
+}
+
+function computeDiversifiedPoolScore(movie, theme, repeatCounts) {
+  const normalizedTheme = normalizeThemeKey(theme);
+  let score = computePoolSelectionScore(movie);
+
+  score -= titleRepeatPenalty(movie, repeatCounts);
+
+  if (isTvMovieLike(movie)) score -= 26;
+
+  if (normalizedTheme === 'docs' || normalizedTheme === 'all') {
+    const signals = computeMovieSignals(movie);
+    if (signals.celebrityEventDocProxy) score -= 14;
+    if (signals.concertFandomDocProxy) score -= 12;
+  }
+
+  return score;
+}
+
+function cacheCardPool(cacheKey, movies, expiresAt, themeKey) {
   const pool = applyCurrentRarityToPool(movies);
   touchMapEntry(cache.cardPools, cacheKey, {
     value: pool,
     expiresAt: expiresAt || (Date.now() + CACHE_TTL_MS)
   });
   trimMapBySize(cache.cardPools, MAX_HOT_CARD_POOLS);
-  writePoolSnapshot(cacheKey, pool);
+  writePoolSnapshot(cacheKey, pool, themeKey);
   return pool;
 }
 
@@ -1237,7 +1315,9 @@ function computePoolSelectionScore(movie) {
 
   if (signals.mainstreamRecognitionProxy || signals.belovedStudioClassicProxy) score += 6;
   if (signals.acclaimedModernGenreProxy || signals.modernAuteurLandmarkProxy) score += 4;
-  if (signals.year >= 1980 && signals.year <= 2019 && signals.recognition >= 2) score += 3;
+  if (signals.year >= 1980 && signals.year <= 2012 && signals.recognition >= 2) score += 2;
+  if (signals.year >= 2018) score -= 2;
+  if (signals.year >= 2022) score -= 2;
 
   const jitter = signals.voteCount < 120
     ? (Math.random() * 18)
@@ -1342,7 +1422,8 @@ function selectDiversifiedPool(movies, limit) {
 
   const decadeKeys = Array.from(buckets.keys()).sort();
   const modernDecadeKeys = decadeKeys.filter(function (decade) {
-    return Number(decade) >= 1980;
+    const numeric = Number(decade) || 0;
+    return numeric >= 1980 && numeric <= 2019;
   });
   const selected = [];
   let round = 0;
@@ -1370,7 +1451,7 @@ function selectDiversifiedPool(movies, limit) {
       const bucket = buckets.get(decade);
       return bucket && bucket.length;
     });
-    if (modernCandidates.length && selected.length < limit) {
+    if (modernCandidates.length && selected.length < limit && Math.random() < 0.58) {
       const chosenDecade = modernCandidates[Math.floor(Math.random() * modernCandidates.length)];
       const bucket = buckets.get(chosenDecade);
       if (bucket && bucket.length) {
@@ -1744,10 +1825,11 @@ async function mapWithConcurrency(items, limit, mapper) {
   return results;
 }
 
-async function buildCardPool(limit) {
+async function buildCardPool(limit, themeContext) {
   const configuration = await getConfiguration();
   const genreMap = await getGenreMap();
   const today = new Date().toISOString().slice(0, 10);
+  const repeatCounts = loadSnapshotRepeatCounts(themeContext);
   const requests = [];
 
   DISCOVER_RECIPES.forEach(function (recipe) {
@@ -1777,6 +1859,7 @@ async function buildCardPool(limit) {
   responses.forEach(function (payload) {
     (payload.results || []).forEach(function (movie) {
       if (!movie || movie.adult || !movie.title || !movie.poster_path) return;
+      if (movieHasGenreId(movie, TV_MOVIE_GENRE_ID)) return;
       if (!extractYear(movie.release_date)) return;
       if (!movie.overview || String(movie.overview).trim().length < 24) return;
       if (!deduped.has(movie.id)) {
@@ -1789,13 +1872,16 @@ async function buildCardPool(limit) {
 
   canonShorts.forEach(function (movie) {
     if (!movie || !movie.id || !movie.title) return;
+    if (movieHasGenreId(movie, TV_MOVIE_GENRE_ID)) return;
     if (!deduped.has(movie.id)) {
       deduped.set(movie.id, movie);
     }
   });
 
   const ranked = selectDiversifiedPool(
-    Array.from(deduped.values()).sort(function (a, b) { return computePoolSelectionScore(b) - computePoolSelectionScore(a); }),
+    Array.from(deduped.values()).sort(function (a, b) {
+      return computeDiversifiedPoolScore(b, themeContext, repeatCounts) - computeDiversifiedPoolScore(a, themeContext, repeatCounts);
+    }),
     limit
   );
 
@@ -1819,20 +1905,25 @@ async function buildThemePool(limit, theme) {
   let attempts = 0;
   const minTarget = normalizedTheme === 'docs' ? Math.min(targetLimit, 880) : Math.min(targetLimit, 720);
   const maxAttempts = normalizedTheme === 'docs' ? 8 : 6;
+  const repeatCounts = loadSnapshotRepeatCounts(normalizedTheme);
 
   while (themedPool.length < minTarget && attempts < maxAttempts) {
     attempts += 1;
-    const basePool = await buildCardPool(BASE_PREWARM_LIMIT);
+    const basePool = await buildCardPool(BASE_PREWARM_LIMIT, normalizedTheme);
     themedPool = mergeUniqueMovies(themedPool, filterPoolByTheme(basePool, normalizedTheme));
   }
 
-  return shuffledCopy(themedPool).slice(0, targetLimit);
+  const scoredThemePool = themedPool.sort(function (a, b) {
+    return computeDiversifiedPoolScore(b, normalizedTheme, repeatCounts) - computeDiversifiedPoolScore(a, normalizedTheme, repeatCounts);
+  });
+
+  return shuffledCopy(selectDiversifiedPool(scoredThemePool, targetLimit)).slice(0, targetLimit);
 }
 
 async function buildPoolForRequest(limit, theme) {
   return theme && theme !== 'all'
     ? buildThemePool(limit, theme)
-    : buildCardPool(limit);
+    : buildCardPool(limit, '');
 }
 
 function refreshPoolInBackground(cacheKey, limit, theme) {
@@ -1840,7 +1931,7 @@ function refreshPoolInBackground(cacheKey, limit, theme) {
 
   const buildPromise = buildPoolForRequest(limit, theme)
     .then(function (pool) {
-      cacheCardPool(cacheKey, pool);
+      cacheCardPool(cacheKey, pool, null, theme);
       return pool;
     })
     .catch(function () {
@@ -1892,7 +1983,7 @@ async function getCardPool(limit, refresh, theme, rotationMode) {
 
   if (refresh) {
     const freshPool = await buildPoolForRequest(normalizedLimit, normalizedTheme);
-    return cacheCardPool(cacheKey, freshPool);
+    return cacheCardPool(cacheKey, freshPool, null, normalizedTheme);
   }
 
   const cached = cache.cardPools.get(cacheKey);
@@ -1934,7 +2025,7 @@ async function getCardPool(limit, refresh, theme, rotationMode) {
 
   const buildPromise = buildPoolForRequest(normalizedLimit, normalizedTheme)
     .then(function (pool) {
-      return cacheCardPool(cacheKey, pool);
+      return cacheCardPool(cacheKey, pool, null, normalizedTheme);
     })
     .finally(function () {
       cache.poolBuilds.delete(cacheKey);
