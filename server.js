@@ -376,7 +376,7 @@ function trimMapBySize(map, maxSize) {
 }
 
 function cacheCardPool(cacheKey, movies, expiresAt) {
-  const pool = Array.isArray(movies) ? movies : [];
+  const pool = applyCurrentRarityToPool(movies);
   touchMapEntry(cache.cardPools, cacheKey, {
     value: pool,
     expiresAt: expiresAt || (Date.now() + CACHE_TTL_MS)
@@ -812,7 +812,7 @@ async function searchPersonKnownFor(personId, nameQuery, roleKey) {
       return Number(person && person.id) === Number(personId);
     }) || results.find(function (person) {
       return titleKey(person && person.name) === titleKey(query);
-    });
+    }) || results[0];
     const knownFor = Array.isArray(exact && exact.known_for) ? exact.known_for : [];
     const entries = knownFor.filter(function (item) {
       if (!item || !item.title) return false;
@@ -1532,6 +1532,22 @@ function normalizeMovie(configuration, genreMap, movie) {
   return normalized;
 }
 
+function applyCurrentRarityToMovie(movie) {
+  if (!movie || !movie.title) return movie;
+  const assigned = assignRarity(movie);
+  const floored = maxRarity(assigned, rarityFloorForMovie(movie));
+  const rarity = minRarity(floored, rarityCeilingForMovie(movie));
+  return Object.assign({}, movie, {
+    rarity: normalizeRarityLabel(rarity)
+  });
+}
+
+function applyCurrentRarityToPool(movies) {
+  return (Array.isArray(movies) ? movies : []).map(function (movie) {
+    return applyCurrentRarityToMovie(movie);
+  });
+}
+
 async function getMovieCredits(movieId) {
   const cacheKey = String(movieId || '');
   if (!cacheKey) return null;
@@ -1741,29 +1757,35 @@ async function getCardPool(limit, refresh, theme, rotationMode) {
 
   const cached = cache.cardPools.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
-    touchMapEntry(cache.cardPools, cacheKey, cached);
-    return cached.value;
+    const normalizedPool = applyCurrentRarityToPool(cached.value);
+    touchMapEntry(cache.cardPools, cacheKey, {
+      value: normalizedPool,
+      expiresAt: cached.expiresAt
+    });
+    return normalizedPool;
   }
 
   const diskSnapshot = readPoolSnapshot(cacheKey, false);
   if (diskSnapshot) {
+    const normalizedPool = applyCurrentRarityToPool(diskSnapshot.movies);
     touchMapEntry(cache.cardPools, cacheKey, {
-      value: diskSnapshot.movies,
+      value: normalizedPool,
       expiresAt: diskSnapshot.expiresAt
     });
     trimMapBySize(cache.cardPools, MAX_HOT_CARD_POOLS);
-    return diskSnapshot.movies;
+    return normalizedPool;
   }
 
   const staleSnapshot = readPoolSnapshot(cacheKey, true);
   if (staleSnapshot) {
+    const normalizedPool = applyCurrentRarityToPool(staleSnapshot.movies);
     touchMapEntry(cache.cardPools, cacheKey, {
-      value: staleSnapshot.movies,
+      value: normalizedPool,
       expiresAt: staleSnapshot.expiresAt
     });
     trimMapBySize(cache.cardPools, MAX_HOT_CARD_POOLS);
     refreshPoolInBackground(cacheKey, normalizedLimit, normalizedTheme);
-    return staleSnapshot.movies;
+    return normalizedPool;
   }
 
   if (cache.poolBuilds.has(cacheKey)) {
