@@ -166,6 +166,7 @@ const TITLE_RARITY_FLOORS = {
   'lost in translation': 'Epic',
   'mirror': 'Epic',
   'mulholland drive': 'Legendary',
+  'moonlight': 'Epic',
   'nights of cabiria': 'Epic',
   'police story': 'Epic',
   'paper moon': 'Select',
@@ -173,6 +174,7 @@ const TITLE_RARITY_FLOORS = {
   'paris, texas': 'Epic',
   'paris is burning': 'Epic',
   'persona': 'Legendary',
+  'phantom thread': 'Epic',
   'playtime': 'Epic',
   'rashomon': 'Legendary',
   'robocop': 'Epic',
@@ -182,6 +184,7 @@ const TITLE_RARITY_FLOORS = {
   'stalker': 'Legendary',
   'sunrise: a song of two humans': 'Epic',
   'taste of cherry': 'Epic',
+  'the favourite': 'Epic',
   'the 400 blows': 'Epic',
   'the battle of algiers': 'Epic',
   'the birds': 'Epic',
@@ -1034,6 +1037,7 @@ function computeMovieSignals(movie) {
   const classicFamilyMusicalProxy = year && year <= 1989 && (isFamilyLane || isMusicalLane) && recognition >= 2 && respect >= 2;
   const newHollywoodStapleProxy = year >= 1967 && year <= 1985 && voteCount >= 140 && recognition >= 2 && (respect >= 2 || cult >= 2);
   const prestigeRomanticDramaProxy = year >= 1980 && year <= 2015 && movieHasGenreId(movie, [18, 10749]) && voteCount >= 220 && popularity >= 7 && (respect >= 1 || cult >= 1);
+  const modernPrestigeLandmarkProxy = year >= 2000 && year <= 2022 && isPrestigeGenre && voteCount >= 2500 && popularity >= 10 && (voteAverage >= 7.2 || respect >= 2);
   const documentaryLandmarkProxy = isDocumentary && (
     respect >= 4 ||
     (recognition >= 3 && respect >= 3) ||
@@ -1043,6 +1047,7 @@ function computeMovieSignals(movie) {
     respect >= 5 ||
     canon >= 2
   );
+  const celebrityEventDocProxy = isDocumentary && year >= 2015 && popularity >= 8 && voteCount >= 300 && voteAverage < 8.0 && respect <= 3 && canon < 2;
   const classicComedyLandmarkProxy = isComedyLane && year >= 1930 && year <= 2005 && recognition >= 2 && (respect >= 3 || cult >= 3);
   const musicalLandmarkProxy = isMusicalLane && recognition >= 2 && (respect >= 3 || cult >= 2);
   const hongKongActionProxy = isHongKongLanguage && isActionCrimeLane && year >= 1970 && year <= 2005 && (cult >= 2 || (recognition >= 2 && respect >= 2));
@@ -1068,6 +1073,7 @@ function computeMovieSignals(movie) {
     || blockbusterRespectProxy
     || classicHorrorLandmarkProxy
     || prestigeRomanticDramaProxy
+    || modernPrestigeLandmarkProxy
     || documentaryLandmarkProxy
     || classicComedyLandmarkProxy
     || musicalLandmarkProxy
@@ -1099,7 +1105,9 @@ function computeMovieSignals(movie) {
     classicFamilyMusicalProxy: classicFamilyMusicalProxy,
     newHollywoodStapleProxy: newHollywoodStapleProxy,
     prestigeRomanticDramaProxy: prestigeRomanticDramaProxy,
+    modernPrestigeLandmarkProxy: modernPrestigeLandmarkProxy,
     documentaryLandmarkProxy: documentaryLandmarkProxy,
+    celebrityEventDocProxy: celebrityEventDocProxy,
     classicComedyLandmarkProxy: classicComedyLandmarkProxy,
     musicalLandmarkProxy: musicalLandmarkProxy,
     hongKongActionProxy: hongKongActionProxy,
@@ -1189,6 +1197,7 @@ function computeRarityScore(movie) {
   if (signals.classicFamilyMusicalProxy) bonus += 3;
   if (signals.newHollywoodStapleProxy) bonus += 3;
   if (signals.prestigeRomanticDramaProxy) bonus += 3;
+  if (signals.modernPrestigeLandmarkProxy) bonus += 5;
   if (signals.documentaryLandmarkProxy) bonus += 5;
   if (signals.classicComedyLandmarkProxy) bonus += 4;
   if (signals.musicalLandmarkProxy) bonus += 4;
@@ -1210,6 +1219,7 @@ function computeRarityScore(movie) {
   if (signals.lowSignalObscurityProxy) penalty += 6;
   if (signals.microObscureOverperformerProxy) penalty += 6;
   if (signals.concertFandomDocProxy) penalty += 7;
+  if (signals.celebrityEventDocProxy) penalty += 6;
 
   return Math.max(0, Math.min(100, recognitionPoints + respectPoints + cultPoints + canonPoints + bonus - penalty));
 }
@@ -1377,6 +1387,10 @@ function rarityFloorForMovie(movie) {
     floor = maxRarity(floor, 'Select');
   }
 
+  if (signals.modernPrestigeLandmarkProxy) {
+    floor = maxRarity(floor, 'Epic');
+  }
+
   if (signals.comedyCrowdMemoryProxy) {
     floor = maxRarity(floor, 'Select');
   }
@@ -1407,6 +1421,7 @@ function rarityFloorForMovie(movie) {
     signals.blockbusterRespectProxy ||
     signals.classicHorrorLandmarkProxy ||
     signals.prestigeRomanticDramaProxy ||
+    signals.modernPrestigeLandmarkProxy ||
     signals.documentaryLandmarkProxy ||
     signals.classicComedyLandmarkProxy ||
     signals.musicalLandmarkProxy ||
@@ -1445,6 +1460,13 @@ function rarityCeilingForMovie(movie) {
   }
 
   if (signals.voteCount < 80 && signals.popularity < 10 && signals.respect < 4) {
+    return 'Select';
+  }
+
+  if (
+    signals.celebrityEventDocProxy
+    && !TITLE_RARITY_FLOORS[titleKey(movie && movie.title)]
+  ) {
     return 'Select';
   }
 

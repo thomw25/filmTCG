@@ -1085,7 +1085,7 @@ button, a, select { font: inherit; }
 }
 
 .person-card {
-  grid-template-rows: auto 216px minmax(116px, 1fr);
+  grid-template-rows: auto 188px minmax(146px, 1fr);
   padding: 10px;
 }
 
@@ -1129,7 +1129,7 @@ button, a, select { font: inherit; }
 }
 
 .person-portrait-wrap {
-  height: 216px;
+  height: 188px;
 }
 
 .person-actor .person-portrait-wrap::after,
@@ -1163,8 +1163,8 @@ button, a, select { font: inherit; }
   padding: 6px 8px 12px;
   display: grid;
   gap: 4px;
-  min-height: 116px;
-  overflow: hidden;
+  min-height: 146px;
+  overflow: visible;
   align-content: start;
 }
 
@@ -1198,13 +1198,13 @@ button, a, select { font: inherit; }
 }
 
 .person-source-line {
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   color: rgba(255,255,255,.74);
-  line-height: 1.22;
+  line-height: 1.28;
   display: grid;
-  gap: 1px;
+  gap: 2px;
   grid-auto-rows: min-content;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .person-source-line span {
@@ -2497,7 +2497,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: tier-cache-fix-1</div>
+  <div class="sub">Build: tier-cache-fix-2</div>
 </div>
 
 <div class="nav">
@@ -2772,7 +2772,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'tier-cache-fix-1';
+  const BUILD_ID = 'tier-cache-fix-2';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -3546,7 +3546,7 @@ button, a, select { font: inherit; }
     return data && Array.isArray(data.people) ? data.people : [];
   }
 
-  async function fetchPersonKnownFor(personId, roleKey, personName) {
+  async function fetchPersonKnownFor(personId, roleKey, personName, forceRefresh) {
     const normalizedPersonId = Number(personId) || 0;
     if (!normalizedPersonId) {
       return {
@@ -3557,11 +3557,11 @@ button, a, select { font: inherit; }
     }
 
     const cacheKey = String(normalizedPersonId) + ':' + (roleKey === 'director' ? 'director' : 'actor');
-    if (personKnownForCache.has(cacheKey)) {
+    if (!forceRefresh && personKnownForCache.has(cacheKey)) {
       return personKnownForCache.get(cacheKey);
     }
 
-    const data = await fetchBackendJson('/api/person-known-for?personId=' + encodeURIComponent(String(normalizedPersonId)) + '&role=' + encodeURIComponent(roleKey === 'director' ? 'director' : 'actor') + '&name=' + encodeURIComponent(String(personName || '')));
+    const data = await fetchBackendJson('/api/person-known-for?personId=' + encodeURIComponent(String(normalizedPersonId)) + '&role=' + encodeURIComponent(roleKey === 'director' ? 'director' : 'actor') + '&name=' + encodeURIComponent(String(personName || '')) + (forceRefresh ? '&refresh=1' : ''));
     const normalized = {
       knownForTitles: Array.isArray(data && data.knownForTitles) ? data.knownForTitles.filter(Boolean).slice(0, 3) : [],
       knownForPeakRank: Number(data && data.knownForPeakRank) || 0,
@@ -3579,7 +3579,7 @@ button, a, select { font: inherit; }
       return card;
     }
 
-    const liveKnownFor = await fetchPersonKnownFor(card.personId, card.roleKey, card.title).catch(function () {
+    const liveKnownFor = await fetchPersonKnownFor(card.personId, card.roleKey, card.title, true).catch(function () {
       return {
         knownForTitles: [],
         knownForPeakRank: 0,
@@ -3595,6 +3595,35 @@ button, a, select { font: inherit; }
     if (liveKnownFor.knownForPeakRank) card.knownForPeakRank = liveKnownFor.knownForPeakRank;
     if (liveKnownFor.knownForDepth) card.knownForDepth = liveKnownFor.knownForDepth;
     return card;
+  }
+
+  async function rehydrateCollectionPeopleKnownFor() {
+    const peopleIndexes = [];
+    collection.forEach(function (card, index) {
+      if (card && card.cardType === 'person' && getMergedKnownForTitles(card).length < 3) {
+        peopleIndexes.push(index);
+      }
+    });
+    if (!peopleIndexes.length) return false;
+
+    let changed = false;
+    for (let i = 0; i < peopleIndexes.length; i += 1) {
+      const index = peopleIndexes[i];
+      const before = collection[index];
+      const beforeTitles = getMergedKnownForTitles(before).slice(0, 3);
+      const hydrated = await hydratePersonCardKnownFor(before);
+      const afterTitles = getMergedKnownForTitles(hydrated).slice(0, 3);
+      if (afterTitles.join(' | ') !== beforeTitles.join(' | ')) {
+        collection[index] = hydrated;
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      saveCollection();
+      if (collectionPage.classList.contains('active')) renderCollection();
+    }
+    return changed;
   }
 
   async function hydrateMoviesFromBackend() {
@@ -5275,6 +5304,8 @@ button, a, select { font: inherit; }
       replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');
       artworkStatus = 'Live pool was unusable. Falling back to the sample set.';
     }
+
+    rehydrateCollectionPeopleKnownFor().catch(function () { return false; });
 
     isPoolLoading = false;
     resolvePackTheme(false);
