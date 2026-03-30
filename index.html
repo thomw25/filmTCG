@@ -2790,7 +2790,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-9';
+  const BUILD_ID = 'logic-sync-10';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -2858,9 +2858,14 @@ button, a, select { font: inherit; }
     'park chan-wook': 'Epic',
     'ridley scott': 'Epic',
     'robert altman': 'Epic',
+    'robert zemeckis': 'Epic',
     'sam raimi': 'Select',
     'jamie foxx': 'Select',
     'ian mckellen': 'Epic',
+    'kurt russell': 'Epic',
+    'robert downey jr.': 'Epic',
+    'robert downey jr': 'Epic',
+    'sean penn': 'Epic',
     'tom hardy': 'Select',
     'terrence malick': 'Epic',
     'toni scott': 'Select',
@@ -4006,50 +4011,73 @@ button, a, select { font: inherit; }
     const referenceRank = Math.max(sourceRank, knownForPeakRank);
     const popularity = Number(candidate && candidate.popularity) || 0;
     const isDirector = candidate && candidate.roleKey === 'director';
+    const isActor = !isDirector;
 
     let recognition = 0;
-    if (popularity >= 8) recognition += 1;
-    if (popularity >= 18) recognition += 1;
-    if (popularity >= 32) recognition += 1;
-    if (popularity >= 55) recognition += 1;
-    if (knownForPeakRank >= 3) recognition += 1;
+    if (popularity >= 6) recognition += 1;
+    if (popularity >= 14) recognition += 1;
+    if (popularity >= 24) recognition += 1;
+    if (popularity >= 40) recognition += 1;
+    if (popularity >= 62) recognition += 1;
+    if (knownForPeakRank >= 2) recognition += 1;
+    if (knownForDepth >= 2) recognition += 1;
     if (isDirector && knownForDepth >= 3) recognition += 1;
+    if (isActor && knownForDepth >= 4) recognition += 1;
 
     let respect = 0;
     if (referenceRank >= 2) respect += 1;
     if (referenceRank >= 3) respect += 1;
     if (knownForDepth >= 2) respect += 1;
+    if (knownForPeakRank >= 3 && knownForDepth >= 2) respect += 1;
     if (isDirector && referenceRank >= 3) respect += 1;
-    if (isDirector && popularity >= 12) respect += 1;
+    if (isDirector && popularity >= 10) respect += 1;
     if (isDirector && knownForPeakRank >= 3 && knownForDepth >= 3) respect += 1;
     if (isDirector && knownForPeakRank >= 4 && knownForDepth >= 3) respect += 1;
-    if (!isDirector && referenceRank >= 3 && popularity >= 14) respect += 1;
+    if (isActor && referenceRank >= 3 && popularity >= 12) respect += 1;
+    if (isActor && knownForPeakRank >= 2 && knownForDepth >= 3) respect += 1;
 
     let cult = 0;
-    if (popularity >= 10 && popularity <= 30 && referenceRank >= 2) cult += 1;
+    if (popularity >= 8 && popularity <= 30 && referenceRank >= 2) cult += 1;
     if (referenceRank >= 3 && popularity <= 32) cult += 1;
     if (isDirector && knownForPeakRank >= 3 && knownForDepth >= 2 && popularity <= 30) cult += 1;
+    if (isActor && knownForPeakRank >= 2 && knownForDepth >= 3 && popularity <= 24) cult += 1;
 
     const floorRank = explicitFloor ? rarityRank(explicitFloor) : 0;
     const canon = floorRank >= 4 ? 1 : 0;
-    const auteurDirectorProxy = Boolean(isDirector && knownForPeakRank >= 3 && knownForDepth >= 3);
-    const directorPantheonProxy = Boolean(isDirector && knownForPeakRank >= 4 && knownForDepth >= 4);
-    const modernAuteurMajorProxy = Boolean(isDirector && knownForPeakRank >= 3 && knownForDepth >= 3 && popularity >= 14);
+    const auteurDirectorProxy = Boolean(isDirector && (
+      (knownForPeakRank >= 3 && knownForDepth >= 2)
+      || (knownForPeakRank >= 2 && knownForDepth >= 4)
+    ));
+    const directorPantheonProxy = Boolean(isDirector && (
+      (knownForPeakRank >= 4 && knownForDepth >= 3)
+      || (knownForPeakRank >= 3 && knownForDepth >= 5)
+    ));
+    const modernAuteurMajorProxy = Boolean(isDirector && knownForPeakRank >= 3 && knownForDepth >= 2 && popularity >= 10);
     const modernAuteurPantheonProxy = Boolean(isDirector && (
       (knownForPeakRank >= 4 && knownForDepth >= 3)
-      || (knownForPeakRank >= 3 && knownForDepth >= 4 && popularity >= 18)
-      || (knownForPeakRank >= 3 && knownForDepth >= 3 && popularity >= 28)
+      || (knownForPeakRank >= 3 && knownForDepth >= 4 && popularity >= 16)
+      || (knownForPeakRank >= 3 && knownForDepth >= 3 && popularity >= 24)
     ));
     const iconicStudioDirectorProxy = Boolean(isDirector && (
-      (knownForPeakRank >= 3 && knownForDepth >= 2 && popularity >= 8)
-      || (knownForPeakRank >= 2 && knownForDepth >= 3 && popularity >= 10)
+      (knownForPeakRank >= 3 && knownForDepth >= 2 && popularity >= 7)
+      || (knownForPeakRank >= 2 && knownForDepth >= 3 && popularity >= 8)
     ));
-    const iconicStarProxy = Boolean(!isDirector && (
-      (knownForPeakRank >= 3 && popularity >= 18)
-      || (knownForPeakRank >= 2 && knownForDepth >= 3 && popularity >= 24)
-      || (knownForPeakRank >= 2 && popularity >= 40)
+    const iconicStarProxy = Boolean(isActor && (
+      (knownForPeakRank >= 3 && popularity >= 12)
+      || (knownForPeakRank >= 2 && knownForDepth >= 3 && popularity >= 16)
+      || (knownForPeakRank >= 2 && popularity >= 28)
     ));
-    const characterActorProxy = Boolean(!isDirector && knownForPeakRank >= 2 && knownForDepth >= 3 && popularity >= 6);
+    const majorActorProxy = Boolean(isActor && (
+      (knownForPeakRank >= 3 && knownForDepth >= 2)
+      || (knownForPeakRank >= 2 && knownForDepth >= 4)
+      || (knownForPeakRank >= 2 && popularity >= 26)
+    ));
+    const actorPantheonProxy = Boolean(isActor && (
+      (knownForPeakRank >= 4 && knownForDepth >= 2)
+      || (knownForPeakRank >= 3 && knownForDepth >= 4 && popularity >= 18)
+      || (knownForPeakRank >= 3 && popularity >= 38)
+    ));
+    const characterActorProxy = Boolean(isActor && knownForPeakRank >= 2 && knownForDepth >= 3 && popularity >= 4);
 
     return {
       recognition: recognition,
@@ -4062,6 +4090,8 @@ button, a, select { font: inherit; }
       modernAuteurPantheonProxy: modernAuteurPantheonProxy,
       iconicStudioDirectorProxy: iconicStudioDirectorProxy,
       iconicStarProxy: iconicStarProxy,
+      majorActorProxy: majorActorProxy,
+      actorPantheonProxy: actorPantheonProxy,
       characterActorProxy: characterActorProxy,
       sourceRank: sourceRank,
       knownForPeakRank: knownForPeakRank,
@@ -4069,7 +4099,8 @@ button, a, select { font: inherit; }
       referenceRank: referenceRank,
       popularity: popularity,
       floorRank: floorRank,
-      isDirector: isDirector
+      isDirector: isDirector,
+      isActor: isActor
     };
   }
 
@@ -4089,6 +4120,7 @@ button, a, select { font: inherit; }
       || signals.auteurDirectorProxy
       || signals.modernAuteurMajorProxy
       || signals.iconicStudioDirectorProxy
+      || signals.majorActorProxy
       || signals.iconicStarProxy
       || signals.characterActorProxy
       || signals.floorRank >= 3
@@ -4101,8 +4133,10 @@ button, a, select { font: inherit; }
       || signals.canon
       || signals.directorPantheonProxy
       || signals.modernAuteurPantheonProxy
+      || signals.actorPantheonProxy
       || (!signals.isDirector && signals.iconicStarProxy && signals.knownForPeakRank >= 3 && signals.knownForDepth >= 3 && signals.popularity >= 28)
       || (signals.isDirector && signals.recognition >= 3 && signals.respect >= 3)
+      || (signals.isActor && signals.iconicStarProxy && signals.knownForPeakRank >= 3 && signals.knownForDepth >= 2 && signals.popularity >= 26)
     ) {
       rank = Math.max(rank, 4);
     }
@@ -4171,8 +4205,26 @@ button, a, select { font: inherit; }
     const source = filtered.length ? filtered : (Array.isArray(candidates) ? candidates : []);
     if (!source.length) return null;
     return weightedChoice(source.map(function (candidate) {
+      let weight = weights[candidate.roleKey] || 1;
+      if (themeKey === 'actors' && candidate.roleKey === 'actor') {
+        const estimatedRank = rarityRank(derivePersonRarity(candidate, null));
+        const actorPackBias = ({
+          1: 0.7,
+          2: 1.15,
+          3: 1.2,
+          4: 0.62
+        })[estimatedRank] || 1;
+        weight *= actorPackBias;
+
+        const popularity = Number(candidate && candidate.popularity) || 0;
+        if (popularity >= 36) weight *= 0.82;
+        if (popularity >= 52) weight *= 0.72;
+
+        const knownForDepth = Number(candidate && candidate.knownForDepth) || 0;
+        if (knownForDepth >= 2) weight *= 1.08;
+      }
       return {
-        weight: weights[candidate.roleKey] || 1,
+        weight: weight,
         candidate: candidate
       };
     })).candidate;
