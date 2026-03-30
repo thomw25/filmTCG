@@ -2493,7 +2493,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: people-reward-12</div>
+  <div class="sub">Build: packs-plus-1</div>
 </div>
 
 <div class="nav">
@@ -2526,6 +2526,8 @@ button, a, select { font: inherit; }
         <option value="eighties">Pack: 80s</option>
         <option value="noir">Pack: Film Noir</option>
         <option value="romcom">Pack: Rom Com</option>
+        <option value="docs">Pack: Documentary</option>
+        <option value="actors">Pack: Actors</option>
       </select>
     </div>
   </div>
@@ -2614,7 +2616,7 @@ button, a, select { font: inherit; }
   const ALL_PACKS_ROLL = {
     all: 100
   };
-  const FEATURED_REWARD_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom'];
+  const FEATURED_REWARD_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
   const PACK_THEMES = {
     all: {
       label: 'All Cinema',
@@ -2699,6 +2701,34 @@ button, a, select { font: inherit; }
       tierBg: 'rgba(68,18,44,.26)',
       tierBorder: 'rgba(255,241,248,.18)',
       ctaInk: 'rgba(255,241,248,.84)'
+    },
+    docs: {
+      label: 'Documentary',
+      ribbon: 'NONFICTION',
+      title: 'Documentary',
+      blurb: 'truth, but make it cinema',
+      colors: ['#0f172a', '#0f766e', '#164e63'],
+      tier: 'Select Pack',
+      ink: '#ecfeff',
+      subInk: 'rgba(236,254,255,.86)',
+      tierInk: '#ecfeff',
+      tierBg: 'rgba(7,15,19,.3)',
+      tierBorder: 'rgba(236,254,255,.16)',
+      ctaInk: 'rgba(236,254,255,.84)'
+    },
+    actors: {
+      label: 'Actors',
+      ribbon: 'STAR TURN',
+      title: 'Actors',
+      blurb: 'faces you know, chaos you do not',
+      colors: ['#3b0764', '#7e22ce', '#db2777'],
+      tier: 'Select Pack',
+      ink: '#fdf4ff',
+      subInk: 'rgba(250,232,255,.88)',
+      tierInk: '#fdf4ff',
+      tierBg: 'rgba(34,9,53,.3)',
+      tierBorder: 'rgba(253,244,255,.18)',
+      ctaInk: 'rgba(253,244,255,.84)'
     },
     gold: {
       label: 'Gold Pack',
@@ -2839,6 +2869,8 @@ button, a, select { font: inherit; }
     eighties: { actor: 6, director: 5 },
     noir: { actor: 6, director: 6 },
     romcom: { actor: 7, director: 5 },
+    docs: { actor: 2, director: 7 },
+    actors: { actor: 24, director: 1 },
     all: {}
   };
   const RECENT_PULL_MEMORY = 140;
@@ -3226,6 +3258,7 @@ button, a, select { font: inherit; }
     if (lookup.horror || lookup.thriller) tags.add('horror');
     if (lookup.crime || lookup.noir || lookup.thriller || lookup.mystery) tags.add('noir');
     if (lookup.animation || lookup.family) tags.add('animation');
+    if (lookup.documentary) tags.add('docs');
     if (year >= 1980 && year <= 1989) tags.add('eighties');
     if ((lookup.romance && lookup.comedy) || (lookup.romance && lookup.drama && year >= 1980) || (lookup.comedy && popularity >= 18 && voteAverage >= 6.4)) tags.add('romcom');
     if (movie.originalLanguage && String(movie.originalLanguage).toLowerCase() !== 'en') tags.add('international');
@@ -3537,6 +3570,11 @@ button, a, select { font: inherit; }
   function getPackPool(themeKey) {
     const selectedTheme = themeKey || currentPackTheme;
     if (selectedTheme === 'gold') return movies.slice();
+    if (selectedTheme === 'actors') {
+      return movies.filter(function (movie) {
+        return movie && movie.cardType !== 'person';
+      });
+    }
     return movies.filter(function (movie) {
       return selectedTheme === 'all' ? true : (movie.packs || ['all']).indexOf(selectedTheme) !== -1;
     });
@@ -3957,7 +3995,9 @@ button, a, select { font: inherit; }
   }
 
   async function maybeBuildPersonInsert(sourceMovies, themeKey, isGoldRewardPack) {
-    const insertChance = isGoldRewardPack ? PERSON_INSERT_CHANCE_GOLD : PERSON_INSERT_CHANCE;
+    const insertChance = themeKey === 'actors'
+      ? 1
+      : (isGoldRewardPack ? PERSON_INSERT_CHANCE_GOLD : PERSON_INSERT_CHANCE);
     if (Math.random() > insertChance) return null;
 
     const validMovies = buildPersonSourceMovies(themeKey, sourceMovies);
@@ -3968,7 +4008,15 @@ button, a, select { font: inherit; }
       sourceById[String(movie.tmdbId)] = movie;
     });
 
-    const candidates = await fetchMoviePeople(validMovies.map(function (movie) { return movie.tmdbId; }));
+    let candidates = await fetchMoviePeople(validMovies.map(function (movie) { return movie.tmdbId; }));
+    if (themeKey === 'actors') {
+      const actorCandidates = candidates.filter(function (candidate) {
+        return candidate && candidate.roleKey === 'actor';
+      });
+      if (actorCandidates.length) {
+        candidates = actorCandidates;
+      }
+    }
     const picked = choosePersonCandidate(candidates, themeKey);
     if (!picked) return null;
 

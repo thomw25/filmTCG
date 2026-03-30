@@ -13,9 +13,9 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const POOL_SNAPSHOT_VERSION = 'server-rotation-4';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-5';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
-const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom'];
+const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
 const THEME_REEL_COUNT = 2;
 const MAX_REQUEST_POOL_LIMIT = 1000;
@@ -234,7 +234,9 @@ const THEME_SOURCE_LABELS = {
   animation: 'Animation',
   eighties: '80s',
   noir: 'Film Noir',
-  romcom: 'Rom Com'
+  romcom: 'Rom Com',
+  docs: 'Documentary',
+  actors: 'Actors'
 };
 
 function titleKey(value) {
@@ -273,6 +275,7 @@ function minRarity(left, right) {
 function filterPoolByTheme(pool, theme) {
   const selectedTheme = String(theme || '').trim().toLowerCase();
   if (!selectedTheme || selectedTheme === 'all') return Array.isArray(pool) ? pool.slice() : [];
+  if (selectedTheme === 'actors') return Array.isArray(pool) ? pool.slice() : [];
 
   return (Array.isArray(pool) ? pool : []).filter(function (movie) {
     return Array.isArray(movie.packs) && movie.packs.indexOf(selectedTheme) !== -1;
@@ -372,6 +375,21 @@ function cacheCardPool(cacheKey, movies, expiresAt) {
   return pool;
 }
 
+function weightedChoice(entries) {
+  const source = Array.isArray(entries) ? entries.filter(Boolean) : [];
+  const total = source.reduce(function (sum, entry) {
+    return sum + Math.max(0, Number(entry.weight) || 0);
+  }, 0);
+  if (!source.length) return null;
+  if (!total) return source[source.length - 1];
+  let roll = Math.random() * total;
+  for (let i = 0; i < source.length; i += 1) {
+    roll -= Math.max(0, Number(source[i].weight) || 0);
+    if (roll <= 0) return source[i];
+  }
+  return source[source.length - 1];
+}
+
 function reelCountForTheme(theme) {
   return theme && theme !== 'all' ? THEME_REEL_COUNT : BASE_REEL_COUNT;
 }
@@ -386,8 +404,14 @@ function nextRotationIndex(limit, theme) {
   const normalizedTheme = String(theme || '').trim().toLowerCase();
   const cursorKey = (normalizedTheme || 'all') + ':' + String(limit);
   const reelCount = reelCountForTheme(normalizedTheme);
-  const nextIndex = (cache.poolRotationCursor.get(cursorKey) || 0) % reelCount;
-  cache.poolRotationCursor.set(cursorKey, (nextIndex + 1) % reelCount);
+  const previousIndex = cache.poolRotationCursor.get(cursorKey);
+  let nextIndex = Math.floor(Math.random() * reelCount);
+
+  if (reelCount > 1 && previousIndex != null && nextIndex === previousIndex) {
+    nextIndex = (nextIndex + 1 + Math.floor(Math.random() * Math.max(1, reelCount - 1))) % reelCount;
+  }
+
+  cache.poolRotationCursor.set(cursorKey, nextIndex);
   return nextIndex;
 }
 
@@ -899,6 +923,7 @@ function derivePacks(movie) {
   if (lookup.horror || lookup.thriller) tags.add('horror');
   if (lookup.crime || lookup.noir || lookup.mystery || lookup.thriller || (lookup.drama && popularity <= 30 && voteAverage >= 7)) tags.add('noir');
   if (lookup.animation || lookup.family) tags.add('animation');
+  if (lookup.documentary) tags.add('docs');
   if (year >= 1980 && year <= 1989) tags.add('eighties');
   if ((lookup.romance && lookup.comedy) || (lookup.romance && lookup.drama && year >= 1980) || (lookup.comedy && popularity >= 18 && voteAverage >= 6.4)) tags.add('romcom');
   if (lookup.drama || lookup.history || lookup.music || lookup.war || (voteAverage >= 7.5 && voteCount >= 400)) tags.add('all');
@@ -1040,6 +1065,28 @@ function computeScore(movie) {
     - obscurityPenalty;
 }
 
+function computePoolSelectionScore(movie) {
+  const signals = computeMovieSignals(movie);
+  let score = computeScore(movie);
+
+  if (signals.year && signals.year <= 1929) score -= 14;
+  else if (signals.year && signals.year <= 1949) score -= 8;
+
+  if (signals.voteCount < 20) score -= 14;
+  else if (signals.voteCount < 60) score -= 8;
+  else if (signals.voteCount < 140) score -= 3;
+
+  if (signals.mainstreamRecognitionProxy || signals.belovedStudioClassicProxy) score += 6;
+  if (signals.acclaimedModernGenreProxy || signals.modernAuteurLandmarkProxy) score += 4;
+  if (signals.year >= 1980 && signals.year <= 2019 && signals.recognition >= 2) score += 3;
+
+  const jitter = signals.voteCount < 120
+    ? (Math.random() * 18)
+    : (Math.random() * 7);
+
+  return score + jitter;
+}
+
 function computeRarityScore(movie) {
   const signals = computeMovieSignals(movie);
   const recognitionPoints = [0, 6, 11, 16, 21, 25, 28, 30][Math.max(0, Math.min(7, signals.recognition || 0))] || 0;
@@ -1077,6 +1124,38 @@ function computeRarityScore(movie) {
   return Math.max(0, Math.min(100, recognitionPoints + respectPoints + cultPoints + canonPoints + bonus - penalty));
 }
 
+function decadeSelectionChance(decade) {
+  const numericDecade = Number(decade) || 0;
+  if (numericDecade <= 1929) return 0.22;
+  if (numericDecade <= 1949) return 0.4;
+  if (numericDecade <= 1969) return 0.62;
+  if (numericDecade <= 1979) return 0.75;
+  if (numericDecade <= 1999) return 0.9;
+  return 1;
+}
+
+function pickFrontierMovie(bucket, decade) {
+  if (!bucket || !bucket.length) return null;
+  const numericDecade = Number(decade) || 0;
+  const frontierSize = Math.max(1, Math.min(
+    bucket.length,
+    numericDecade <= 1929 ? 4 : (numericDecade <= 1949 ? 5 : 8)
+  ));
+  const frontier = bucket.slice(0, frontierSize);
+  const weighted = frontier.map(function (movie, index) {
+    return {
+      movie: movie,
+      weight: 1 / (index + 1)
+    };
+  });
+  const picked = weightedChoice(weighted).movie;
+  const pickedIndex = bucket.indexOf(picked);
+  if (pickedIndex !== -1) {
+    bucket.splice(pickedIndex, 1);
+  }
+  return picked;
+}
+
 function selectDiversifiedPool(movies, limit) {
   const buckets = new Map();
   const ordered = Array.isArray(movies) ? movies.slice() : [];
@@ -1092,14 +1171,25 @@ function selectDiversifiedPool(movies, limit) {
     return Number(decade) >= 1980;
   });
   const selected = [];
+  let round = 0;
 
   while (selected.length < limit) {
     let addedThisRound = false;
-    for (let i = 0; i < decadeKeys.length && selected.length < limit; i += 1) {
-      const bucket = buckets.get(decadeKeys[i]);
+    const decadeOrder = shuffledCopy(decadeKeys);
+    for (let i = 0; i < decadeOrder.length && selected.length < limit; i += 1) {
+      const decade = decadeOrder[i];
+      const bucket = buckets.get(decade);
       if (bucket && bucket.length) {
-        selected.push(bucket.shift());
-        addedThisRound = true;
+        const chance = decadeSelectionChance(decade);
+        const shouldTake = round < 2
+          ? (Math.random() < Math.min(1, chance + 0.12))
+          : (Math.random() < chance);
+        if (!shouldTake) continue;
+        const picked = pickFrontierMovie(bucket, decade);
+        if (picked) {
+          selected.push(picked);
+          addedThisRound = true;
+        }
       }
     }
     const modernCandidates = modernDecadeKeys.filter(function (decade) {
@@ -1110,11 +1200,26 @@ function selectDiversifiedPool(movies, limit) {
       const chosenDecade = modernCandidates[Math.floor(Math.random() * modernCandidates.length)];
       const bucket = buckets.get(chosenDecade);
       if (bucket && bucket.length) {
-        selected.push(bucket.shift());
-        addedThisRound = true;
+        const picked = pickFrontierMovie(bucket, chosenDecade);
+        if (picked) {
+          selected.push(picked);
+          addedThisRound = true;
+        }
       }
     }
-    if (!addedThisRound) break;
+    if (!addedThisRound) {
+      const fallbackDecade = decadeKeys
+        .map(function (decade) {
+          return { decade: decade, size: (buckets.get(decade) || []).length };
+        })
+        .filter(function (entry) { return entry.size > 0; })
+        .sort(function (a, b) { return b.size - a.size; })[0];
+      if (!fallbackDecade) break;
+      const picked = pickFrontierMovie(buckets.get(fallbackDecade.decade), fallbackDecade.decade);
+      if (!picked) break;
+      selected.push(picked);
+    }
+    round += 1;
   }
 
   return selected;
