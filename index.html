@@ -1881,6 +1881,16 @@ button, a, select { font: inherit; }
   color: rgba(255,255,255,.62);
 }
 
+.collection-inline-count {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(255,255,255,.48);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
 .collection-list-actions {
   display: flex;
   justify-content: flex-end;
@@ -2780,7 +2790,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-5';
+  const BUILD_ID = 'logic-sync-7';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -2945,6 +2955,7 @@ button, a, select { font: inherit; }
   let isPoolLoading = true;
   let activeRewardSelection = null;
   let needsPoolRestoreAfterReward = false;
+  let forceNextThemePoolRefresh = false;
   let draggedShowcaseIndex = null;
   let showcaseEditMode = false;
   let dataSourceLabel = 'Sample Set';
@@ -3226,6 +3237,25 @@ button, a, select { font: inherit; }
       }
     });
     return titles;
+  }
+
+  function filmSlotsForCurrentTheme() {
+    const shouldTryPersonInsert = dataSourceLabel.indexOf('TMDB') !== -1;
+    const actorPackPersonSlots = currentPackTheme === 'actors' && shouldTryPersonInsert ? 4 : 0;
+    const personSlots = actorPackPersonSlots || (shouldTryPersonInsert ? 1 : 0);
+    return Math.max(0, PACK_SIZE - personSlots);
+  }
+
+  function countFreshFilmCandidates(pool) {
+    const avoided = buildAvoidedTitleSet();
+    const seen = new Set();
+    return (Array.isArray(pool) ? pool : []).reduce(function (count, movie) {
+      if (!movie || movie.cardType === 'person') return count;
+      const key = filmIdentityKey(movie);
+      if (!key || avoided.has(key) || seen.has(key)) return count;
+      seen.add(key);
+      return count + 1;
+    }, 0);
   }
 
   function rememberPulledTitles(cards) {
@@ -3908,14 +3938,17 @@ button, a, select { font: inherit; }
     return card.directorName ? ('Dir. ' + card.directorName) : 'Dir. Unknown';
   }
 
-  function buildCollectionKindMarkup(card) {
+  function buildCollectionKindMarkup(card, duplicateCount) {
     const iconClass = card.cardType === 'person' ? 'is-person' : 'is-film';
     const inlineMeta = card.cardType === 'film'
       ? (card.year ? '<span class="collection-list-year">' + escapeHtml(card.year) + '</span>' : '')
       : (card.roleKey !== 'actor' && card.roleKey !== 'director'
         ? '<span class="collection-list-year">' + escapeHtml(roleLabelForDisplay(card)) + '</span>'
         : '');
-    return '<div class="collection-kind"><span class="collection-kind-icon ' + iconClass + '" aria-hidden="true"></span><span class="collection-titleline"><span class="collection-list-title">' + escapeHtml(card.title) + '</span>' + inlineMeta + '</span></div>';
+    const duplicateMarkup = Number(duplicateCount) > 1
+      ? '<span class="collection-inline-count">x' + escapeHtml(String(duplicateCount)) + '</span>'
+      : '';
+    return '<div class="collection-kind"><span class="collection-kind-icon ' + iconClass + '" aria-hidden="true"></span><span class="collection-titleline"><span class="collection-list-title">' + escapeHtml(card.title) + '</span>' + inlineMeta + duplicateMarkup + '</span></div>';
   }
 
   function matchesCollectionSearch(card) {
@@ -5074,6 +5107,12 @@ button, a, select { font: inherit; }
       refreshPromise,
       new Promise(function (resolve) { setTimeout(resolve, 120); })
     ]);
+    if (dataSourceLabel.indexOf('TMDB') !== -1) {
+      const freshCandidatesAvailable = countFreshFilmCandidates(getPackPool());
+      if (freshCandidatesAvailable < filmSlotsForCurrentTheme()) {
+        await refreshPoolForPackOpen(true, requestedTheme).catch(function () { return false; });
+      }
+    }
     if (getPackPool().length < PACK_SIZE) resolvePackTheme(false);
     updatePackMeta();
     const draftedPack = await buildDraftPack(getPackPool());
@@ -5305,23 +5344,20 @@ button, a, select { font: inherit; }
       collectionGrid.classList.add('collection-list');
       collectionGrid.innerHTML = filtered.map(function (entry, filteredIndex) {
         const movie = entry.card;
-        const countBadge = buildDuplicateCountMarkup(entry.count);
         if (movie.cardType === 'person') {
           return '<div class="collection-list-item is-person" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
-            + buildCollectionKindMarkup(movie)
+            + buildCollectionKindMarkup(movie, entry.count)
             + '<div class="collection-list-role">' + escapeHtml(roleLabelForDisplay(movie)) + '</div>'
             + '<span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>'
-            + countBadge
             + buildBookmarkButtonMarkup(movie)
             + buildShowcaseButtonMarkup(movie)
             + '</div>';
         }
 
         return '<div class="collection-list-item is-film" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
-          + buildCollectionKindMarkup(movie)
+          + buildCollectionKindMarkup(movie, entry.count)
           + '<div class="collection-list-secondary">' + escapeHtml(collectionSecondaryLabel(movie)) + '</div>'
           + '<span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>'
-          + countBadge
           + buildBookmarkButtonMarkup(movie)
           + buildShowcaseButtonMarkup(movie)
           + '</div>';
@@ -5386,6 +5422,7 @@ button, a, select { font: inherit; }
       const storedBuildId = String(localStorage.getItem('filmtcg.buildId') || '');
       if (storedBuildId !== BUILD_ID) {
         shouldForceFreshPool = true;
+        forceNextThemePoolRefresh = true;
         localStorage.setItem('filmtcg.buildId', BUILD_ID);
         personKnownForCache.clear();
       }
@@ -5442,7 +5479,9 @@ button, a, select { font: inherit; }
       updatePackMeta();
       backToPacks();
       if (dataSourceLabel.indexOf('TMDB') !== -1 && selectedPackMode !== 'all-packs') {
-        await fetchThemedDynamicCardPool(selectedPackMode, false).catch(function () { return false; });
+        const shouldForceThemeRefresh = forceNextThemePoolRefresh;
+        forceNextThemePoolRefresh = false;
+        await fetchThemedDynamicCardPool(selectedPackMode, shouldForceThemeRefresh).catch(function () { return false; });
       } else if (dataSourceLabel.indexOf('TMDB') !== -1) {
         await fetchDynamicCardPool(false).catch(function () { return false; });
       }
