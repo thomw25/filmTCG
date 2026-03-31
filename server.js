@@ -13,8 +13,8 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const LOGIC_VERSION = 'logic-2026-03-31-1';
-const POOL_SNAPSHOT_VERSION = 'server-rotation-19';
+const LOGIC_VERSION = 'logic-2026-03-31-2';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-20';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -163,6 +163,7 @@ const TITLE_RARITY_FLOORS = {
   'andrei rublev': 'Epic',
   'apocalypse now': 'Legendary',
   'badlands': 'Epic',
+  'boogie nights': 'Epic',
   'barry lyndon': 'Epic',
   'beau travail': 'Epic',
   'bicycle thieves': 'Epic',
@@ -253,6 +254,7 @@ const TITLE_RARITY_FLOORS = {
   'there will be blood': 'Legendary',
   'tokyo story': 'Legendary',
   'vertigo': 'Legendary',
+  'west side story': 'Epic',
   'when harry met sally...': 'Epic',
   'woman in the dunes': 'Epic',
   'apollo 13': 'Epic',

@@ -241,6 +241,125 @@ button, a, select { font: inherit; }
   opacity: 0.66;
 }
 
+.owned-pack-row {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.owned-pack-label {
+  color: rgba(255,255,255,.82);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.owned-pack-select {
+  min-width: 220px;
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: #fff;
+  padding: 9px 12px;
+}
+
+.owned-pack-open-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 700;
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  color: #eff6ff;
+}
+
+.shop-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.shop-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.shop-item {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015));
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.shop-pack-preview .pack {
+  width: 178px;
+  height: 254px;
+  padding: 14px;
+}
+
+.shop-pack-preview .pack .pack-title {
+  font-size: 1.34rem;
+}
+
+.shop-pack-preview .pack .pack-tier {
+  margin-top: 8px;
+  font-size: 0.66rem;
+  padding: 6px 9px;
+}
+
+.shop-pack-preview .pack .pack-card-count {
+  margin-top: 6px;
+  font-size: 0.62rem;
+}
+
+.shop-item-title {
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  text-align: center;
+}
+
+.shop-item-meta {
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.shop-buy-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 750;
+  color: #0f172a;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+
+.shop-buy-btn:disabled {
+  cursor: default;
+  opacity: 0.62;
+}
+
+.shop-inventory-list {
+  display: grid;
+  gap: 8px;
+}
+
+.shop-inventory-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: rgba(255,255,255,.84);
+  font-size: 0.84rem;
+  background: rgba(255,255,255,.03);
+}
+
 .view-toggle {
   display: inline-flex;
   padding: 4px;
@@ -282,8 +401,9 @@ button, a, select { font: inherit; }
 
 .pack {
   background:
-    radial-gradient(circle at 25% 20%, rgba(255,255,255,0.22), transparent 22%),
-    linear-gradient(135deg, var(--pack-a, #4338ca) 0%, var(--pack-b, #6d28d9) 48%, var(--pack-c, #9333ea) 100%);
+    radial-gradient(circle at 23% 18%, rgba(255,255,255,0.22), transparent 30%),
+    linear-gradient(160deg, rgba(255,255,255,.15) 0%, rgba(255,255,255,0) 42%),
+    linear-gradient(135deg, var(--pack-a, #4338ca) 0%, var(--pack-b, #6d28d9) 52%, var(--pack-c, #9333ea) 100%);
   border: 2px solid rgba(255,255,255,0.18);
   display: flex;
   flex-direction: column;
@@ -292,7 +412,9 @@ button, a, select { font: inherit; }
   font-weight: 800;
   box-shadow: var(--shadow);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  -webkit-clip-path: inset(0 round 20px);
+  clip-path: inset(0 round 20px);
   text-align: center;
   padding: 20px;
   isolation: isolate;
@@ -304,7 +426,6 @@ button, a, select { font: inherit; }
 .pack.opening { animation: none; }
 .pack.is-shuffling {
   animation: packBurst 860ms cubic-bezier(.18,.88,.24,1) forwards;
-  overflow: hidden;
 }
 
 .pack:not(.is-loading):not(.opening):not(.is-shuffling) {
@@ -353,19 +474,20 @@ button, a, select { font: inherit; }
 }
 
 .pack-foil {
-  inset: -4% -3%;
+  inset: -8% -7%;
   background:
-    linear-gradient(116deg, rgba(255,255,255,.28) 0%, rgba(255,255,255,.18) 10%, rgba(255,255,255,0) 22%, rgba(255,255,255,.16) 37%, rgba(255,255,255,.04) 48%, transparent 63%),
-    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.04) 26%, rgba(0,0,0,.16) 100%);
-  background-size: 132% 132%, 100% 100%;
+    linear-gradient(116deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.2) 10%, rgba(255,255,255,0) 23%, var(--pack-foil-tint, rgba(255,255,255,.2)) 39%, rgba(255,255,255,.04) 51%, transparent 64%),
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.04) 26%, var(--pack-foil-shadow, rgba(0,0,0,.18)) 100%);
+  background-size: 146% 146%, 100% 100%;
   background-position: 100% 0, 50% 50%;
+  filter: saturate(1.08);
   z-index: 0;
 }
 
 .pack-tear-line {
   top: 34px;
-  left: -40px;
-  width: calc(100% + 80px);
+  left: -56px;
+  width: calc(100% + 112px);
   height: 3px;
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(255,255,255,0), var(--pack-tear-core, rgba(255,250,220,.98)) 10%, rgba(255,255,255,.98) 20%, var(--pack-tear-core-strong, rgba(255,219,77,.96)) 52%, rgba(255,255,255,.96) 82%, rgba(255,255,255,0));
@@ -390,14 +512,17 @@ button, a, select { font: inherit; }
 }
 
 .pack-glint {
-  top: -24px;
-  right: 18px;
-  width: 124px;
-  height: 292px;
-  background: linear-gradient(180deg, rgba(255,255,255,.52), rgba(255,255,255,.08) 42%, rgba(255,255,255,0));
-  opacity: 0.28;
-  transform: rotate(22deg);
-  filter: blur(2px);
+  top: -42px;
+  right: -12px;
+  width: 156px;
+  height: 360px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.58), rgba(255,255,255,.14) 38%, rgba(255,255,255,0)),
+    linear-gradient(180deg, var(--pack-glint-tint, rgba(255,255,255,.28)), rgba(255,255,255,0) 62%);
+  opacity: 0.24;
+  transform: rotate(21deg);
+  filter: blur(1.6px);
+  mix-blend-mode: screen;
   z-index: 1;
 }
 
@@ -409,13 +534,17 @@ button, a, select { font: inherit; }
     radial-gradient(circle at 42% 76%, rgba(0,0,0,.07) 0 1px, transparent 1.2px),
     radial-gradient(circle at 80% 68%, rgba(255,255,255,.05) 0 1px, transparent 1.1px),
     repeating-linear-gradient(135deg, rgba(255,255,255,.015) 0 2px, rgba(0,0,0,.02) 2px 4px);
-  mix-blend-mode: soft-light;
-  opacity: 0;
+  mix-blend-mode: overlay;
+  opacity: var(--pack-grain-base-opacity, 0.22);
   z-index: 1;
 }
 
 .pack.is-featured .pack-grain {
-  opacity: 0.72;
+  opacity: var(--pack-grain-featured-opacity, 0.64);
+}
+
+.pack.is-gold .pack-grain {
+  opacity: 0.76;
 }
 
 .pack-twinkle {
@@ -531,7 +660,7 @@ button, a, select { font: inherit; }
 }
 
 .reward-pack-option.is-selected.is-committing .pack {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .reward-pack-option.is-selected.is-committing .pack .pack-tear-line {
@@ -542,6 +671,7 @@ button, a, select { font: inherit; }
 .pack.opening .pack-sub,
 .pack.opening .pack-tier,
 .pack.opening .pack-card-count,
+.pack.opening .pack-foil,
 .pack.opening .pack-top-seal,
 .pack.opening .pack-spine,
 .pack.opening .pack-glow,
@@ -552,6 +682,7 @@ button, a, select { font: inherit; }
 .pack.is-shuffling .pack-sub,
 .pack.is-shuffling .pack-tier,
 .pack.is-shuffling .pack-card-count,
+.pack.is-shuffling .pack-foil,
 .pack.is-shuffling .pack-top-seal,
 .pack.is-shuffling .pack-spine,
 .pack.is-shuffling .pack-glow,
@@ -559,6 +690,14 @@ button, a, select { font: inherit; }
 .pack.is-shuffling .pack-grain,
 .pack.is-shuffling .pack-twinkle {
   animation: packBodyFade 700ms ease-out forwards;
+}
+
+.pack:not(.is-loading):not(.opening):not(.is-shuffling) .pack-foil {
+  animation: packFoilShift 4.2s ease-in-out infinite;
+}
+
+.pack:not(.is-loading):not(.opening):not(.is-shuffling) .pack-glint {
+  animation: packGlintSweep 4.8s ease-in-out infinite;
 }
 
 .pack.opening::after,
@@ -2158,20 +2297,30 @@ button, a, select { font: inherit; }
 
 @keyframes packTearLine {
   0% {
-    transform: translateX(-100%) scaleX(0.32);
+    transform: translateX(-118%) scaleX(0.4);
     opacity: 0;
   }
   20% {
     opacity: 1;
   }
   44% {
-    transform: translateX(-12%) scaleX(0.68);
+    transform: translateX(-18%) scaleX(0.74);
     opacity: 0.95;
   }
   100% {
-    transform: translateX(100%) scaleX(1.02);
+    transform: translateX(118%) scaleX(1.04);
     opacity: 0;
   }
+}
+
+@keyframes packFoilShift {
+  0%, 100% { background-position: 98% 0, 50% 50%; }
+  50% { background-position: 82% -8%, 50% 50%; }
+}
+
+@keyframes packGlintSweep {
+  0%, 100% { transform: translateX(0) rotate(21deg); opacity: 0.18; }
+  50% { transform: translateX(-26px) rotate(21deg); opacity: 0.34; }
 }
 
 @keyframes packBodyFade {
@@ -2605,6 +2754,7 @@ button, a, select { font: inherit; }
 <div class="nav">
   <button id="pullTab" class="active" type="button">Pull</button>
   <button id="dailyTab" type="button">Daily</button>
+  <button id="shopTab" type="button">Shop</button>
   <button id="collectionTab" type="button">Collection</button>
 </div>
 
@@ -2622,6 +2772,10 @@ button, a, select { font: inherit; }
       <div class="collection-stat">
         <div class="collection-stat-label">Pack Tier</div>
           <div class="collection-stat-value" id="packSeriesValue">Base Pack</div>
+      </div>
+      <div class="collection-stat">
+        <div class="collection-stat-label">Tickets</div>
+        <div class="collection-stat-value" id="ticketBalanceValue">0</div>
       </div>
     </div>
     <div class="collection-controls">
@@ -2704,6 +2858,13 @@ button, a, select { font: inherit; }
   </div>
 </div>
 
+<div id="shop" class="page">
+  <div class="collection-shell">
+    <h2>Shop</h2>
+    <div id="shopPanel" class="shop-panel"></div>
+  </div>
+</div>
+
 <div id="cardModal" class="modal-overlay" aria-hidden="true">
   <div class="modal-shell">
     <div class="modal-topbar">
@@ -2747,14 +2908,17 @@ button, a, select { font: inherit; }
       title: 'All Cinema',
       blurb: 'every movie, ever.',
       titleFont: 'inherit',
-      colors: ['#4338ca', '#6d28d9', '#9333ea'],
+      colors: ['#8F86E9', '#A4A5F3', '#BBD0FF'],
       tier: 'Base Pack',
-      ink: '#f8fafc',
-      subInk: 'rgba(248,250,252,.84)',
-      tierInk: 'rgba(255,255,255,.84)',
-      tierBg: 'rgba(8,10,15,.32)',
-      tierBorder: 'rgba(255,255,255,.16)',
-      ctaInk: 'rgba(255,255,255,.84)'
+      ink: '#5e5ab9',
+      subInk: 'rgba(84,80,166,.84)',
+      tierInk: 'rgba(79,74,157,.9)',
+      tierBg: 'rgba(255,255,255,.36)',
+      tierBorder: 'rgba(95,89,178,.28)',
+      ctaInk: 'rgba(88,83,170,.84)',
+      foilTint: 'rgba(143,134,233,.34)',
+      glintTint: 'rgba(187,208,255,.32)',
+      foilShadow: 'rgba(63,58,124,.22)'
     },
     horror: {
       label: 'Horror',
@@ -2763,14 +2927,17 @@ button, a, select { font: inherit; }
       blurb: 'scared for you tbh',
       titleFont: '"Pirata One", serif',
       titleSpacing: '0.02em',
-      colors: ['#7f1d1d', '#991b1b', '#450a0a'],
+      colors: ['#884044', '#B33B49', '#F33951'],
       tier: 'Select Pack',
       ink: '#fff7ed',
       subInk: 'rgba(255,237,213,.9)',
       tierInk: '#fff7ed',
-      tierBg: 'rgba(30,8,8,.34)',
-      tierBorder: 'rgba(255,237,213,.18)',
-      ctaInk: 'rgba(255,237,213,.88)'
+      tierBg: 'rgba(47,12,18,.34)',
+      tierBorder: 'rgba(255,231,225,.22)',
+      ctaInk: 'rgba(255,232,226,.9)',
+      foilTint: 'rgba(243,57,81,.3)',
+      glintTint: 'rgba(255,165,177,.28)',
+      foilShadow: 'rgba(58,14,20,.24)'
     },
     animation: {
       label: 'Animation',
@@ -2779,14 +2946,17 @@ button, a, select { font: inherit; }
       blurb: 'you’re drawn to this, I know it',
       titleFont: '"Mouse Memoirs", sans-serif',
       titleSpacing: '0.025em',
-      colors: ['#0f766e', '#2563eb', '#7c3aed'],
+      colors: ['#373EE6', '#4F78EA', '#67B8EA'],
       tier: 'Select Pack',
       ink: '#eff6ff',
       subInk: 'rgba(239,246,255,.86)',
       tierInk: '#eff6ff',
       tierBg: 'rgba(9,15,26,.28)',
       tierBorder: 'rgba(239,246,255,.16)',
-      ctaInk: 'rgba(239,246,255,.82)'
+      ctaInk: 'rgba(239,246,255,.82)',
+      foilTint: 'rgba(103,184,234,.3)',
+      glintTint: 'rgba(151,206,255,.28)',
+      foilShadow: 'rgba(23,31,96,.22)'
     },
     eighties: {
       label: "80'S",
@@ -2795,14 +2965,17 @@ button, a, select { font: inherit; }
       blurb: 'a decade, indeed',
       titleFont: '"Orbitron", sans-serif',
       titleSpacing: '0.08em',
-      colors: ['#22d3ee', '#2563eb', '#312e81'],
+      colors: ['#61A398', '#6FC5CF', '#71E1FB'],
       tier: 'Select Pack',
       ink: '#fff7fb',
       subInk: 'rgba(255,241,248,.9)',
       tierInk: '#fff7fb',
       tierBg: 'rgba(34,12,40,.28)',
       tierBorder: 'rgba(255,241,248,.16)',
-      ctaInk: 'rgba(255,241,248,.84)'
+      ctaInk: 'rgba(255,241,248,.84)',
+      foilTint: 'rgba(113,225,251,.28)',
+      glintTint: 'rgba(172,239,255,.28)',
+      foilShadow: 'rgba(23,68,79,.22)'
     },
     noir: {
       label: 'Film Noir',
@@ -2811,14 +2984,17 @@ button, a, select { font: inherit; }
       blurb: 'light a cigarette NOW',
       titleFont: '"Special Elite", monospace',
       titleSpacing: '0.03em',
-      colors: ['#111827', '#334155', '#020617'],
+      colors: ['#272C46', '#4B638C', '#7CAAD3'],
       tier: 'Epic Pack',
       ink: '#f8fafc',
       subInk: 'rgba(226,232,240,.84)',
       tierInk: '#f8fafc',
-      tierBg: 'rgba(248,250,252,.08)',
-      tierBorder: 'rgba(248,250,252,.16)',
-      ctaInk: 'rgba(248,250,252,.84)'
+      tierBg: 'rgba(18,24,40,.36)',
+      tierBorder: 'rgba(179,199,224,.26)',
+      ctaInk: 'rgba(221,234,247,.9)',
+      foilTint: 'rgba(124,170,211,.26)',
+      glintTint: 'rgba(170,197,227,.24)',
+      foilShadow: 'rgba(10,14,27,.28)'
     },
     romcom: {
       label: "Rom-Com's",
@@ -2827,14 +3003,17 @@ button, a, select { font: inherit; }
       blurb: 'love is in the air',
       titleFont: '"Spicy Rice", serif',
       titleSpacing: '0.03em',
-      colors: ['#fb7185', '#f472b6', '#f59e0b'],
+      colors: ['#FF2495', '#C13AA9', '#9230B1'],
       tier: 'Select Pack',
       ink: '#fff7fb',
       subInk: 'rgba(255,241,248,.9)',
       tierInk: '#fff7fb',
-      tierBg: 'rgba(68,18,44,.26)',
-      tierBorder: 'rgba(255,241,248,.18)',
-      ctaInk: 'rgba(255,241,248,.84)'
+      tierBg: 'rgba(57,12,70,.3)',
+      tierBorder: 'rgba(255,230,245,.22)',
+      ctaInk: 'rgba(255,233,246,.9)',
+      foilTint: 'rgba(255,36,149,.3)',
+      glintTint: 'rgba(253,157,228,.26)',
+      foilShadow: 'rgba(56,14,79,.24)'
     },
     docs: {
       label: 'Documentary',
@@ -2844,14 +3023,17 @@ button, a, select { font: inherit; }
       titleFont: '"Caprasimo", serif',
       titleSpacing: '0.02em',
       titleSize: '1.74rem',
-      colors: ['#0f172a', '#0f766e', '#164e63'],
+      colors: ['#00A796', '#18D4A8', '#00FEA4'],
       tier: 'Select Pack',
       ink: '#ecfeff',
       subInk: 'rgba(236,254,255,.86)',
       tierInk: '#ecfeff',
-      tierBg: 'rgba(7,15,19,.3)',
-      tierBorder: 'rgba(236,254,255,.16)',
-      ctaInk: 'rgba(236,254,255,.84)'
+      tierBg: 'rgba(7,36,31,.3)',
+      tierBorder: 'rgba(222,255,244,.22)',
+      ctaInk: 'rgba(227,255,247,.9)',
+      foilTint: 'rgba(0,254,164,.3)',
+      glintTint: 'rgba(150,255,224,.26)',
+      foilShadow: 'rgba(6,54,41,.24)'
     },
     actors: {
       label: 'Actors',
@@ -2860,14 +3042,17 @@ button, a, select { font: inherit; }
       blurb: 'faces you know, chaos you do not',
       titleFont: '"Fahkwang", sans-serif',
       titleSpacing: '0.03em',
-      colors: ['#4c0519', '#9f1239', '#e11d48'],
+      colors: ['#ECC688', '#E9CF9C', '#ECC688'],
       tier: 'Select Pack',
-      ink: '#fdf4ff',
-      subInk: 'rgba(250,232,255,.88)',
-      tierInk: '#fdf4ff',
-      tierBg: 'rgba(34,9,53,.3)',
-      tierBorder: 'rgba(253,244,255,.18)',
-      ctaInk: 'rgba(253,244,255,.84)'
+      ink: '#775b2c',
+      subInk: 'rgba(120,91,45,.84)',
+      tierInk: 'rgba(117,89,42,.92)',
+      tierBg: 'rgba(255,244,214,.4)',
+      tierBorder: 'rgba(132,103,54,.22)',
+      ctaInk: 'rgba(122,93,46,.88)',
+      foilTint: 'rgba(236,198,136,.34)',
+      glintTint: 'rgba(255,238,196,.28)',
+      foilShadow: 'rgba(82,58,22,.22)'
     },
     gold: {
       label: 'Gold Pack',
@@ -2881,7 +3066,10 @@ button, a, select { font: inherit; }
       tierInk: '#fff7ed',
       tierBg: 'rgba(58,35,12,.34)',
       tierBorder: 'rgba(255,247,237,.16)',
-      ctaInk: 'rgba(35,22,10,.82)'
+      ctaInk: 'rgba(35,22,10,.82)',
+      foilTint: 'rgba(251,191,36,.38)',
+      glintTint: 'rgba(255,236,176,.32)',
+      foilShadow: 'rgba(88,46,7,.24)'
     }
   };
   const FEMALE_DIRECTOR_NAMES = {
@@ -2899,7 +3087,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-21';
+  const BUILD_ID = 'logic-sync-23';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -3039,6 +3227,19 @@ button, a, select { font: inherit; }
   const THEME_POOL_LIMIT = 900;
   const DAILY_HUNT_COUNT = 3;
   const DAILY_HUNT_THEME_TAGS = ['horror', 'animation', 'noir', 'romcom', 'docs'];
+  const DAILY_HUNT_TICKET_REWARD = 120;
+  const STARTING_TICKETS = 240;
+  const SHOP_PACKS = [
+    { id: 'all', theme: 'all', label: 'All Cinema Pack', blurb: 'Balanced pull from the full shelf.', price: 60 },
+    { id: 'horror', theme: 'horror', label: 'Horror Pack', blurb: 'Nightmare lane with genre flavor.', price: 90 },
+    { id: 'animation', theme: 'animation', label: 'Animation Pack', blurb: 'Drawn worlds and stylized hits.', price: 90 },
+    { id: 'eighties', theme: 'eighties', label: "80'S Pack", blurb: 'Decade-only pulls.', price: 90 },
+    { id: 'noir', theme: 'noir', label: 'Film Noir Pack', blurb: 'Crime, mystery, and shadow lanes.', price: 90 },
+    { id: 'romcom', theme: 'romcom', label: "Rom-Com's Pack", blurb: 'Meet-cutes and memory plays.', price: 90 },
+    { id: 'docs', theme: 'docs', label: 'Documentary Pack', blurb: 'Truth in card form.', price: 110 },
+    { id: 'actors', theme: 'actors', label: 'Actors Pack', blurb: 'People-heavy pulls.', price: 110 },
+    { id: 'gold', theme: 'gold', label: 'Gold Pack', blurb: 'Guaranteed Epic or Legendary hit.', price: 500 }
+  ];
   const SAMPLE_MOVIES = [
     { title: 'Jaws', rarity: 'Base', genre: 'Thriller', desc: 'Shark terrorizes a beach town.', packs: ['all', 'horror'] },
     { title: 'Ferris Bueller\'s Day Off', rarity: 'Base', genre: 'Comedy', desc: 'A perfect skip day through Chicago.', packs: ['all'] },
@@ -3070,6 +3271,7 @@ button, a, select { font: inherit; }
   let artworkStatus = 'Trying backend for live poster/still metadata.';
   let selectedPackMode = 'all-packs';
   let currentPackTheme = 'all';
+  let selectedOwnedPackId = '';
   let collectionSort = 'recent';
   let collectionFilter = 'all';
   let collectionView = loadCollectionView();
@@ -3093,14 +3295,17 @@ button, a, select { font: inherit; }
 
   const pullPage = document.getElementById('pull');
   const dailyPage = document.getElementById('daily');
+  const shopPage = document.getElementById('shop');
   const collectionPage = document.getElementById('collection');
   const pullArea = document.getElementById('pullArea');
   const dailyHuntsPanel = document.getElementById('dailyHuntsPanel');
+  const shopPanel = document.getElementById('shopPanel');
   const collectionGrid = document.getElementById('collectionGrid');
   const showcasePanel = document.getElementById('showcasePanel');
   const collectionSearchEl = document.getElementById('collectionSearch');
   const pullTab = document.getElementById('pullTab');
   const dailyTab = document.getElementById('dailyTab');
+  const shopTab = document.getElementById('shopTab');
   const collectionTab = document.getElementById('collectionTab');
   const cardModal = document.getElementById('cardModal');
   const modalBody = document.getElementById('modalBody');
@@ -3282,18 +3487,49 @@ button, a, select { font: inherit; }
     saveShowcase();
   }
 
+  function normalizeOwnedPackTheme(theme) {
+    const normalized = String(theme || '').trim().toLowerCase();
+    if (normalized && PACK_THEMES[normalized]) return normalized;
+    return 'all';
+  }
+
+  function normalizeSealedPackEntry(entry) {
+    if (!entry) return null;
+    const theme = normalizeOwnedPackTheme(entry.theme || entry.packTheme || entry.key);
+    return {
+      id: String(entry.id || ('pack-' + String(Date.now()) + '-' + Math.random().toString(36).slice(2, 8))),
+      theme: theme,
+      purchasedAt: Number(entry.purchasedAt) || Date.now(),
+      source: String(entry.source || 'shop')
+    };
+  }
+
+  function createSealedPack(theme, source) {
+    return normalizeSealedPackEntry({
+      id: 'pack-' + String(Date.now()) + '-' + Math.random().toString(36).slice(2, 9),
+      theme: theme,
+      purchasedAt: Date.now(),
+      source: source || 'shop'
+    });
+  }
+
   function loadProgress() {
     try {
       const stored = JSON.parse(localStorage.getItem('filmtcg.progress') || '{}');
       const storedRewardThemes = Array.isArray(stored.featuredRewardThemes)
         ? stored.featuredRewardThemes.filter(Boolean).slice(0, 2)
         : (stored.featuredRewardTheme ? [stored.featuredRewardTheme] : []);
+      const storedSealedPacks = Array.isArray(stored.sealedPacks)
+        ? stored.sealedPacks.map(normalizeSealedPackEntry).filter(Boolean).slice(0, 240)
+        : [];
       return {
         standardPacksOpened: Number(stored.standardPacksOpened) || 0,
         rewardChoicesAvailable: Number(stored.rewardChoicesAvailable != null ? stored.rewardChoicesAvailable : stored.goldPacksAvailable) || 0,
         featuredRewardThemes: storedRewardThemes,
         featuredRewardTheme: stored.featuredRewardTheme || storedRewardThemes[0] || null,
         allPacksCinemaStreak: Number(stored.allPacksCinemaStreak) || 0,
+        tickets: Math.max(0, Number(stored.tickets != null ? stored.tickets : STARTING_TICKETS) || 0),
+        sealedPacks: storedSealedPacks,
         recentPullTitles: Array.isArray(stored.recentPullTitles) ? stored.recentPullTitles.filter(Boolean).slice(0, RECENT_PULL_MEMORY) : [],
         recentPullKeys: Array.isArray(stored.recentPullKeys) ? stored.recentPullKeys.filter(Boolean).slice(0, RECENT_PULL_MEMORY) : []
       };
@@ -3304,6 +3540,8 @@ button, a, select { font: inherit; }
         featuredRewardThemes: [],
         featuredRewardTheme: null,
         allPacksCinemaStreak: 0,
+        tickets: STARTING_TICKETS,
+        sealedPacks: [],
         recentPullTitles: [],
         recentPullKeys: []
       };
@@ -3321,6 +3559,10 @@ button, a, select { font: inherit; }
       ? progress.featuredRewardThemes.filter(Boolean).slice(0, 2)
       : [];
     progress.featuredRewardTheme = progress.featuredRewardThemes[0] || null;
+    progress.tickets = Math.max(0, Number(progress.tickets) || 0);
+    progress.sealedPacks = Array.isArray(progress.sealedPacks)
+      ? progress.sealedPacks.map(normalizeSealedPackEntry).filter(Boolean).slice(0, 240)
+      : [];
     localStorage.setItem('filmtcg.progress', JSON.stringify(progress));
   }
 
@@ -3618,16 +3860,16 @@ button, a, select { font: inherit; }
     const state = ensureDailyHuntsState(false);
     if (!areAllDailyHuntsComplete(state) || state.bonusClaimed) return;
     state.bonusClaimed = true;
-    progress.rewardChoicesAvailable += 1;
-    ensureFeaturedRewardThemes(true);
+    progress.tickets = Math.max(0, Number(progress.tickets) || 0) + DAILY_HUNT_TICKET_REWARD;
     saveDailyHuntsState();
     saveProgress();
     updatePackMeta();
+    renderShop();
     if (pullPage && pullPage.classList.contains('active')) {
       backToPacks();
     }
     renderDailyHunts();
-    showToast('Daily reward claimed: +1 reward choice.');
+    showToast('Daily reward claimed: +' + String(DAILY_HUNT_TICKET_REWARD) + ' Tickets.');
   }
 
   function renderDailyHunts() {
@@ -3659,12 +3901,12 @@ button, a, select { font: inherit; }
       + '<div class="collection-stats">'
       + '<div class="collection-stat"><div class="collection-stat-label">Completed</div><div class="collection-stat-value">' + String(completedCount) + '/' + String(hunts.length || DAILY_HUNT_COUNT) + '</div></div>'
       + '<div class="collection-stat"><div class="collection-stat-label">Resets In</div><div class="collection-stat-value">' + escapeHtml(countdown) + '</div></div>'
-      + '<div class="collection-stat"><div class="collection-stat-label">Reward</div><div class="collection-stat-value">+1 Choice</div></div>'
+      + '<div class="collection-stat"><div class="collection-stat-label">Reward</div><div class="collection-stat-value">+' + String(DAILY_HUNT_TICKET_REWARD) + ' Tickets</div></div>'
       + '</div>'
       + '</div>'
       + '<div class="daily-hunts-list">' + huntsMarkup + '</div>'
       + '<div class="daily-reward-row">'
-      + '<div class="daily-reward-copy">' + (allComplete ? 'All hunts complete. Claim your bonus reward choice.' : 'Complete all three hunts to unlock one bonus reward choice.') + '</div>'
+      + '<div class="daily-reward-copy">' + (allComplete ? 'All hunts complete. Claim your bonus Tickets.' : 'Complete all three hunts to unlock bonus Tickets.') + '</div>'
       + '<button id="dailyClaimButton" class="daily-claim-btn" type="button" ' + ((allComplete && !state.bonusClaimed) ? '' : 'disabled') + '>' + (state.bonusClaimed ? 'Claimed' : 'Claim Reward') + '</button>'
       + '</div>';
 
@@ -3717,9 +3959,10 @@ button, a, select { font: inherit; }
     return titles;
   }
 
-  function filmSlotsForCurrentTheme() {
+  function filmSlotsForCurrentTheme(themeKey) {
     const shouldTryPersonInsert = dataSourceLabel.indexOf('TMDB') !== -1;
-    const actorPackPersonSlots = currentPackTheme === 'actors' && shouldTryPersonInsert ? 4 : 0;
+    const resolvedTheme = String(themeKey || currentPackTheme || '').toLowerCase();
+    const actorPackPersonSlots = resolvedTheme === 'actors' && shouldTryPersonInsert ? 4 : 0;
     const personSlots = actorPackPersonSlots || (shouldTryPersonInsert ? 1 : 0);
     return Math.max(0, PACK_SIZE - personSlots);
   }
@@ -4361,6 +4604,132 @@ button, a, select { font: inherit; }
     document.getElementById('packSeriesValue').textContent = progress.rewardChoicesAvailable > 0
       ? 'Choose 1'
       : theme.tier;
+    const ticketValue = document.getElementById('ticketBalanceValue');
+    if (ticketValue) {
+      ticketValue.textContent = String(Math.max(0, Number(progress.tickets) || 0));
+    }
+  }
+
+  function formatTickets(value) {
+    return String(Math.max(0, Number(value) || 0));
+  }
+
+  function getOwnedPacks() {
+    return Array.isArray(progress && progress.sealedPacks) ? progress.sealedPacks : [];
+  }
+
+  function ownedPackLabel(item) {
+    const themeKey = normalizeOwnedPackTheme(item && item.theme);
+    const theme = PACK_THEMES[themeKey] || PACK_THEMES.all;
+    return theme.label + ' Pack';
+  }
+
+  function selectedOwnedPack() {
+    const owned = getOwnedPacks();
+    if (!owned.length) return null;
+    if (selectedOwnedPackId) {
+      const exact = owned.find(function (item) { return item && item.id === selectedOwnedPackId; });
+      if (exact) return exact;
+    }
+    return owned[0];
+  }
+
+  function removeOwnedPackById(packId) {
+    const owned = getOwnedPacks();
+    const index = owned.findIndex(function (item) {
+      return item && item.id === packId;
+    });
+    if (index === -1) return null;
+    const removed = owned.splice(index, 1)[0];
+    progress.sealedPacks = owned;
+    if (selectedOwnedPackId === packId) {
+      selectedOwnedPackId = owned.length ? String(owned[0].id || '') : '';
+    }
+    return removed;
+  }
+
+  function buildOwnedPackQuickMarkup() {
+    const owned = getOwnedPacks();
+    if (!owned.length || progress.rewardChoicesAvailable > 0) return '';
+    const selected = selectedOwnedPack();
+    if (selected && !selectedOwnedPackId) {
+      selectedOwnedPackId = String(selected.id || '');
+    }
+    const options = owned.map(function (item) {
+      const isSelected = selectedOwnedPackId && item.id === selectedOwnedPackId;
+      return '<option value="' + escapeHtml(String(item.id || '')) + '"' + (isSelected ? ' selected' : '') + '>'
+        + escapeHtml(ownedPackLabel(item))
+        + '</option>';
+    }).join('');
+    return '<div class="owned-pack-row">'
+      + '<span class="owned-pack-label">Owned Packs: ' + String(owned.length) + '</span>'
+      + '<select id="ownedPackSelect" class="owned-pack-select">' + options + '</select>'
+      + '<button id="openOwnedPackButton" type="button" class="owned-pack-open-btn">Open Owned Pack</button>'
+      + '</div>';
+  }
+
+  function buyShopPack(packId) {
+    const packDef = SHOP_PACKS.find(function (item) {
+      return item && item.id === packId;
+    });
+    if (!packDef) return;
+    const price = Math.max(0, Number(packDef.price) || 0);
+    const balance = Math.max(0, Number(progress.tickets) || 0);
+    if (balance < price) {
+      showToast('Not enough Tickets for that pack yet.');
+      return;
+    }
+    const owned = getOwnedPacks();
+    const nextPack = createSealedPack(packDef.theme, 'shop');
+    progress.tickets = balance - price;
+    owned.push(nextPack);
+    progress.sealedPacks = owned;
+    if (!selectedOwnedPackId) {
+      selectedOwnedPackId = String(nextPack.id || '');
+    }
+    saveProgress();
+    updatePackMeta();
+    if (shopPage && shopPage.classList.contains('active')) {
+      renderShop();
+    }
+    if (pullPage && pullPage.classList.contains('active')) {
+      backToPacks();
+    }
+    showToast('Bought ' + packDef.label + '.');
+  }
+
+  function renderShop() {
+    if (!shopPanel) return;
+    const tickets = Math.max(0, Number(progress.tickets) || 0);
+    const owned = getOwnedPacks();
+    const cardsMarkup = SHOP_PACKS.map(function (packDef) {
+      const canAfford = tickets >= Number(packDef.price);
+      return '<div class="shop-item">'
+        + '<div class="shop-pack-preview">' + buildPackFaceMarkup(packDef.theme) + '</div>'
+        + '<div class="shop-item-title">' + escapeHtml(packDef.label) + '</div>'
+        + '<div class="shop-item-meta">' + escapeHtml(packDef.blurb || '') + '</div>'
+        + '<button class="shop-buy-btn" type="button" data-buy-pack="' + escapeHtml(packDef.id) + '"' + (canAfford ? '' : ' disabled') + '>Buy · ' + String(packDef.price) + ' Tickets</button>'
+        + '</div>';
+    }).join('');
+    const inventoryPreview = owned.slice(0, 8).map(function (item) {
+      return '<div class="shop-inventory-item">' + escapeHtml(ownedPackLabel(item)) + '</div>';
+    }).join('');
+    shopPanel.innerHTML = '<div class="collection-topbar">'
+      + '<div class="collection-stats">'
+      + '<div class="collection-stat"><div class="collection-stat-label">Tickets</div><div class="collection-stat-value">' + formatTickets(tickets) + '</div></div>'
+      + '<div class="collection-stat"><div class="collection-stat-label">Owned Packs</div><div class="collection-stat-value">' + String(owned.length) + '</div></div>'
+      + '<div class="collection-stat"><div class="collection-stat-label">Tip</div><div class="collection-stat-value">Buy In Shop · Open In Pull</div></div>'
+      + '</div>'
+      + '</div>'
+      + '<div class="shop-grid">' + cardsMarkup + '</div>'
+      + '<div class="collection-topbar"><div class="collection-stats"><div class="collection-stat"><div class="collection-stat-label">Inventory</div><div class="collection-stat-value">' + String(owned.length ? 'Ready' : 'Empty') + '</div></div></div></div>'
+      + '<div class="shop-inventory-list">' + (inventoryPreview || '<div class="shop-inventory-item">No sealed packs yet.</div>') + '</div>';
+
+    shopPanel.querySelectorAll('[data-buy-pack]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        buyShopPack(button.getAttribute('data-buy-pack'));
+      });
+    });
   }
 
   function slugifyLetterboxd(title) {
@@ -4975,7 +5344,12 @@ button, a, select { font: inherit; }
       + '; --pack-b:' + theme.colors[1]
       + '; --pack-c:' + theme.colors[2]
       + '; --pack-ribbon-bg:rgba(255,255,255,.16)'
-      + '; --pack-glow:radial-gradient(circle, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 68%)'
+      + '; --pack-glow:' + (theme.glow || 'radial-gradient(circle, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 68%)')
+      + '; --pack-foil-tint:' + (theme.foilTint || 'rgba(255,255,255,.2)')
+      + '; --pack-glint-tint:' + (theme.glintTint || 'rgba(255,255,255,.28)')
+      + '; --pack-foil-shadow:' + (theme.foilShadow || 'rgba(0,0,0,.18)')
+      + '; --pack-grain-base-opacity:' + (theme.grainBaseOpacity != null ? String(theme.grainBaseOpacity) : '0.22')
+      + '; --pack-grain-featured-opacity:' + (theme.grainFeaturedOpacity != null ? String(theme.grainFeaturedOpacity) : '0.64')
       + '; --pack-title-font:' + (theme.titleFont || 'inherit')
       + '; --pack-title-size:' + (theme.titleSize || '2rem')
       + '; --pack-title-spacing:' + (theme.titleSpacing || '-0.04em')
@@ -5299,6 +5673,7 @@ button, a, select { font: inherit; }
         disabled: isPoolLoading,
         buttonLike: !isPoolLoading
       })
+      + buildOwnedPackQuickMarkup()
       + '<div class="status-line' + (isPoolLoading ? ' is-loading' : '') + '">' + escapeHtml(artworkStatus) + '</div>';
   }
 
@@ -5321,6 +5696,18 @@ button, a, select { font: inherit; }
         openPack();
       }
     });
+    const ownedPackSelect = document.getElementById('ownedPackSelect');
+    if (ownedPackSelect) {
+      ownedPackSelect.addEventListener('change', function (event) {
+        selectedOwnedPackId = String(event.target.value || '');
+      });
+    }
+    const openOwnedPackButton = document.getElementById('openOwnedPackButton');
+    if (openOwnedPackButton) {
+      openOwnedPackButton.addEventListener('click', function () {
+        openOwnedPackFromInventory();
+      });
+    }
   }
 
   async function restorePoolAfterReward() {
@@ -5423,7 +5810,10 @@ button, a, select { font: inherit; }
       }
 
       updatePackMeta();
-      const draftedPack = await buildDraftPack(getPackPool());
+      const draftedPack = await buildDraftPack(getPackPool(currentPackTheme), {
+        themeKey: currentPackTheme,
+        forceRewardBehavior: true
+      });
       if (selectedPackFace) {
         selectedPackFace.classList.remove('is-loading');
         applyPackCueToElement(selectedPackFace, draftedPack);
@@ -5698,16 +6088,19 @@ button, a, select { font: inherit; }
     element.style.setProperty('--pack-tear-glow', palette.glow);
   }
 
-  function buildDraftPack(pool) {
+  function buildDraftPack(pool, options) {
+    const config = options || {};
+    const packThemeKey = String(config.themeKey || currentPackTheme || 'all').toLowerCase();
+    const forceRewardBehavior = Boolean(config.forceRewardBehavior);
     const sourcePool = Array.isArray(pool) ? pool : [];
     if (!sourcePool.length) return Promise.resolve([]);
     const drafted = [];
     const seenTitles = new Set();
     const ownedTitles = buildOwnedFilmTitleSet();
-    const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
+    const isRewardPack = forceRewardBehavior || (Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0);
     const isBoostedRewardPack = isRewardPack;
     const shouldTryPersonInsert = dataSourceLabel.indexOf('TMDB') !== -1;
-    const actorPackPersonSlots = currentPackTheme === 'actors' && shouldTryPersonInsert ? 4 : 0;
+    const actorPackPersonSlots = packThemeKey === 'actors' && shouldTryPersonInsert ? 4 : 0;
     const personSlots = actorPackPersonSlots || (shouldTryPersonInsert ? 1 : 0);
     const filmSlots = Math.max(0, PACK_SIZE - personSlots);
 
@@ -5742,7 +6135,7 @@ button, a, select { font: inherit; }
 
     for (let personIndex = 0; personIndex < personSlots; personIndex += 1) {
       chain = chain.then(function () {
-        return maybeBuildPersonInsert(drafted, currentPackTheme, isBoostedRewardPack, existingPersonKeys, personInserts)
+        return maybeBuildPersonInsert(drafted, packThemeKey, isBoostedRewardPack, existingPersonKeys, personInserts)
           .catch(function () { return null; })
           .then(function (personInsert) {
             if (personInsert) {
@@ -5774,7 +6167,31 @@ button, a, select { font: inherit; }
     return sorted;
   }
 
-  async function openPack() {
+  async function openOwnedPackFromInventory() {
+    if (isOpeningPack || isPoolLoading) return;
+    if (progress.rewardChoicesAvailable > 0) {
+      showToast('Choose your reward pack first.');
+      return;
+    }
+    const ownedPack = selectedOwnedPack();
+    if (!ownedPack) {
+      showToast('No owned packs ready.');
+      return;
+    }
+    await openPack({
+      ownedPack: ownedPack,
+      consumeOwnedPack: true
+    });
+  }
+
+  async function openPack(options) {
+    const openOptions = options || {};
+    const ownedPack = openOptions.ownedPack || null;
+    const hasOwnedPack = Boolean(ownedPack && ownedPack.id);
+    const packThemeForOpen = hasOwnedPack
+      ? normalizeOwnedPackTheme(ownedPack.theme)
+      : currentPackTheme;
+    const ownedGoldBoost = hasOwnedPack && packThemeForOpen === 'gold';
     if (isOpeningPack || isPoolLoading) return;
     isOpeningPack = true;
     const currentPack = document.getElementById('openPackButton');
@@ -5782,15 +6199,21 @@ button, a, select { font: inherit; }
       currentPack.classList.add('is-loading');
       const statusLine = pullArea.querySelector('.status-line');
       if (statusLine) {
-        statusLine.textContent = 'Cracking a fresh pack...';
+        statusLine.textContent = hasOwnedPack
+          ? ('Opening owned ' + ownedPackLabel(ownedPack) + '...')
+          : 'Cracking a fresh pack...';
         statusLine.classList.add('is-live');
       }
     }
 
-    const requestedTheme = selectedPackMode !== 'all-packs' ? currentPackTheme : '';
-    const requestedReelThemeKey = selectedPackMode !== 'all-packs'
-      ? String(currentPackTheme || selectedPackMode || 'theme')
-      : 'all-packs';
+    const requestedTheme = hasOwnedPack
+      ? (packThemeForOpen === 'all' ? '' : packThemeForOpen)
+      : (selectedPackMode !== 'all-packs' ? currentPackTheme : '');
+    const requestedReelThemeKey = hasOwnedPack
+      ? ('owned:' + String(packThemeForOpen || 'all'))
+      : (selectedPackMode !== 'all-packs'
+        ? String(currentPackTheme || selectedPackMode || 'theme')
+        : 'all-packs');
     const isRewardPackOpen = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
     const shouldRefreshReel = dataSourceLabel.indexOf('TMDB') !== -1 && (
       isRewardPackOpen ||
@@ -5802,11 +6225,15 @@ button, a, select { font: inherit; }
     if (currentPack) {
       const statusLine = pullArea.querySelector('.status-line');
       if (statusLine && shouldRefreshReel) {
-        statusLine.textContent = requestedTheme
-          ? 'Pulling a fresh themed pack...'
-          : 'Shuffling a fresh draw...';
+        statusLine.textContent = hasOwnedPack
+          ? ('Preparing owned ' + ownedPackLabel(ownedPack) + '...')
+          : (requestedTheme
+            ? 'Pulling a fresh themed pack...'
+            : 'Shuffling a fresh draw...');
       } else if (statusLine) {
-        statusLine.textContent = 'Cracking a fresh pack...';
+        statusLine.textContent = hasOwnedPack
+          ? ('Opening owned ' + ownedPackLabel(ownedPack) + '...')
+          : 'Cracking a fresh pack...';
       }
     }
 
@@ -5818,15 +6245,30 @@ button, a, select { font: inherit; }
       refreshPromise,
       new Promise(function (resolve) { setTimeout(resolve, 120); })
     ]);
+    const openPool = getPackPool(packThemeForOpen);
     if (dataSourceLabel.indexOf('TMDB') !== -1) {
-      const freshCandidatesAvailable = countFreshFilmCandidates(getPackPool());
-      if (freshCandidatesAvailable < filmSlotsForCurrentTheme()) {
+      const freshCandidatesAvailable = countFreshFilmCandidates(openPool);
+      if (freshCandidatesAvailable < filmSlotsForCurrentTheme(packThemeForOpen)) {
         await refreshPoolForPackOpen(true, requestedTheme).catch(function () { return false; });
       }
     }
-    if (getPackPool().length < PACK_SIZE) resolvePackTheme(false);
+    if (openPool.length < PACK_SIZE && !hasOwnedPack) resolvePackTheme(false);
     updatePackMeta();
-    const draftedPack = await buildDraftPack(getPackPool());
+    const draftedPack = await buildDraftPack(getPackPool(packThemeForOpen), {
+      themeKey: packThemeForOpen,
+      forceRewardBehavior: ownedGoldBoost
+    });
+
+    if (hasOwnedPack && openOptions.consumeOwnedPack && Array.isArray(draftedPack) && draftedPack.length) {
+      const consumed = removeOwnedPackById(ownedPack.id);
+      if (consumed) {
+        saveProgress();
+        updatePackMeta();
+        if (shopPage && shopPage.classList.contains('active')) {
+          renderShop();
+        }
+      }
+    }
 
     if (currentPack) {
       currentPack.classList.remove('is-loading');
@@ -6119,12 +6561,15 @@ button, a, select { font: inherit; }
   function showPage(id) {
     pullPage.classList.toggle('active', id === 'pull');
     dailyPage.classList.toggle('active', id === 'daily');
+    shopPage.classList.toggle('active', id === 'shop');
     collectionPage.classList.toggle('active', id === 'collection');
     pullTab.classList.toggle('active', id === 'pull');
     dailyTab.classList.toggle('active', id === 'daily');
+    shopTab.classList.toggle('active', id === 'shop');
     collectionTab.classList.toggle('active', id === 'collection');
     if (id === 'collection') renderCollection();
     if (id === 'daily') renderDailyHunts();
+    if (id === 'shop') renderShop();
   }
 
   async function init() {
@@ -6166,6 +6611,7 @@ button, a, select { font: inherit; }
 
     ensureDailyHuntsState(false);
     rehydrateCollectionPeopleKnownFor().catch(function () { return false; });
+    renderShop();
 
     isPoolLoading = false;
     resolvePackTheme(false);
@@ -6240,6 +6686,7 @@ button, a, select { font: inherit; }
 
     pullTab.addEventListener('click', function () { showPage('pull'); });
     dailyTab.addEventListener('click', function () { showPage('daily'); });
+    shopTab.addEventListener('click', function () { showPage('shop'); });
     collectionTab.addEventListener('click', function () { showPage('collection'); });
   }
 
