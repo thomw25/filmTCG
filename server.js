@@ -13,8 +13,8 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const LOGIC_VERSION = 'logic-2026-03-31-2';
-const POOL_SNAPSHOT_VERSION = 'server-rotation-20';
+const LOGIC_VERSION = 'logic-2026-03-31-3';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-21';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -135,6 +135,59 @@ const UNDERAPPRECIATED_BLACK_DIRECTOR_NAMES = {
   'shaka king': true
 };
 
+const AUTEUR_DIRECTOR_NAMES = {
+  'agnes varda': true,
+  'akira kurosawa': true,
+  'alfred hitchcock': true,
+  'andrei tarkovsky': true,
+  'barry jenkins': true,
+  'bong joon-ho': true,
+  'brian de palma': true,
+  'celine sciamma': true,
+  'charles burnett': true,
+  'chantal akerman': true,
+  'claire denis': true,
+  'david cronenberg': true,
+  'david fincher': true,
+  'david lynch': true,
+  'dee rees': true,
+  'federico fellini': true,
+  'francis ford coppola': true,
+  'greta gerwig': true,
+  'hayao miyazaki': true,
+  'ida lupino': true,
+  'ingmar bergman': true,
+  'jane campion': true,
+  'john carpenter': true,
+  'joel coen': true,
+  'joel schumacher': true,
+  'joanna hogg': true,
+  'karyn kusama': true,
+  'kelly reichardt': true,
+  'lee chang-dong': true,
+  'lucrecia martel': true,
+  'lynn ramsay': true,
+  'martin scorsese': true,
+  'michael haneke': true,
+  'michael mann': true,
+  'mike leigh': true,
+  'paul thomas anderson': true,
+  'pedro almodovar': true,
+  'quentin tarantino': true,
+  'ridley scott': true,
+  'robert altman': true,
+  'sam raimi': true,
+  'sidney lumet': true,
+  'sofia coppola': true,
+  'spike lee': true,
+  'stanley kubrick': true,
+  'steven spielberg': true,
+  'terrence malick': true,
+  'wes anderson': true,
+  'wim wenders': true,
+  'yasujiro ozu': true
+};
+
 const RARITY_ORDER = {
   Prolific: 1,
   Base: 1,
@@ -173,6 +226,7 @@ const TITLE_RARITY_FLOORS = {
   'citizen kane': 'Legendary',
   'city of god': 'Epic',
   'cleo from 5 to 7': 'Epic',
+  'clockers': 'Select',
   'black panther': 'Epic',
   'candyman': 'Select',
   'close-up': 'Epic',
@@ -1167,6 +1221,10 @@ function isUnderappreciatedBlackDirectorMovie(movie) {
   return Boolean(UNDERAPPRECIATED_BLACK_DIRECTOR_NAMES[normalizePersonName(movie && movie.directorName)]);
 }
 
+function isAuteurDirectorMovie(movie) {
+  return Boolean(AUTEUR_DIRECTOR_NAMES[normalizePersonName(movie && movie.directorName)]);
+}
+
 function derivePacks(movie) {
   const tags = new Set(['all']);
   const lookup = {};
@@ -1244,6 +1302,7 @@ function computeMovieSignals(movie) {
   const isActionCrimeLane = movieHasGenreId(movie, [28, 80, 53]);
   const isHongKongLanguage = ['cn', 'zh'].indexOf(originalLanguage) !== -1;
   const underappreciatedBlackDirectorProxy = isUnderappreciatedBlackDirectorMovie(movie);
+  const auteurDirectorProxy = isAuteurDirectorMovie(movie);
 
   let recognition = 0;
   if (popularity >= 12) recognition += 1;
@@ -1309,6 +1368,8 @@ function computeMovieSignals(movie) {
   const comedyCrowdMemoryProxy = isComedyLane && recognition >= 4 && (respect >= 1 || cult >= 1);
   const iconicFamilyAnimationProxy = isFamilyLane && isIconicAnimation && recognition >= 4 && (respect >= 2 || cult >= 1);
   const modernAuteurLandmarkProxy = year >= 1990 && year <= 2015 && respect >= 3 && (cult >= 2 || (recognition >= 2 && popularity <= 32));
+  const auteurBaselineProxy = auteurDirectorProxy && (recognition >= 1 || respect >= 1 || cult >= 1 || voteCount >= 45);
+  const auteurPromotionProxy = auteurDirectorProxy && (respect >= 2 || cult >= 2 || recognition >= 3 || voteCount >= 260);
   const mainstreamRecognitionProxy = voteCount >= 220 && popularity >= 7 && year >= 1970 && year <= 2022;
   const recognizableCatalogProxy = year >= 1960 && year <= 2022 && voteCount >= 400 && popularity >= 8;
   const acclaimedModernGenreProxy = year >= 1990 && isGenreLandmarkLane && recognition >= 3 && respect >= 3;
@@ -1347,6 +1408,7 @@ function computeMovieSignals(movie) {
     || recognizableMidCatalogProxy
     || crowdMemoryComedyRomanceProxy
     || horrorFranchiseStapleProxy
+    || auteurPromotionProxy
     || underappreciatedBlackDirectorProxy
   );
   const titlePromotion = EPIC_PROMOTION_TITLES.has(titleKey(movie && movie.title));
@@ -1378,6 +1440,9 @@ function computeMovieSignals(movie) {
     comedyCrowdMemoryProxy: comedyCrowdMemoryProxy,
     iconicFamilyAnimationProxy: iconicFamilyAnimationProxy,
     modernAuteurLandmarkProxy: modernAuteurLandmarkProxy,
+    auteurDirectorProxy: auteurDirectorProxy,
+    auteurBaselineProxy: auteurBaselineProxy,
+    auteurPromotionProxy: auteurPromotionProxy,
     mainstreamRecognitionProxy: mainstreamRecognitionProxy,
     recognizableCatalogProxy: recognizableCatalogProxy,
     acclaimedModernGenreProxy: acclaimedModernGenreProxy,
@@ -1436,6 +1501,8 @@ function computePoolSelectionScore(movie) {
   if (signals.mainstreamRecognitionProxy || signals.belovedStudioClassicProxy) score += 4;
   if (signals.recognizableMidCatalogProxy) score += 3;
   if (signals.acclaimedModernGenreProxy || signals.modernAuteurLandmarkProxy) score += 3;
+  if (signals.auteurBaselineProxy) score += 2;
+  if (signals.auteurPromotionProxy) score += 2;
   if (signals.underappreciatedBlackDirectorProxy) score += 2;
   if (signals.year >= 1980 && signals.year <= 2012 && signals.recognition >= 2) score += 1;
   if (signals.year >= 2018) score -= 2;
@@ -1480,6 +1547,8 @@ function computeRarityScore(movie) {
   if (signals.comedyCrowdMemoryProxy) bonus += 3;
   if (signals.iconicFamilyAnimationProxy) bonus += 5;
   if (signals.modernAuteurLandmarkProxy) bonus += 4;
+  if (signals.auteurBaselineProxy) bonus += 2;
+  if (signals.auteurPromotionProxy) bonus += 3;
   if (signals.mainstreamRecognitionProxy) bonus += 3;
   if (signals.recognizableCatalogProxy) bonus += 3;
   if (signals.recognizableMidCatalogProxy) bonus += 2;
@@ -1752,6 +1821,10 @@ function rarityFloorForMovie(movie) {
     floor = maxRarity(floor, 'Select');
   }
 
+  if (signals.auteurBaselineProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
   if (signals.modernPrestigeLandmarkProxy) {
     floor = maxRarity(floor, 'Epic');
   }
@@ -1780,6 +1853,10 @@ function rarityFloorForMovie(movie) {
     floor = maxRarity(floor, 'Epic');
   }
 
+  if (signals.auteurPromotionProxy && (signals.respect >= 2 || signals.cult >= 2 || signals.recognition >= 3)) {
+    floor = maxRarity(floor, 'Epic');
+  }
+
   if (
     signals.prestigeProxy ||
     signals.iconicAnimationProxy ||
@@ -1797,6 +1874,7 @@ function rarityFloorForMovie(movie) {
     signals.hongKongActionProxy ||
     signals.cultThrillerMysteryProxy ||
     signals.modernAuteurLandmarkProxy ||
+    signals.auteurPromotionProxy ||
     signals.acclaimedModernGenreProxy ||
     signals.titlePromotion
   ) {

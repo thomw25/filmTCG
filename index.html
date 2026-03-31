@@ -150,7 +150,6 @@ button, a, select { font: inherit; }
 
 .nav button:hover:not(:disabled),
 .back-btn:hover:not(:disabled),
-.arrow:hover:not(:disabled),
 .modal-close:hover:not(:disabled),
 .collection-controls button:hover:not(:disabled),
 .filter-select:hover:not(:disabled) {
@@ -174,6 +173,11 @@ button, a, select { font: inherit; }
   place-items: center;
   font-size: 1.35rem;
   box-shadow: 0 8px 20px rgba(0,0,0,.25);
+}
+
+.arrow:hover:not(:disabled) {
+  background: var(--btn-neutral-bg-hover);
+  border-color: rgba(202,218,252,.36);
 }
 
 .page {
@@ -1303,6 +1307,14 @@ button, a, select { font: inherit; }
 .stack-arrow.is-right {
   right: var(--stack-arrow-offset);
   transform: translateY(-50%);
+}
+
+.overlap-stack .stack-arrow:hover:not(:disabled) {
+  transform: translateY(-50%) scale(1.015);
+}
+
+.overlap-stack .stack-arrow:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.99);
 }
 
 .card {
@@ -3090,7 +3102,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-7</div>
+  <div class="sub">Build: packs-people-tier-9</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3236,7 +3248,14 @@ button, a, select { font: inherit; }
   const PACK_REFRESH_SAMPLE = 960;
   const REEL_REFRESH_INTERVAL = 10;
   const ALL_PACKS_ROLL = {
-    all: 100
+    all: 34,
+    horror: 10,
+    animation: 9,
+    eighties: 11,
+    noir: 11,
+    romcom: 10,
+    docs: 8,
+    actors: 7
   };
   const FEATURED_REWARD_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
   const FEATURED_REWARD_THEME_WEIGHTS = {
@@ -3434,7 +3453,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-29';
+  const BUILD_ID = 'logic-sync-31';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -5195,6 +5214,7 @@ button, a, select { font: inherit; }
       const openedPack = await openPack({
         themeKey: normalizeOwnedPackTheme(themeKey || 'all'),
         forceRewardOpen: Boolean(config.forceRewardOpen),
+        ignoreRewardChoiceGate: true,
         revealCarousel: false,
         openingElement: overlayUi && overlayUi.packElement ? overlayUi.packElement : null,
         statusElement: overlayUi && overlayUi.statusElement ? overlayUi.statusElement : null
@@ -5240,29 +5260,9 @@ button, a, select { font: inherit; }
     }
   }
 
-  async function openRewardPackFromShop(themeKey) {
-    if (isOpeningPack || isPoolLoading) return;
-    if (Math.max(0, Number(progress.rewardChoicesAvailable) || 0) <= 0) {
-      showToast('No reward packs ready yet.');
-      return;
-    }
-    const rewardThemes = ensureFeaturedRewardThemes(false);
-    const resolvedTheme = normalizeOwnedPackTheme(themeKey || rewardThemes[0] || 'horror');
-    activeRewardSelection = 'featured';
-    progress.featuredRewardTheme = resolvedTheme;
-    const opened = await openThemedPackInShop(resolvedTheme, 'Reward ' + ((PACK_THEMES[resolvedTheme] && PACK_THEMES[resolvedTheme].label) || 'Pack'), {
-      forceRewardOpen: true
-    });
-    if (!opened) {
-      activeRewardSelection = null;
-      showToast('Reward pack failed to open. Try again.');
-    }
-  }
-
   function renderShop() {
     if (!shopPanel) return;
     const tickets = Math.max(0, Number(progress.tickets) || 0);
-    const rewardsReady = Math.max(0, Number(progress.rewardChoicesAvailable) || 0);
     const tradeSummary = duplicateTradeSummary();
     const cardsMarkup = SHOP_PACKS.map(function (packDef) {
       const canAfford = tickets >= Number(packDef.price);
@@ -5275,23 +5275,6 @@ button, a, select { font: inherit; }
         + '</div>'
         + '</div>';
     }).join('');
-    const rewardThemes = rewardsReady > 0 ? ensureFeaturedRewardThemes(false) : [];
-    const rewardLeftKey = rewardThemes[0] || 'horror';
-    const rewardRightKey = rewardThemes[1] || chooseFeaturedRewardTheme(rewardLeftKey) || 'animation';
-    const rewardLeftTheme = PACK_THEMES[rewardLeftKey] || PACK_THEMES.horror;
-    const rewardRightTheme = PACK_THEMES[rewardRightKey] || PACK_THEMES.animation;
-    const rewardMarkup = rewardsReady > 0
-      ? ('<div class="collection-topbar">'
-        + '<div class="collection-stats">'
-        + '<div class="collection-stat"><div class="collection-stat-label">Rewards Ready</div><div class="collection-stat-value">' + String(rewardsReady) + '</div></div>'
-        + '<div class="collection-stat"><div class="collection-stat-label">Action</div><div class="collection-stat-value">Open Here</div></div>'
-        + '</div>'
-        + '</div>'
-        + '<div class="shop-reward-grid">'
-        + '<button class="shop-reward-option" type="button" data-open-reward="' + escapeHtml(rewardLeftKey) + '">' + buildPackFaceMarkup(rewardLeftKey) + '<div class="reward-pack-caption">Reward: ' + escapeHtml(rewardLeftTheme.label) + '</div></button>'
-        + '<button class="shop-reward-option" type="button" data-open-reward="' + escapeHtml(rewardRightKey) + '">' + buildPackFaceMarkup(rewardRightKey) + '<div class="reward-pack-caption">Reward: ' + escapeHtml(rewardRightTheme.label) + '</div></button>'
-        + '</div>')
-      : '';
     const tradeBreakdown = 'B:' + String(tradeSummary.byRarity.Base || 0)
       + ' · S:' + String(tradeSummary.byRarity.Select || 0)
       + ' · E:' + String(tradeSummary.byRarity.Epic || 0)
@@ -5302,7 +5285,6 @@ button, a, select { font: inherit; }
       + '<div class="collection-stat"><div class="collection-stat-label">Tip</div><div class="collection-stat-value">Every purchase opens instantly</div></div>'
       + '</div>'
       + '</div>'
-      + rewardMarkup
       + '<div class="shop-trade-row">'
       + '<div class="shop-trade-copy">Trade in duplicates for Tickets. Keeps one copy of each card. ' + escapeHtml(tradeBreakdown) + '</div>'
       + '<button id="tradeDuplicatesButton" class="shop-trade-btn" type="button"' + (tradeSummary.ticketValue > 0 ? '' : ' disabled') + '>Trade Duplicates · +' + String(tradeSummary.ticketValue) + ' Tickets</button>'
@@ -5312,11 +5294,6 @@ button, a, select { font: inherit; }
     shopPanel.querySelectorAll('[data-buy-open-pack]').forEach(function (button) {
       button.addEventListener('click', function () {
         buyShopPack(button.getAttribute('data-buy-open-pack'));
-      });
-    });
-    shopPanel.querySelectorAll('[data-open-reward]').forEach(function (button) {
-      button.addEventListener('click', function () {
-        openRewardPackFromShop(button.getAttribute('data-open-reward'));
       });
     });
     const tradeButton = document.getElementById('tradeDuplicatesButton');
@@ -6255,7 +6232,49 @@ button, a, select { font: inherit; }
       + '<div class="status-line' + (isPoolLoading ? ' is-loading' : '') + '">' + escapeHtml(artworkStatus) + '</div>';
   }
 
+  function buildRewardChoiceMarkup() {
+    const rewardThemes = ensureFeaturedRewardThemes(false);
+    const leftThemeKey = rewardThemes[0] || 'horror';
+    const rightThemeKey = rewardThemes[1] || chooseFeaturedRewardTheme(leftThemeKey) || 'animation';
+    const leftTheme = PACK_THEMES[leftThemeKey] || PACK_THEMES.horror;
+    const rightTheme = PACK_THEMES[rightThemeKey] || PACK_THEMES.animation;
+
+    return buildPackHookMarkup()
+      + '<div class="reward-choice-wrap">'
+      + '<div class="reward-choice-copy">Choose your reward genre pack.</div>'
+      + '<div class="reward-choice-grid">'
+      + '<button class="reward-pack-option is-left" type="button" data-reward-theme="' + escapeHtml(leftThemeKey) + '">'
+      + buildPackFaceMarkup(leftThemeKey)
+      + '<div class="reward-pack-caption">' + escapeHtml(leftTheme.label) + '</div>'
+      + '</button>'
+      + '<button class="reward-pack-option is-right" type="button" data-reward-theme="' + escapeHtml(rightThemeKey) + '">'
+      + buildPackFaceMarkup(rightThemeKey)
+      + '<div class="reward-pack-caption">' + escapeHtml(rightTheme.label) + '</div>'
+      + '</button>'
+      + '</div>'
+      + '</div>'
+      + '<div class="status-line is-live">Pick one to open your reward pack.</div>';
+  }
+
+  function renderRewardChoicePrompt() {
+    pullArea.innerHTML = buildRewardChoiceMarkup();
+    pullArea.querySelectorAll('.reward-pack-option').forEach(function (button) {
+      button.addEventListener('click', function () {
+        chooseRewardPack('featured', button.getAttribute('data-reward-theme'), button);
+      });
+    });
+  }
+
   function backToPacks() {
+    if (!isPoolLoading && Math.max(0, Number(progress.rewardChoicesAvailable) || 0) > 0 && !activeRewardSelection) {
+      renderRewardChoicePrompt();
+      return;
+    }
+
+    if (!isPoolLoading && selectedPackMode === 'all-packs' && !activeRewardSelection) {
+      resolvePackTheme(false);
+    }
+
     pullArea.innerHTML = buildPackMarkup();
     const button = document.getElementById('openPackButton');
     if (isPoolLoading) return;
@@ -6754,6 +6773,12 @@ button, a, select { font: inherit; }
     const hasOwnedPack = Boolean(ownedPack && ownedPack.id);
     const forcedThemeKey = openOptions.themeKey ? normalizeOwnedPackTheme(openOptions.themeKey) : '';
     const forceRewardOpen = Boolean(openOptions.forceRewardOpen);
+    const ignoreRewardChoiceGate = Boolean(openOptions.ignoreRewardChoiceGate);
+    const hasRewardChoiceReady = Math.max(0, Number(progress.rewardChoicesAvailable) || 0) > 0;
+    if (!ignoreRewardChoiceGate && !hasOwnedPack && !forceRewardOpen && hasRewardChoiceReady && !activeRewardSelection) {
+      renderRewardChoicePrompt();
+      return;
+    }
     const revealCarousel = openOptions.revealCarousel !== false;
     const packThemeForOpen = forcedThemeKey || (hasOwnedPack
       ? normalizeOwnedPackTheme(ownedPack.theme)
