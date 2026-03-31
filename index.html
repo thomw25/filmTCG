@@ -2790,7 +2790,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-14';
+  const BUILD_ID = 'logic-sync-15';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -2865,7 +2865,10 @@ button, a, select { font: inherit; }
     'kurt russell': 'Epic',
     'robert downey jr.': 'Epic',
     'robert downey jr': 'Epic',
+    'robert duvall': 'Select',
     'sean penn': 'Epic',
+    'timothee chalamet': 'Epic',
+    'timothée chalamet': 'Epic',
     'tom hardy': 'Select',
     'terrence malick': 'Epic',
     'toni scott': 'Select',
@@ -4134,6 +4137,10 @@ button, a, select { font: inherit; }
     const signals = computePersonSignals(candidate, sourceMovie, explicitFloor);
     let rank = 1;
 
+    if (signals.popularity >= 8 || signals.knownForPeakRank >= 2 || signals.knownForDepth >= 1) {
+      rank = Math.max(rank, 2);
+    }
+
     if (signals.recognition >= 2 || signals.respect >= 2 || signals.cult >= 2 || signals.referenceRank >= 2) {
       rank = Math.max(rank, 2);
     }
@@ -4388,9 +4395,36 @@ button, a, select { font: inherit; }
       return null;
     }
 
+    let resolvedKnownFor = {
+      knownForTitles: Array.isArray(bestKnownFor && bestKnownFor.knownForTitles) ? bestKnownFor.knownForTitles.slice(0, 3) : [],
+      knownForPeakRank: Number(bestKnownFor && bestKnownFor.knownForPeakRank) || 0,
+      knownForDepth: Number(bestKnownFor && bestKnownFor.knownForDepth) || 0
+    };
+    if (bestCandidate.personId && resolvedKnownFor.knownForTitles.length < 3) {
+      const liveKnownFor = await fetchPersonKnownFor(bestCandidate.personId, bestCandidate.roleKey, bestCandidate.name, false).catch(function () {
+        return {
+          knownForTitles: [],
+          knownForPeakRank: 0,
+          knownForDepth: 0
+        };
+      });
+      const mergedKnownForTitles = []
+        .concat(Array.isArray(liveKnownFor.knownForTitles) ? liveKnownFor.knownForTitles : [])
+        .concat(Array.isArray(resolvedKnownFor.knownForTitles) ? resolvedKnownFor.knownForTitles : [])
+        .filter(function (title, index, items) {
+          return title && items.indexOf(title) === index;
+        })
+        .slice(0, 3);
+      resolvedKnownFor = {
+        knownForTitles: mergedKnownForTitles,
+        knownForPeakRank: Math.max(Number(resolvedKnownFor.knownForPeakRank) || 0, Number(liveKnownFor.knownForPeakRank) || 0),
+        knownForDepth: Math.max(Number(resolvedKnownFor.knownForDepth) || 0, Number(liveKnownFor.knownForDepth) || 0)
+      };
+    }
+
     const biography = await fetchPersonBio(bestCandidate.personId, false).catch(function () { return ''; });
 
-    return buildPersonCard(Object.assign({}, bestCandidate, bestKnownFor, {
+    return buildPersonCard(Object.assign({}, bestCandidate, resolvedKnownFor, {
       biography: biography,
       fallbackKnownForTitles: []
     }), sourceById[String(bestCandidate.sourceMovieId)] || validMovies[0]);
@@ -4572,12 +4606,18 @@ button, a, select { font: inherit; }
 
     if (movie.cardType === 'person') {
       const personClass = movie.personType === 'actor' ? 'person-actor' : (movie.personType === 'director' ? 'person-director' : 'person-crew');
-      const chips = ['<div class="chip">' + escapeHtml(roleLabelForDisplay(movie)) + '</div>'];
+      const knownForTitles = getMergedKnownForTitles(movie).slice(0, 3);
+      if (!knownForTitles.length && movie.sourceTitle) knownForTitles.push(String(movie.sourceTitle));
+      while (knownForTitles.length < 3) knownForTitles.push('—');
       return '<div class="card person-card ' + personClass + ' ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
         + '<div class="card-frame"></div>'
-        + '<div class="card-header"><div class="card-title-meta"><div class="card-title">' + escapeHtml(movie.title) + '</div></div><div class="card-side-meta"><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div></div></div>'
+        + '<div class="card-header"><div class="card-title-meta"><div class="person-role-badge">' + escapeHtml(roleLabelForDisplay(movie)) + '</div></div><div class="card-side-meta"><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div></div></div>'
         + '<div class="card-img-wrap person-portrait-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait"' + cardImageAttrs('low') + ' data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
-        + '<div class="card-body"><div class="chips">' + chips.join('') + '</div><div class="desc">' + escapeHtml(movie.desc) + '</div></div>'
+        + '<div class="person-bottom"><div class="person-name">' + escapeHtml(movie.title) + '</div><div class="person-known-for-label">KNOWN FOR:</div><div class="person-source-line">'
+        + knownForTitles.map(function (title) {
+          return '<span>' + escapeHtml(title) + '</span>';
+        }).join('')
+        + '</div></div>'
         + '</div>';
     }
 
