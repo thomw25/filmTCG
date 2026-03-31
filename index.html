@@ -3141,7 +3141,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-13</div>
+  <div class="sub">Build: packs-people-tier-14</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3492,7 +3492,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-35';
+  const BUILD_ID = 'logic-sync-36';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -4433,7 +4433,7 @@ button, a, select { font: inherit; }
       return '<div class="pack-hook"><strong>' + String(count) + '</strong> reward genre ' + choiceLabel + ' ready</div>';
     }
 
-    return '<div class="pack-hook">' + escapeHtml(String(packsUntilReward())) + ' packs until <strong>reward genre choice</strong></div>';
+    return '<div class="pack-hook">' + escapeHtml(String(packsUntilReward())) + ' packs until <strong>reward choice</strong></div>';
   }
 
   function escapeHtml(value) {
@@ -4907,15 +4907,20 @@ button, a, select { font: inherit; }
   }
 
   function preloadArtUrl(url) {
-    const normalizedUrl = String(url || '').trim();
-    if (!normalizedUrl) return;
-    if (normalizedUrl.indexOf('data:image/svg+xml') === 0) return;
-    if (preloadedCardArtUrls.has(normalizedUrl)) return;
-    if (preloadedCardArtUrls.size > 1500) preloadedCardArtUrls.clear();
-    preloadedCardArtUrls.add(normalizedUrl);
-    const image = new Image();
-    image.decoding = 'async';
-    image.src = normalizedUrl;
+    try {
+      const normalizedUrl = String(url || '').trim();
+      if (!normalizedUrl) return;
+      if (normalizedUrl.indexOf('data:image/svg+xml') === 0) return;
+      if (preloadedCardArtUrls.has(normalizedUrl)) return;
+      if (preloadedCardArtUrls.size > 1500) preloadedCardArtUrls.clear();
+      preloadedCardArtUrls.add(normalizedUrl);
+      if (typeof Image !== 'function') return;
+      const image = new Image();
+      image.decoding = 'async';
+      image.src = normalizedUrl;
+    } catch (error) {
+      console.warn('[filmTCG] preloadArtUrl skipped', error);
+    }
   }
 
   function preloadCardArt(card) {
@@ -4924,21 +4929,25 @@ button, a, select { font: inherit; }
   }
 
   function preloadPackCards(cards, activeIndex) {
-    const source = Array.isArray(cards) ? cards : [];
-    if (!source.length) return;
-    const current = Math.max(0, Math.min(source.length - 1, Number(activeIndex) || 0));
-    preloadCardArt(source[current]);
-    const order = [];
-    for (let offset = 1; offset < source.length; offset += 1) {
-      order.push((current + offset) % source.length);
-      order.push((current - offset + source.length) % source.length);
+    try {
+      const source = Array.isArray(cards) ? cards : [];
+      if (!source.length) return;
+      const current = Math.max(0, Math.min(source.length - 1, Number(activeIndex) || 0));
+      preloadCardArt(source[current]);
+      const order = [];
+      for (let offset = 1; offset < source.length; offset += 1) {
+        order.push((current + offset) % source.length);
+        order.push((current - offset + source.length) % source.length);
+      }
+      const seen = new Set();
+      order.forEach(function (cardIndex) {
+        if (seen.has(cardIndex)) return;
+        seen.add(cardIndex);
+        preloadCardArt(source[cardIndex]);
+      });
+    } catch (error) {
+      console.warn('[filmTCG] preloadPackCards skipped', error);
     }
-    const seen = new Set();
-    order.forEach(function (cardIndex) {
-      if (seen.has(cardIndex)) return;
-      seen.add(cardIndex);
-      preloadCardArt(source[cardIndex]);
-    });
   }
 
   function resolveCardLink(card) {
@@ -5143,7 +5152,11 @@ button, a, select { font: inherit; }
       return;
     }
     const current = shopOverlayPack[shopOverlayIndex];
-    preloadPackCards(shopOverlayPack, shopOverlayIndex);
+    try {
+      preloadPackCards(shopOverlayPack, shopOverlayIndex);
+    } catch (error) {
+      console.warn('[filmTCG] shop preload skipped', error);
+    }
     shopOpenReveal.innerHTML = '<div class="shop-open-progress">Card '
       + String(shopOverlayIndex + 1)
       + ' of '
@@ -7096,7 +7109,13 @@ button, a, select { font: inherit; }
     if (!revealCarousel) return resolvedPack;
     pack = sortPackForReveal(resolvedPack);
     index = 0;
-    renderCarousel();
+    try {
+      renderCarousel();
+    } catch (error) {
+      console.error('[filmTCG] renderCarousel failed after pack open', error);
+      artworkStatus = 'Pack opened, but the viewer glitched. Tap Open More Packs and retry.';
+      backToPacks();
+    }
     return resolvedPack;
   }
 
@@ -7107,7 +7126,11 @@ button, a, select { font: inherit; }
     }
 
     const current = pack[index];
-    preloadPackCards(pack, index);
+    try {
+      preloadPackCards(pack, index);
+    } catch (error) {
+      console.warn('[filmTCG] carousel preload skipped', error);
+    }
     const prevOne = index > 0 ? pack[index - 1] : null;
     const prevTwo = index > 1 ? pack[index - 2] : null;
     const nextOne = index < pack.length - 1 ? pack[index + 1] : null;
