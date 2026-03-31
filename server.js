@@ -48,6 +48,47 @@ const GENRE_NAME_BY_ID = {
   10752: ['war']
 };
 
+const PACK_ART_FILES = {
+  all: {
+    shape: path.join(STATIC_ROOT, 'design', 'pack-v2', 'shape', 'pack_All-cinema_shape.svg.svg'),
+    title: path.join(STATIC_ROOT, 'design', 'pack-v2', 'title', 'pack_All-Cinema_title.svg.svg')
+  },
+  horror: {
+    shape: path.join(STATIC_ROOT, 'design', 'pack-v2', 'shape', 'pack_horror_shape.svg.svg'),
+    title: path.join(STATIC_ROOT, 'design', 'pack-v2', 'title', 'pack_horror_title.svg.svg')
+  },
+  animation: {
+    shape: path.join(STATIC_ROOT, 'design', 'pack-v2', 'shape', 'pack_animation_shape.svg.svg'),
+    title: path.join(STATIC_ROOT, 'design', 'pack-v2', 'title', 'pack_animation_title.svg.svg')
+  },
+  eighties: {
+    shape: path.join(STATIC_ROOT, 'design', 'pack-v2', 'shape', 'pack_80s_shape.svg.svg'),
+    title: path.join(STATIC_ROOT, 'design', 'pack-v2', 'title', 'pack_80s_title.svg.svg')
+  },
+  noir: {
+    shape: path.join(STATIC_ROOT, 'design', 'pack-v2', 'shape', 'pack_noir_shape.svg.svg'),
+    title: path.join(STATIC_ROOT, 'design', 'pack-v2', 'title', 'pack_noir_title.svg.svg')
+  },
+  romcom: {
+    shape: path.join(STATIC_ROOT, 'design', 'pack-v2', 'shape', 'pack_romcom_shape.svg.svg'),
+    title: path.join(STATIC_ROOT, 'design', 'pack-v2', 'title', 'pack_romcom_title.svg.svg')
+  },
+  docs: {
+    shape: path.join(STATIC_ROOT, 'design', 'pack-v2', 'shape', 'pack_doc_shape.svg.svg'),
+    title: path.join(STATIC_ROOT, 'design', 'pack-v2', 'title', 'pack_doc_title.svg.svg')
+  },
+  actors: {
+    shape: path.join(STATIC_ROOT, 'design', 'pack-v2', 'shape', 'pack_actors_shape.svg.svg'),
+    title: path.join(STATIC_ROOT, 'design', 'pack-v2', 'title', 'pack_actors_title.svg.svg')
+  },
+  gold: {
+    shape: path.join(STATIC_ROOT, 'design', 'pack-v2', 'shape', 'pack_gold_shape.svg.svg'),
+    title: path.join(STATIC_ROOT, 'design', 'pack-v2', 'title', 'pack_gold_title.svg.svg')
+  }
+};
+
+let packArtManifestCache = null;
+
 if (typeof fetch !== 'function') {
   throw new Error('This server requires Node 18+ because it uses the built-in fetch API.');
 }
@@ -294,6 +335,7 @@ const TITLE_RARITY_FLOORS = {
   'the birds': 'Epic',
   'the color of pomegranates': 'Epic',
   'the french connection': 'Select',
+  'the graduate': 'Legendary',
   'the godfather': 'Legendary',
   'the godfather part ii': 'Legendary',
   'the long goodbye': 'Epic',
@@ -301,6 +343,7 @@ const TITLE_RARITY_FLOORS = {
   'the passion of joan of arc': 'Legendary',
   'the red shoes': 'Epic',
   'the rules of the game': 'Legendary',
+  'risky business': 'Select',
   'the sandlot': 'Epic',
   'some like it hot': 'Epic',
   'sunset boulevard': 'Epic',
@@ -708,6 +751,61 @@ function writeText(res, statusCode, body, headers) {
   res.end(body);
 }
 
+function cropPackSvg(svgSource) {
+  const svg = String(svgSource || '').trim();
+  if (!svg) return '';
+  return svg.replace(/<svg\b[^>]*>/i, '<svg width="245" height="382" viewBox="56 68 245 382" fill="none" xmlns="http://www.w3.org/2000/svg">');
+}
+
+function getSvgInnerContent(svgSource) {
+  return String(svgSource || '')
+    .replace(/^\s*<svg\b[^>]*>/i, '')
+    .replace(/<\/svg>\s*$/i, '')
+    .trim();
+}
+
+function svgToDataUri(svgSource) {
+  const cropped = cropPackSvg(svgSource);
+  if (!cropped) return '';
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(cropped);
+}
+
+function buildPackCompositeDataUri(shapeSvg, titleSvg) {
+  const shapeInner = getSvgInnerContent(shapeSvg);
+  const titleInner = getSvgInnerContent(titleSvg);
+  if (!shapeInner) return '';
+  const composite = '<svg width="245" height="382" viewBox="56 68 245 382" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    + shapeInner
+    + titleInner
+    + '</svg>';
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(composite);
+}
+
+function getPackArtManifest() {
+  if (packArtManifestCache) return packArtManifestCache;
+
+  packArtManifestCache = Object.keys(PACK_ART_FILES).reduce(function (manifest, themeKey) {
+    const files = PACK_ART_FILES[themeKey];
+    const shapeSvg = fs.readFileSync(files.shape, 'utf8');
+    const titleSvg = fs.readFileSync(files.title, 'utf8');
+    manifest[themeKey] = {
+      art: buildPackCompositeDataUri(shapeSvg, titleSvg),
+      shape: svgToDataUri(shapeSvg),
+      title: svgToDataUri(titleSvg)
+    };
+    return manifest;
+  }, {});
+
+  return packArtManifestCache;
+}
+
+function injectIndexPayload(htmlSource) {
+  const manifest = JSON.stringify(getPackArtManifest());
+  const marker = '<script src="./config.js"></script>';
+  const injection = marker + '\n<script>window.FILMTCG_PACK_ART_DATA = ' + manifest + ';</script>';
+  return String(htmlSource || '').replace(marker, injection);
+}
+
 function sendStatic(req, res, pathname) {
   const targetPath = pathname === '/' ? path.join(STATIC_ROOT, 'index.html') : path.join(STATIC_ROOT, pathname.replace(/^\/+/, ''));
   if (!targetPath.startsWith(STATIC_ROOT)) {
@@ -730,10 +828,13 @@ function sendStatic(req, res, pathname) {
       '.svg': 'image/svg+xml'
     };
 
+    const isIndex = path.basename(targetPath) === 'index.html';
+    const body = isIndex ? injectIndexPayload(content.toString('utf8')) : content;
     res.writeHead(200, {
-      'Content-Type': typeByExt[ext] || 'application/octet-stream'
+      'Content-Type': typeByExt[ext] || 'application/octet-stream',
+      'Cache-Control': isIndex ? 'no-store' : 'public, max-age=3600'
     });
-    res.end(content);
+    res.end(body);
   });
 }
 

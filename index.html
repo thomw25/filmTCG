@@ -742,41 +742,53 @@ button, a, select { font: inherit; }
   filter: saturate(1.02) contrast(1.03);
 }
 
+.pack-skin-art,
 .pack-title-art {
   position: absolute;
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.pack-skin-art {
+  inset: 0;
+  transform: scale(var(--pack-art-scale, 1.04));
+  transform-origin: center center;
+  z-index: 0;
+  filter: saturate(1.01) contrast(1.02);
+}
+
+.pack-title-art {
   transform: scale(var(--pack-title-art-scale, var(--pack-art-scale, 1.44)));
   transform-origin: center center;
   z-index: 1;
 }
 
-.pack.has-custom-art.has-title-art .pack-title {
+.pack.has-custom-art.has-loaded-art .pack-title {
   visibility: hidden;
 }
 
 .pack.has-custom-art .pack-foil {
   inset: 0;
-  opacity: 0.42;
+  opacity: 0.2;
 }
 
 .pack.has-custom-art .pack-glint {
-  top: -26px;
-  right: -24px;
-  width: 120px;
-  height: 290px;
-  opacity: 0.16;
-  filter: blur(1.2px);
+  top: -18px;
+  right: -10px;
+  width: 96px;
+  height: 240px;
+  opacity: 0.1;
+  filter: blur(1px);
 }
 
 .pack.has-custom-art .pack-glow {
-  opacity: 0.48;
-  filter: blur(12px);
+  opacity: 0.2;
+  filter: blur(10px);
 }
 
 .pack.has-custom-art .pack-grain {
-  opacity: 0.2;
+  opacity: 0.1;
 }
 
 .shop-pack-preview .pack .pack-glow,
@@ -3663,16 +3675,19 @@ button, a, select { font: inherit; }
     }
   };
   const PACK_ART_ASSETS = {
-    all: { scale: 1.44 },
-    horror: { scale: 1.44 },
-    animation: { scale: 1.44 },
-    eighties: { scale: 1.44 },
-    noir: { scale: 1.44 },
-    romcom: { scale: 1.44 },
-    docs: { scale: 1.44 },
-    actors: { scale: 1.44 },
-    gold: { scale: 1.44 }
+    all: { scale: 1.04 },
+    horror: { scale: 1.04 },
+    animation: { scale: 1.04 },
+    eighties: { scale: 1.04 },
+    noir: { scale: 1.04 },
+    romcom: { scale: 1.04 },
+    docs: { scale: 1.04 },
+    actors: { scale: 1.04 },
+    gold: { scale: 1.04 }
   };
+  const PACK_ART_DATA = window.FILMTCG_PACK_ART_DATA && typeof window.FILMTCG_PACK_ART_DATA === 'object'
+    ? window.FILMTCG_PACK_ART_DATA
+    : {};
   const PACK_SHAPE_TONES = {
     all: { top: '#BBD0FF', bottom: '#8F86E9', lineTop: '#605ABF', lineBottom: '#605ABF' },
     horror: { top: '#F33951', bottom: '#884044', lineTop: '#A13846', lineBottom: '#DA2248' },
@@ -3700,7 +3715,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-45';
+  const BUILD_ID = 'logic-sync-47';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6425,20 +6440,28 @@ button, a, select { font: inherit; }
   }
 
   function resolvePackShapeAsset(themeKey) {
+    const art = PACK_ART_DATA[themeKey] || PACK_ART_DATA.all || null;
+    if (art && art.shape) return art.shape;
     return buildPackShapeData(themeKey);
   }
 
+  function resolvePackCompositeAsset(themeKey) {
+    const art = PACK_ART_DATA[themeKey] || PACK_ART_DATA.all || null;
+    return art && art.art ? art.art : '';
+  }
+
   function resolvePackTitleAsset(themeKey) {
-    return '';
+    const art = PACK_ART_DATA[themeKey] || PACK_ART_DATA.all || null;
+    return art && art.title ? art.title : '';
   }
 
   function buildPackFaceMarkup(themeKey, options) {
     const theme = PACK_THEMES[themeKey] || PACK_THEMES.all;
     const artConfig = PACK_ART_ASSETS[themeKey] || null;
+    const compositeAsset = normalizeAssetSrc(resolvePackCompositeAsset(themeKey));
     const shapeAsset = normalizeAssetSrc(resolvePackShapeAsset(themeKey));
-    const titleAsset = normalizeAssetSrc(resolvePackTitleAsset(themeKey));
-    const hasCustomArt = Boolean(shapeAsset);
-    const hasTitleArt = Boolean(titleAsset);
+    const hasCustomArt = Boolean(compositeAsset);
+    const renderedArtAsset = compositeAsset || shapeAsset;
     const style = '--pack-a:' + theme.colors[0]
       + '; --pack-b:' + theme.colors[1]
       + '; --pack-c:' + theme.colors[2]
@@ -6458,8 +6481,7 @@ button, a, select { font: inherit; }
       + '; --pack-tier-bg:' + (theme.tierBg || 'rgba(8,10,15,.32)')
       + '; --pack-tier-border:' + (theme.tierBorder || 'rgba(255,255,255,.16)')
       + '; --pack-cta-ink:' + (theme.ctaInk || 'rgba(255,255,255,.84)')
-      + '; --pack-art-scale:' + (artConfig && artConfig.scale ? String(artConfig.scale) : '1.44')
-      + '; --pack-title-art-scale:' + (artConfig && artConfig.titleScale ? String(artConfig.titleScale) : (artConfig && artConfig.scale ? String(artConfig.scale) : '1.44'));
+      + '; --pack-art-scale:' + (artConfig && artConfig.scale ? String(artConfig.scale) : '1.04');
     const config = options || {};
     const packTextureClass = themeKey === 'gold'
       ? ' is-gold'
@@ -6473,12 +6495,9 @@ button, a, select { font: inherit; }
     attrs += ' aria-label="' + escapeHtml(theme.label) + '"';
     attrs += ' style="' + escapeHtml(style) + '"';
     return '<div' + attrs + '>'
-      + (hasCustomArt
+      + (renderedArtAsset
         ? '<div class="pack-art-wrap">'
-          + '<img class="pack-shape-art" src="' + escapeHtml(shapeAsset) + '" alt="" aria-hidden="true" onerror="this.remove();"' + cardImageAttrs('high') + '>'
-          + (hasTitleArt
-            ? '<img class="pack-title-art" src="' + escapeHtml(titleAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-title-art\');}" onerror="this.remove();"' + cardImageAttrs('high') + '>'
-            : '')
+          + '<img class="' + (hasCustomArt ? 'pack-skin-art' : 'pack-shape-art') + '" src="' + escapeHtml(renderedArtAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-loaded-art\');}" onerror="this.remove();"' + cardImageAttrs('high') + '>'
           + '</div>'
         : '')
       + '<div class="pack-foil"></div>'
