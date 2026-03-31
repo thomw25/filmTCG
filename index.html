@@ -395,7 +395,9 @@ button, a, select { font: inherit; }
   width: 194px;
   height: 286px;
   padding: 16px 14px 20px;
+  animation: none;
   transition: transform 180ms ease, filter 180ms ease;
+  will-change: transform, filter;
 }
 
 .shop-pack-preview .pack .pack-copy {
@@ -508,7 +510,9 @@ button, a, select { font: inherit; }
   width: 194px;
   height: 286px;
   padding: 16px 14px 20px;
+  animation: none;
   transition: transform 180ms ease, filter 180ms ease;
+  will-change: transform, filter;
 }
 
 .shop-reward-option .pack .pack-copy {
@@ -586,35 +590,40 @@ button, a, select { font: inherit; }
   opacity: 0.06;
 }
 
-@media (hover:hover) and (pointer:fine) {
-  .shop-item:hover .shop-pack-preview .pack,
-  .shop-reward-option:hover .pack {
-    transform: translateY(-5px) scale(1.018);
-    filter: saturate(1.03);
-  }
+.shop-item:hover .shop-pack-preview .pack,
+.shop-pack-preview:hover .pack,
+.shop-reward-option:hover .pack {
+  transform: translateY(-6px) scale(1.02);
+  filter: saturate(1.05);
+}
 
-  .shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-foil,
-  .shop-item:hover .shop-pack-preview .pack.has-loaded-title .pack-foil,
-  .shop-reward-option:hover .pack.has-loaded-shape .pack-foil,
-  .shop-reward-option:hover .pack.has-loaded-title .pack-foil {
-    opacity: 0.64;
-    background-position: 84% -1%, 50% 50%;
-  }
+.shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-foil,
+.shop-item:hover .shop-pack-preview .pack.has-loaded-title .pack-foil,
+.shop-pack-preview:hover .pack.has-loaded-shape .pack-foil,
+.shop-pack-preview:hover .pack.has-loaded-title .pack-foil,
+.shop-reward-option:hover .pack.has-loaded-shape .pack-foil,
+.shop-reward-option:hover .pack.has-loaded-title .pack-foil {
+  opacity: 0.9;
+  background-position: 74% -8%, 50% 50%;
+}
 
-  .shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-glint,
-  .shop-item:hover .shop-pack-preview .pack.has-loaded-title .pack-glint,
-  .shop-reward-option:hover .pack.has-loaded-shape .pack-glint,
-  .shop-reward-option:hover .pack.has-loaded-title .pack-glint {
-    opacity: 0.24;
-    transform: translateX(-8px) rotate(12deg);
-  }
+.shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-glint,
+.shop-item:hover .shop-pack-preview .pack.has-loaded-title .pack-glint,
+.shop-pack-preview:hover .pack.has-loaded-shape .pack-glint,
+.shop-pack-preview:hover .pack.has-loaded-title .pack-glint,
+.shop-reward-option:hover .pack.has-loaded-shape .pack-glint,
+.shop-reward-option:hover .pack.has-loaded-title .pack-glint {
+  opacity: 0.38;
+  transform: translateX(-14px) rotate(12deg);
+}
 
-  .shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-glow,
-  .shop-item:hover .shop-pack-preview .pack.has-loaded-title .pack-glow,
-  .shop-reward-option:hover .pack.has-loaded-shape .pack-glow,
-  .shop-reward-option:hover .pack.has-loaded-title .pack-glow {
-    opacity: 0.24;
-  }
+.shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-glow,
+.shop-item:hover .shop-pack-preview .pack.has-loaded-title .pack-glow,
+.shop-pack-preview:hover .pack.has-loaded-shape .pack-glow,
+.shop-pack-preview:hover .pack.has-loaded-title .pack-glow,
+.shop-reward-option:hover .pack.has-loaded-shape .pack-glow,
+.shop-reward-option:hover .pack.has-loaded-title .pack-glow {
+  opacity: 0.3;
 }
 
 .shop-trade-row {
@@ -878,57 +887,57 @@ button, a, select { font: inherit; }
 .pack.has-loaded-shape .pack-foil,
 .pack.has-loaded-title .pack-foil {
   display: block;
-  inset: 8% 10.5% 9.5% 10.5%;
+  inset: -4% 7.5% -4% 7.5%;
   border-radius: 17px;
   background:
-    linear-gradient(104deg, rgba(255,255,255,.26) 0%, rgba(255,255,255,.11) 8%, rgba(255,255,255,0) 18%, rgba(255,255,255,.065) 38%, rgba(255,255,255,0) 56%),
-    linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,0) 22%, rgba(61,56,130,.08) 100%);
-  background-size: 138% 138%, 100% 100%;
-  background-position: 92% 0, 50% 50%;
+    linear-gradient(108deg, rgba(255,255,255,.48) 0%, rgba(255,255,255,.2) 9%, rgba(255,255,255,0) 21%, rgba(255,255,255,.14) 42%, rgba(255,255,255,0) 63%),
+    linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,0) 18%, rgba(61,56,130,.1) 100%);
+  background-size: 164% 164%, 100% 100%;
+  background-position: 112% -12%, 50% 50%;
   mix-blend-mode: screen;
-  opacity: 0.62;
-  filter: blur(.15px);
+  opacity: 0.78;
+  filter: blur(.25px);
 }
 
 .pack.has-loaded-shape .pack-glint,
 .pack.has-loaded-title .pack-glint {
   display: block;
-  top: 7%;
-  right: 23%;
-  width: 24%;
-  height: 70%;
+  top: -6%;
+  right: 16%;
+  width: 31%;
+  height: 112%;
   background:
-    linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.08) 34%, rgba(255,255,255,0)),
-    linear-gradient(180deg, rgba(187,208,255,.16), rgba(255,255,255,0) 64%);
-  opacity: 0.22;
-  transform: rotate(12deg);
-  filter: blur(.6px);
+    linear-gradient(180deg, rgba(255,255,255,.48), rgba(255,255,255,.12) 34%, rgba(255,255,255,0)),
+    linear-gradient(180deg, rgba(187,208,255,.24), rgba(255,255,255,0) 64%);
+  opacity: 0.3;
+  transform: rotate(13deg);
+  filter: blur(.8px);
   mix-blend-mode: screen;
 }
 
 .pack.has-loaded-shape .pack-glow,
 .pack.has-loaded-title .pack-glow {
   display: block;
-  inset: auto auto 34px 50%;
-  width: 156px;
-  height: 72px;
+  inset: auto auto 28px 50%;
+  width: 178px;
+  height: 92px;
   transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(255,255,255,.14) 0%, rgba(255,255,255,.03) 38%, rgba(255,255,255,0) 72%);
-  opacity: 0.26;
-  filter: blur(18px);
+  background: radial-gradient(circle, rgba(255,255,255,.2) 0%, rgba(255,255,255,.05) 36%, rgba(255,255,255,0) 72%);
+  opacity: 0.34;
+  filter: blur(22px);
 }
 
 .pack.has-loaded-shape .pack-grain,
 .pack.has-loaded-title .pack-grain {
   inset: 8.5% 11% 10% 11%;
   background:
-    linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,0) 18%, rgba(255,255,255,0) 68%, rgba(55,51,121,.08) 100%),
-    radial-gradient(circle at 50% 14%, rgba(255,255,255,.07) 0%, transparent 34%),
-    repeating-linear-gradient(135deg, rgba(255,255,255,.012) 0 2px, rgba(0,0,0,.01) 2px 4px),
-    radial-gradient(circle at 22% 28%, rgba(255,255,255,.035) 0 1px, transparent 1.2px),
-    radial-gradient(circle at 68% 68%, rgba(0,0,0,.03) 0 1px, transparent 1px);
+    linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 18%, rgba(255,255,255,0) 68%, rgba(55,51,121,.1) 100%),
+    radial-gradient(circle at 50% 14%, rgba(255,255,255,.11) 0%, transparent 34%),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.018) 0 2px, rgba(0,0,0,.012) 2px 4px),
+    radial-gradient(circle at 22% 28%, rgba(255,255,255,.045) 0 1px, transparent 1.2px),
+    radial-gradient(circle at 68% 68%, rgba(0,0,0,.035) 0 1px, transparent 1px);
   mix-blend-mode: soft-light;
-  opacity: 0.095;
+  opacity: 0.14;
   border-radius: 16px;
 }
 
