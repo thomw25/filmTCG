@@ -398,6 +398,7 @@ button, a, select { font: inherit; }
   animation: none;
   transition: transform 180ms ease, filter 180ms ease;
   will-change: transform, filter;
+  transform-origin: center bottom;
 }
 
 .shop-pack-preview .pack .pack-copy {
@@ -513,6 +514,7 @@ button, a, select { font: inherit; }
   animation: none;
   transition: transform 180ms ease, filter 180ms ease;
   will-change: transform, filter;
+  transform-origin: center bottom;
 }
 
 .shop-reward-option .pack .pack-copy {
@@ -592,9 +594,11 @@ button, a, select { font: inherit; }
 
 .shop-item:hover .shop-pack-preview .pack,
 .shop-pack-preview:hover .pack,
-.shop-reward-option:hover .pack {
-  transform: translateY(-6px) scale(1.02);
-  filter: saturate(1.05);
+.shop-pack-preview .pack:hover,
+.shop-reward-option:hover .pack,
+.shop-reward-option .pack:hover {
+  transform: translateY(-8px) scale(1.024);
+  filter: saturate(1.08) brightness(1.02);
 }
 
 .shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-foil,
@@ -887,13 +891,13 @@ button, a, select { font: inherit; }
 .pack.has-loaded-shape .pack-foil,
 .pack.has-loaded-title .pack-foil {
   display: block;
-  inset: -4% 7.5% -4% 7.5%;
+  inset: 4.5% 8.5% 5.5% 8.5%;
   border-radius: 17px;
   background:
     linear-gradient(108deg, rgba(255,255,255,.48) 0%, rgba(255,255,255,.2) 9%, rgba(255,255,255,0) 21%, rgba(255,255,255,.14) 42%, rgba(255,255,255,0) 63%),
     linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,0) 18%, rgba(61,56,130,.1) 100%);
   background-size: 164% 164%, 100% 100%;
-  background-position: 112% -12%, 50% 50%;
+  background-position: 118% -10%, 50% 50%;
   mix-blend-mode: screen;
   opacity: 0.78;
   filter: blur(.25px);
@@ -902,10 +906,10 @@ button, a, select { font: inherit; }
 .pack.has-loaded-shape .pack-glint,
 .pack.has-loaded-title .pack-glint {
   display: block;
-  top: -6%;
-  right: 16%;
+  top: 2%;
+  right: 18%;
   width: 31%;
-  height: 112%;
+  height: 92%;
   background:
     linear-gradient(180deg, rgba(255,255,255,.48), rgba(255,255,255,.12) 34%, rgba(255,255,255,0)),
     linear-gradient(180deg, rgba(187,208,255,.24), rgba(255,255,255,0) 64%);
@@ -929,7 +933,7 @@ button, a, select { font: inherit; }
 
 .pack.has-loaded-shape .pack-grain,
 .pack.has-loaded-title .pack-grain {
-  inset: 8.5% 11% 10% 11%;
+  inset: 6% 9.5% 7% 9.5%;
   background:
     linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 18%, rgba(255,255,255,0) 68%, rgba(55,51,121,.1) 100%),
     radial-gradient(circle at 50% 14%, rgba(255,255,255,.11) 0%, transparent 34%),
@@ -937,7 +941,7 @@ button, a, select { font: inherit; }
     radial-gradient(circle at 22% 28%, rgba(255,255,255,.045) 0 1px, transparent 1.2px),
     radial-gradient(circle at 68% 68%, rgba(0,0,0,.035) 0 1px, transparent 1px);
   mix-blend-mode: soft-light;
-  opacity: 0.14;
+  opacity: 0.18;
   border-radius: 16px;
 }
 
@@ -2969,13 +2973,13 @@ button, a, select { font: inherit; }
 }
 
 @keyframes packFoilShift {
-  0%, 100% { background-position: 90% 0, 50% 50%; }
-  50% { background-position: 82% -4%, 50% 50%; }
+  0%, 100% { background-position: 118% -10%, 50% 50%; }
+  50% { background-position: 70% 4%, 50% 50%; }
 }
 
 @keyframes packGlintSweep {
-  0%, 100% { transform: translateX(0) rotate(15deg); opacity: 0.1; }
-  50% { transform: translateX(-18px) rotate(15deg); opacity: 0.18; }
+  0%, 100% { transform: translateX(0) rotate(13deg); opacity: 0.22; }
+  50% { transform: translateX(-26px) rotate(13deg); opacity: 0.34; }
 }
 
 @keyframes packBodyFade {
