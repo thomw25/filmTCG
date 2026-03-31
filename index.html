@@ -1115,11 +1115,24 @@ button, a, select { font: inherit; }
 
 .carousel-wrap {
   display: grid;
-  grid-template-rows: 24px 468px 52px;
+  grid-template-rows: auto 468px 52px;
   justify-items: center;
   align-items: center;
   gap: 18px;
   width: 100%;
+}
+
+.carousel-top-rail {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-height: 58px;
+}
+
+.carousel-top-rail .pack-hook {
+  min-height: 30px;
+  padding: 6px 12px;
+  font-size: 0.7rem;
 }
 
 .carousel {
@@ -3001,9 +3014,19 @@ button, a, select { font: inherit; }
     color: rgba(255,255,255,.74);
   }
   .carousel-wrap {
-    grid-template-rows: 22px 462px 66px;
+    grid-template-rows: auto 462px 66px;
     gap: 14px;
-    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px));
+  }
+  .carousel-top-rail {
+    gap: 6px;
+    min-height: 62px;
+  }
+  .carousel-top-rail .pack-hook {
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+    padding: 6px 11px;
+    min-height: 28px;
   }
   .overlap-stack {
     min-height: 462px;
@@ -3036,6 +3059,22 @@ button, a, select { font: inherit; }
   .back-btn {
     margin-top: 10px;
     margin-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+  .carousel-open-more-btn {
+    position: fixed;
+    left: 50%;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 36;
+    width: min(320px, calc(100vw - 28px));
+    margin: 0;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, rgba(24,35,62,.96), rgba(15,23,39,.96));
+    border-color: rgba(162,190,255,.46);
+    color: #f4f8ff;
+    box-shadow: 0 12px 30px rgba(0,0,0,.44), inset 0 1px 0 rgba(255,255,255,.18);
+  }
+  .carousel-open-more-btn:active {
+    transform: translateX(-50%) scale(0.99);
   }
   .shop-open-overlay {
     padding: 14px;
@@ -3141,7 +3180,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-15</div>
+  <div class="sub">Build: packs-people-tier-16</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3492,7 +3531,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-37';
+  const BUILD_ID = 'logic-sync-38';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -7298,7 +7337,10 @@ button, a, select { font: inherit; }
     if (remainingAfter > 0 && nextOne) ghostMarkup += buildGhostMarkup('is-right-1', nextOne);
 
     pullArea.innerHTML = '<div class="carousel-wrap">'
+      + '<div class="carousel-top-rail">'
       + '<div class="progress">Card ' + (index + 1) + ' of ' + pack.length + ' · ' + escapeHtml(dataSourceLabel) + '</div>'
+      + buildPackHookMarkup()
+      + '</div>'
       + '<div class="carousel">'
       + '<div class="overlap-stack">'
       + ghostMarkup
@@ -7307,7 +7349,7 @@ button, a, select { font: inherit; }
       + '<button id="nextArrow" type="button" class="arrow stack-arrow is-right" aria-label="Next card">&#8594;</button>'
       + '</div>'
       + '</div>'
-      + '<button id="backToPacksButton" type="button" class="back-btn">Open More Packs</button>'
+      + '<button id="backToPacksButton" type="button" class="back-btn carousel-open-more-btn">Open More Packs</button>'
       + '</div>';
 
     document.getElementById('prevArrow').addEventListener('click', prevCard);
