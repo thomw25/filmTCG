@@ -629,6 +629,52 @@ button, a, select { font: inherit; }
   gap: 16px;
 }
 
+.pull-open-shell.is-stage {
+  grid-template-rows: auto 468px 52px;
+  align-items: center;
+  gap: 18px;
+}
+
+.pull-open-shell-reward.is-stage {
+  grid-template-rows: auto auto 52px;
+}
+
+.pull-top-rail {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-height: 58px;
+}
+
+.pull-top-rail .pack-hook {
+  min-height: 30px;
+  padding: 6px 12px;
+  font-size: 0.7rem;
+}
+
+.pull-center-stage {
+  width: 100%;
+  min-height: 468px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pull-bottom-stage {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pull-bottom-placeholder {
+  width: min(280px, calc(100vw - 40px));
+  height: 44px;
+  border-radius: var(--btn-radius);
+  opacity: 0;
+  pointer-events: none;
+}
+
 .pull-open-rail {
   width: min(380px, calc(100vw - 28px));
   display: grid;
@@ -2894,23 +2940,33 @@ button, a, select { font: inherit; }
     gap: 14px;
     padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
   }
-  .pull-open-rail {
-    position: sticky;
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-    z-index: 18;
-    padding: 10px 12px;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,.14);
-    background: rgba(10,14,22,.78);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 12px 30px rgba(0,0,0,.32);
+  .pull-open-shell.is-stage {
+    grid-template-rows: auto 462px 66px;
+    gap: 14px;
+    padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px));
   }
-  .pull-open-rail .pack-hook {
-    width: 100%;
+  .pull-open-shell-reward.is-stage {
+    grid-template-rows: auto auto 66px;
   }
-  .pull-open-rail .status-line {
-    width: 100%;
+  .pull-top-rail {
+    gap: 6px;
+    min-height: 62px;
+  }
+  .pull-top-rail .pack-hook {
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+    padding: 6px 11px;
+    min-height: 28px;
+  }
+  .pull-center-stage {
+    min-height: 462px;
+  }
+  .pull-bottom-stage {
+    min-height: 66px;
+  }
+  .pull-bottom-placeholder {
+    width: min(320px, calc(100vw - 28px));
+    height: 46px;
   }
   .reward-choice-grid {
     display: grid;
@@ -3180,7 +3236,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-16</div>
+  <div class="sub">Build: packs-people-tier-17</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3531,7 +3587,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-38';
+  const BUILD_ID = 'logic-sync-39';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -6489,17 +6545,20 @@ button, a, select { font: inherit; }
 
   function buildPackMarkup() {
     const loadingClass = isPoolLoading ? ' is-loading' : '';
-    return '<div class="pull-open-shell">'
+    return '<div class="pull-open-shell is-stage">'
+      + '<div class="pull-top-rail">'
+      + buildPackHookMarkup()
+      + '<div class="status-line' + (isPoolLoading ? ' is-loading' : '') + '">' + escapeHtml(artworkStatus) + '</div>'
+      + '</div>'
+      + '<div class="pull-center-stage">'
       + buildPackFaceMarkup(currentPackTheme, {
         id: 'openPackButton',
         extraClasses: loadingClass.trim(),
         disabled: isPoolLoading,
         buttonLike: !isPoolLoading
       })
-      + '<div class="pull-open-rail">'
-      + buildPackHookMarkup()
-      + '<div class="status-line' + (isPoolLoading ? ' is-loading' : '') + '">' + escapeHtml(artworkStatus) + '</div>'
       + '</div>'
+      + '<div class="pull-bottom-stage"><div class="pull-bottom-placeholder" aria-hidden="true"></div></div>'
       + '</div>';
   }
 
@@ -6510,7 +6569,11 @@ button, a, select { font: inherit; }
     const leftTheme = PACK_THEMES[leftThemeKey] || PACK_THEMES.horror;
     const rightTheme = PACK_THEMES[rightThemeKey] || PACK_THEMES.animation;
 
-    return '<div class="pull-open-shell pull-open-shell-reward">'
+    return '<div class="pull-open-shell pull-open-shell-reward is-stage">'
+      + '<div class="pull-top-rail">'
+      + buildPackHookMarkup()
+      + '<div class="status-line is-live">Pick one to open your reward pack.</div>'
+      + '</div>'
       + '<div class="reward-choice-wrap">'
       + '<div class="reward-choice-copy">Choose your reward genre pack.</div>'
       + '<div class="reward-choice-grid">'
@@ -6524,10 +6587,7 @@ button, a, select { font: inherit; }
       + '</button>'
       + '</div>'
       + '</div>'
-      + '<div class="pull-open-rail">'
-      + buildPackHookMarkup()
-      + '<div class="status-line is-live">Pick one to open your reward pack.</div>'
-      + '</div>'
+      + '<div class="pull-bottom-stage"><div class="pull-bottom-placeholder" aria-hidden="true"></div></div>'
       + '</div>';
   }
 
@@ -6561,15 +6621,18 @@ button, a, select { font: inherit; }
 
   function renderRewardOpeningShell(themeKey, statusText) {
     const resolvedThemeKey = PACK_THEMES[themeKey] ? themeKey : 'all';
-    pullArea.innerHTML = '<div class="pull-open-shell">'
+    pullArea.innerHTML = '<div class="pull-open-shell is-stage">'
+      + '<div class="pull-top-rail">'
+      + buildPackHookMarkup()
+      + '<div class="status-line is-loading">' + escapeHtml(statusText || 'Loading your reward pack...') + '</div>'
+      + '</div>'
+      + '<div class="pull-center-stage">'
       + buildPackFaceMarkup(resolvedThemeKey, {
         id: 'rewardOpenPackFace',
         extraClasses: 'is-loading'
       })
-      + '<div class="pull-open-rail">'
-      + buildPackHookMarkup()
-      + '<div class="status-line is-loading">' + escapeHtml(statusText || 'Loading your reward pack...') + '</div>'
       + '</div>'
+      + '<div class="pull-bottom-stage"><div class="pull-bottom-placeholder" aria-hidden="true"></div></div>'
       + '</div>';
     return {
       packElement: document.getElementById('rewardOpenPackFace'),
