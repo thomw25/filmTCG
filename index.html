@@ -18,9 +18,26 @@
   --shadow: 0 20px 40px rgba(0,0,0,0.4);
   --card-shell: #0f1218;
   --card-base: #171b24;
+  --btn-radius: 11px;
+  --btn-neutral-bg: linear-gradient(160deg, rgba(37,45,66,.96), rgba(20,27,40,.94));
+  --btn-neutral-bg-hover: linear-gradient(160deg, rgba(45,55,80,.98), rgba(26,35,52,.96));
+  --btn-neutral-border: rgba(175,194,236,.24);
+  --btn-neutral-text: #e8f0ff;
+  --btn-active-bg: linear-gradient(135deg, #8f86e9, #6a8cf7 62%, #bbd0ff);
+  --btn-active-border: rgba(189,208,255,.52);
+  --btn-active-text: #f8fbff;
+  --btn-gold-bg: linear-gradient(135deg, #ecc688, #ffcf7a);
+  --btn-gold-bg-hover: linear-gradient(135deg, #f0d19d, #ffd893);
+  --btn-gold-border: rgba(255,214,147,.58);
+  --btn-gold-text: #2f1903;
+  --btn-shadow: 0 10px 24px rgba(0,0,0,.22);
 }
 
 * { box-sizing: border-box; }
+
+html, body {
+  min-height: 100%;
+}
 
 body {
   margin: 0;
@@ -30,7 +47,12 @@ body {
     radial-gradient(circle at 80% 10%, rgba(245,158,11,.08), transparent 24%),
     var(--bg);
   color: var(--text);
+  min-height: 100dvh;
   overflow-x: hidden;
+}
+
+body.overlay-open {
+  overflow: hidden;
 }
 
 button, a, select { font: inherit; }
@@ -104,15 +126,37 @@ button, a, select { font: inherit; }
 .modal-close,
 .collection-controls button {
   padding: 10px 14px;
-  border: none;
-  border-radius: 10px;
-  background: #1f2937;
-  color: white;
+  border: 1px solid var(--btn-neutral-border);
+  border-radius: var(--btn-radius);
+  background: var(--btn-neutral-bg);
+  color: var(--btn-neutral-text);
   cursor: pointer;
+  font-weight: 700;
+  box-shadow: var(--btn-shadow);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease, opacity 160ms ease;
 }
 
 .nav button.active {
-  background: linear-gradient(135deg, #4f46e5, #9333ea);
+  background: var(--btn-active-bg);
+  border-color: var(--btn-active-border);
+  color: var(--btn-active-text);
+}
+
+.nav button.active:hover:not(:disabled) {
+  background: var(--btn-active-bg);
+  border-color: var(--btn-active-border);
+  color: var(--btn-active-text);
+}
+
+.nav button:hover:not(:disabled),
+.back-btn:hover:not(:disabled),
+.arrow:hover:not(:disabled),
+.modal-close:hover:not(:disabled),
+.collection-controls button:hover:not(:disabled),
+.filter-select:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--btn-neutral-bg-hover);
+  border-color: rgba(202,218,252,.36);
 }
 
 .filter-select {
@@ -137,6 +181,7 @@ button, a, select { font: inherit; }
   padding: 20px;
   max-width: 1180px;
   margin: 0 auto;
+  min-height: calc(100dvh - 154px);
 }
 
 .page.active { display: block; }
@@ -259,17 +304,24 @@ button, a, select { font: inherit; }
 
 .daily-claim-btn {
   padding: 10px 14px;
-  border: none;
-  border-radius: 10px;
-  color: #0f172a;
-  font-weight: 700;
+  border: 1px solid var(--btn-gold-border);
+  border-radius: var(--btn-radius);
+  color: var(--btn-gold-text);
+  font-weight: 760;
   cursor: pointer;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  background: var(--btn-gold-bg);
+  box-shadow: var(--btn-shadow);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease, opacity 160ms ease;
 }
 
 .daily-claim-btn:disabled {
   cursor: default;
   opacity: 0.66;
+}
+
+.daily-claim-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--btn-gold-bg-hover);
 }
 
 .owned-pack-row {
@@ -299,13 +351,19 @@ button, a, select { font: inherit; }
 }
 
 .owned-pack-open-btn {
-  border: none;
-  border-radius: 10px;
+  border: 1px solid var(--btn-active-border);
+  border-radius: var(--btn-radius);
   padding: 10px 14px;
   cursor: pointer;
-  font-weight: 700;
-  background: linear-gradient(135deg, #60a5fa, #2563eb);
-  color: #eff6ff;
+  font-weight: 760;
+  background: var(--btn-active-bg);
+  color: var(--btn-active-text);
+  box-shadow: var(--btn-shadow);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+
+.owned-pack-open-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .shop-panel {
@@ -363,18 +421,25 @@ button, a, select { font: inherit; }
 }
 
 .shop-buy-btn {
-  border: none;
-  border-radius: 10px;
+  border: 1px solid var(--btn-gold-border);
+  border-radius: var(--btn-radius);
   padding: 10px 14px;
   cursor: pointer;
-  font-weight: 750;
-  color: #0f172a;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  font-weight: 760;
+  color: var(--btn-gold-text);
+  background: var(--btn-gold-bg);
+  box-shadow: var(--btn-shadow);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease, opacity 160ms ease;
 }
 
 .shop-buy-btn:disabled {
   cursor: default;
   opacity: 0.62;
+}
+
+.shop-buy-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--btn-gold-bg-hover);
 }
 
 .shop-action-row {
@@ -385,18 +450,24 @@ button, a, select { font: inherit; }
 }
 
 .shop-buy-open-btn {
-  border: 1px solid rgba(251,191,36,.45);
-  border-radius: 10px;
+  border: 1px solid var(--btn-active-border);
+  border-radius: var(--btn-radius);
   padding: 10px 14px;
   cursor: pointer;
-  font-weight: 750;
-  color: #fffbeb;
-  background: linear-gradient(135deg, rgba(251,191,36,.28), rgba(245,158,11,.18));
+  font-weight: 760;
+  color: var(--btn-active-text);
+  background: var(--btn-active-bg);
+  box-shadow: var(--btn-shadow);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease, opacity 160ms ease;
 }
 
 .shop-buy-open-btn:disabled {
   cursor: default;
   opacity: 0.62;
+}
+
+.shop-buy-open-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .shop-reward-grid {
@@ -457,18 +528,25 @@ button, a, select { font: inherit; }
 }
 
 .shop-trade-btn {
-  border: none;
-  border-radius: 10px;
+  border: 1px solid var(--btn-gold-border);
+  border-radius: var(--btn-radius);
   padding: 10px 14px;
   cursor: pointer;
-  font-weight: 750;
-  color: #0f172a;
-  background: linear-gradient(135deg, #fde68a, #f59e0b);
+  font-weight: 760;
+  color: var(--btn-gold-text);
+  background: var(--btn-gold-bg);
+  box-shadow: var(--btn-shadow);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease, opacity 160ms ease;
 }
 
 .shop-trade-btn:disabled {
   cursor: default;
   opacity: 0.62;
+}
+
+.shop-trade-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--btn-gold-bg-hover);
 }
 
 .shop-inventory-list {
@@ -490,14 +568,20 @@ button, a, select { font: inherit; }
 }
 
 .shop-open-owned-btn {
-  border: none;
-  border-radius: 8px;
+  border: 1px solid var(--btn-active-border);
+  border-radius: 9px;
   padding: 7px 10px;
   cursor: pointer;
   font-size: 0.78rem;
-  font-weight: 750;
-  color: #e0f2fe;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  font-weight: 760;
+  color: var(--btn-active-text);
+  background: var(--btn-active-bg);
+  box-shadow: var(--btn-shadow);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+
+.shop-open-owned-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .view-toggle {
@@ -510,17 +594,19 @@ button, a, select { font: inherit; }
 }
 
 .view-toggle button {
-  border: none;
+  border: 1px solid transparent;
   border-radius: 9px;
   padding: 8px 12px;
   background: transparent;
   color: rgba(255,255,255,.76);
   cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
 }
 
 .view-toggle button.is-active {
-  background: rgba(255,255,255,.1);
-  color: #fff;
+  background: var(--btn-active-bg);
+  border-color: var(--btn-active-border);
+  color: var(--btn-active-text);
 }
 
 .pack-area {
@@ -2384,18 +2470,62 @@ button, a, select { font: inherit; }
   align-items: center;
   justify-content: center;
   padding: 10px 14px;
-  border-radius: 10px;
-  background: #1f2937;
-  color: white;
+  border-radius: var(--btn-radius);
+  background: var(--btn-neutral-bg);
+  color: var(--btn-neutral-text);
   text-decoration: none;
-  border: 1px solid var(--border);
-  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  border: 1px solid var(--btn-neutral-border);
+  box-shadow: var(--btn-shadow);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
 }
 
 .modal-button:hover {
   transform: translateY(-1px);
-  border-color: rgba(255,255,255,.18);
-  background: #273244;
+  border-color: rgba(202,218,252,.36);
+  background: var(--btn-neutral-bg-hover);
+}
+
+.shop-open-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  background: rgba(4, 6, 12, 0.82);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 62;
+  padding: 20px;
+}
+
+.shop-open-overlay.open {
+  display: flex;
+}
+
+.shop-open-shell {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  width: min(100%, 420px);
+}
+
+.shop-open-pack-wrap {
+  width: min(300px, calc(100vw - 64px));
+  display: grid;
+  justify-items: center;
+}
+
+.shop-open-pack-wrap .pack {
+  width: 100%;
+  height: calc(min(300px, calc(100vw - 64px)) * 1.4333);
+}
+
+.shop-open-status {
+  color: #e8f1ff;
+  font-size: 0.88rem;
+  text-align: center;
 }
 
 .empty-state {
@@ -2535,6 +2665,7 @@ button, a, select { font: inherit; }
   }
   .page {
     padding: 14px 12px 18px;
+    min-height: calc(100dvh - 136px);
   }
   .nav {
     padding: 10px 12px;
@@ -2815,6 +2946,15 @@ button, a, select { font: inherit; }
     margin-top: 10px;
     margin-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
   }
+  .shop-open-overlay {
+    padding: 14px;
+  }
+  .shop-open-pack-wrap {
+    width: min(286px, calc(100vw - 44px));
+  }
+  .shop-open-pack-wrap .pack {
+    height: calc(min(286px, calc(100vw - 44px)) * 1.4333);
+  }
 }
 
 @media (max-width: 480px) {
@@ -2900,7 +3040,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-2</div>
+  <div class="sub">Build: packs-people-tier-4</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3021,6 +3161,13 @@ button, a, select { font: inherit; }
       <button id="modalClose" class="modal-close" type="button" aria-label="Close">✕</button>
     </div>
     <div id="modalBody"></div>
+  </div>
+</div>
+
+<div id="shopOpenOverlay" class="shop-open-overlay" aria-hidden="true">
+  <div class="shop-open-shell">
+    <div id="shopOpenPackWrap" class="shop-open-pack-wrap"></div>
+    <div id="shopOpenStatus" class="shop-open-status status-line is-live">Opening pack...</div>
   </div>
 </div>
 
@@ -3236,7 +3383,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-24';
+  const BUILD_ID = 'logic-sync-26';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -3374,6 +3521,7 @@ button, a, select { font: inherit; }
   const RECENT_PULL_HARD_EXCLUDE = 120;
   const LIVE_DRAW_REFRESH_INTERVAL = 3;
   const THEME_POOL_LIMIT = 900;
+  const BACKEND_FETCH_TIMEOUT_MS = 12000;
   const DAILY_HUNT_COUNT = 3;
   const DAILY_HUNT_THEME_TAGS = ['horror', 'animation', 'noir', 'romcom', 'docs'];
   const DAILY_HUNT_TICKET_REWARD = 120;
@@ -3460,6 +3608,9 @@ button, a, select { font: inherit; }
   const cardModal = document.getElementById('cardModal');
   const modalBody = document.getElementById('modalBody');
   const modalClose = document.getElementById('modalClose');
+  const shopOpenOverlay = document.getElementById('shopOpenOverlay');
+  const shopOpenPackWrap = document.getElementById('shopOpenPackWrap');
+  const shopOpenStatus = document.getElementById('shopOpenStatus');
   const appToast = document.getElementById('appToast');
   let toastTimer = null;
 
@@ -4420,7 +4571,27 @@ button, a, select { font: inherit; }
   }
 
   async function fetchBackendJson(path) {
-    const response = await fetch(TMDB_BACKEND_BASE + path, backendFetchOptions());
+    const requestOptions = backendFetchOptions();
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    let timeoutId = null;
+    if (controller) {
+      requestOptions.signal = controller.signal;
+      timeoutId = setTimeout(function () {
+        controller.abort();
+      }, BACKEND_FETCH_TIMEOUT_MS);
+    }
+
+    let response;
+    try {
+      response = await fetch(TMDB_BACKEND_BASE + path, requestOptions);
+    } catch (error) {
+      if (error && error.name === 'AbortError') {
+        throw new Error('Request timeout after ' + BACKEND_FETCH_TIMEOUT_MS + 'ms for ' + path);
+      }
+      throw error;
+    } finally {
+      if (timeoutId != null) clearTimeout(timeoutId);
+    }
     const contentType = response.headers.get('content-type') || '';
     const bodyText = await response.text();
 
@@ -4804,6 +4975,33 @@ button, a, select { font: inherit; }
     return removed;
   }
 
+  function openShopPackOverlay(themeKey, label) {
+    if (!shopOpenOverlay || !shopOpenPackWrap || !shopOpenStatus) return null;
+    const resolvedTheme = normalizeOwnedPackTheme(themeKey || 'all');
+    shopOpenPackWrap.innerHTML = buildPackFaceMarkup(resolvedTheme, {
+      id: 'shopOverlayPackFace'
+    });
+    shopOpenStatus.textContent = label
+      ? ('Opening ' + label + '...')
+      : 'Opening pack...';
+    shopOpenStatus.classList.add('is-live');
+    shopOpenOverlay.classList.add('open');
+    shopOpenOverlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('overlay-open');
+    return {
+      packElement: document.getElementById('shopOverlayPackFace'),
+      statusElement: shopOpenStatus
+    };
+  }
+
+  function closeShopPackOverlay() {
+    if (!shopOpenOverlay) return;
+    shopOpenOverlay.classList.remove('open');
+    shopOpenOverlay.setAttribute('aria-hidden', 'true');
+    if (shopOpenPackWrap) shopOpenPackWrap.innerHTML = '';
+    document.body.classList.remove('overlay-open');
+  }
+
   function buildOwnedPackQuickMarkup() {
     const owned = getOwnedPacks();
     if (!owned.length) return '';
@@ -4888,6 +5086,41 @@ button, a, select { font: inherit; }
     showToast('Traded ' + String(traded.length) + ' dupes for ' + String(gained) + ' Tickets.');
   }
 
+  async function openOwnedPackFromShop(packId) {
+    const owned = getOwnedPacks();
+    if (!owned.length) {
+      showToast('No owned packs ready.');
+      return;
+    }
+    const preferredId = String(packId || selectedOwnedPackId || '');
+    const ownedPack = owned.find(function (item) {
+      return item && String(item.id || '') === preferredId;
+    }) || owned[0];
+    if (!ownedPack) {
+      showToast('No owned packs ready.');
+      return;
+    }
+    selectedOwnedPackId = String(ownedPack.id || '');
+    const overlayUi = openShopPackOverlay(ownedPack.theme, ownedPackLabel(ownedPack));
+    try {
+      const didOpen = await openOwnedPackFromInventory({
+        revealCarousel: false,
+        openingElement: overlayUi && overlayUi.packElement ? overlayUi.packElement : null,
+        statusElement: overlayUi && overlayUi.statusElement ? overlayUi.statusElement : null
+      });
+      if (didOpen) {
+        showToast('Pack opened. Cards added to your collection.');
+      }
+    } finally {
+      setTimeout(function () {
+        closeShopPackOverlay();
+      }, 140);
+      if (shopPage && shopPage.classList.contains('active')) {
+        renderShop();
+      }
+    }
+  }
+
   async function buyShopPack(packId, options) {
     const buyOptions = options || {};
     const shouldOpenNow = Boolean(buyOptions.openNow);
@@ -4915,7 +5148,7 @@ button, a, select { font: inherit; }
     updatePackMeta();
     if (shouldOpenNow) {
       showToast('Bought ' + packDef.label + '. Opening now...');
-      await openOwnedPackFromInventory();
+      await openOwnedPackFromShop(String(nextPack.id || ''));
       return;
     }
 
@@ -5028,8 +5261,7 @@ button, a, select { font: inherit; }
     }
     shopPanel.querySelectorAll('[data-open-owned]').forEach(function (button) {
       button.addEventListener('click', function () {
-        selectedOwnedPackId = String(button.getAttribute('data-open-owned') || '');
-        openOwnedPackFromInventory();
+        openOwnedPackFromShop(String(button.getAttribute('data-open-owned') || ''));
       });
     });
   }
@@ -6445,19 +6677,26 @@ button, a, select { font: inherit; }
     return sorted;
   }
 
-  async function openOwnedPackFromInventory() {
+  async function openOwnedPackFromInventory(options) {
+    const config = options || {};
+    const revealCarousel = config.revealCarousel !== false;
     if (isOpeningPack || isPoolLoading) return;
     const ownedPack = selectedOwnedPack();
     if (!ownedPack) {
       showToast('No owned packs ready.');
       return;
     }
-    showPage('pull');
-    updatePackMeta();
-    backToPacks();
-    await openPack({
+    if (revealCarousel) {
+      showPage('pull');
+      updatePackMeta();
+      backToPacks();
+    }
+    return await openPack({
       ownedPack: ownedPack,
-      consumeOwnedPack: true
+      consumeOwnedPack: true,
+      revealCarousel: revealCarousel,
+      openingElement: config.openingElement || null,
+      statusElement: config.statusElement || null
     });
   }
 
@@ -6467,124 +6706,149 @@ button, a, select { font: inherit; }
     const hasOwnedPack = Boolean(ownedPack && ownedPack.id);
     const forcedThemeKey = openOptions.themeKey ? normalizeOwnedPackTheme(openOptions.themeKey) : '';
     const forceRewardOpen = Boolean(openOptions.forceRewardOpen);
+    const revealCarousel = openOptions.revealCarousel !== false;
     const packThemeForOpen = forcedThemeKey || (hasOwnedPack
       ? normalizeOwnedPackTheme(ownedPack.theme)
       : currentPackTheme);
     const ownedGoldBoost = hasOwnedPack && packThemeForOpen === 'gold';
     if (isOpeningPack || isPoolLoading) return;
     isOpeningPack = true;
-    const currentPack = document.getElementById('openPackButton');
+    const currentPack = openOptions.openingElement || document.getElementById('openPackButton');
+    const statusLineTarget = openOptions.statusElement || pullArea.querySelector('.status-line');
     if (currentPack) {
       currentPack.classList.add('is-loading');
-      const statusLine = pullArea.querySelector('.status-line');
-      if (statusLine) {
-        statusLine.textContent = hasOwnedPack
+      if (statusLineTarget) {
+        statusLineTarget.textContent = hasOwnedPack
           ? ('Opening owned ' + ownedPackLabel(ownedPack) + '...')
           : 'Cracking a fresh pack...';
-        statusLine.classList.add('is-live');
+        statusLineTarget.classList.add('is-live');
       }
     }
 
-    const requestedTheme = packThemeForOpen === 'all' ? '' : packThemeForOpen;
-    const requestedReelThemeKey = hasOwnedPack
-      ? ('owned:' + String(packThemeForOpen || 'all'))
-      : (forceRewardOpen
-        ? ('reward:' + String(packThemeForOpen || 'all'))
-        : (selectedPackMode !== 'all-packs'
-        ? String(currentPackTheme || selectedPackMode || 'theme')
-        : 'all-packs'));
-    const isRewardPackOpen = forceRewardOpen || (Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0);
-    const shouldRefreshReel = dataSourceLabel.indexOf('TMDB') !== -1 && (
-      isRewardPackOpen ||
-      activeReelCycleKey == null ||
-      activeReelCycleKey !== currentLiveDrawCycleKey() ||
-      activeReelThemeKey !== requestedReelThemeKey
-    );
-
-    if (currentPack) {
-      const statusLine = pullArea.querySelector('.status-line');
-      if (statusLine && shouldRefreshReel) {
-        statusLine.textContent = hasOwnedPack
-          ? ('Preparing owned ' + ownedPackLabel(ownedPack) + '...')
-          : (requestedTheme
-            ? 'Pulling a fresh themed pack...'
-            : 'Shuffling a fresh draw...');
-      } else if (statusLine) {
-        statusLine.textContent = hasOwnedPack
-          ? ('Opening owned ' + ownedPackLabel(ownedPack) + '...')
-          : 'Cracking a fresh pack...';
-      }
-    }
-
-    const refreshPromise = shouldRefreshReel
-      ? refreshPoolForPackOpen(false, requestedTheme).catch(function () { return false; })
-      : Promise.resolve(false);
-
-    await Promise.all([
-      refreshPromise,
-      new Promise(function (resolve) { setTimeout(resolve, 120); })
-    ]);
-    const openPool = getPackPool(packThemeForOpen);
-    if (dataSourceLabel.indexOf('TMDB') !== -1) {
-      const freshCandidatesAvailable = countFreshFilmCandidates(openPool);
-      if (freshCandidatesAvailable < filmSlotsForCurrentTheme(packThemeForOpen)) {
-        await refreshPoolForPackOpen(true, requestedTheme).catch(function () { return false; });
-      }
-    }
-    if (openPool.length < PACK_SIZE && !hasOwnedPack) resolvePackTheme(false);
-    updatePackMeta();
-    const draftedPack = await buildDraftPack(getPackPool(packThemeForOpen), {
-      themeKey: packThemeForOpen,
-      forceRewardBehavior: ownedGoldBoost || forceRewardOpen
-    });
-
-    if (hasOwnedPack && openOptions.consumeOwnedPack && Array.isArray(draftedPack) && draftedPack.length) {
-      const consumed = removeOwnedPackById(ownedPack.id);
-      if (consumed) {
-        saveProgress();
-        updatePackMeta();
-        if (shopPage && shopPage.classList.contains('active')) {
-          renderShop();
-        }
-      }
-    }
-
-    if (currentPack) {
-      currentPack.classList.remove('is-loading');
-      applyPackCueToElement(currentPack, draftedPack);
-      currentPack.classList.add('opening');
-      currentPack.classList.add('is-shuffling');
-    }
-
-    await new Promise(function (resolve) { setTimeout(resolve, 860); });
+    let openedSuccessfully = false;
 
     try {
-      await finalizePackOpen(draftedPack);
+      const requestedTheme = packThemeForOpen === 'all' ? '' : packThemeForOpen;
+      const requestedReelThemeKey = hasOwnedPack
+        ? ('owned:' + String(packThemeForOpen || 'all'))
+        : (forceRewardOpen
+          ? ('reward:' + String(packThemeForOpen || 'all'))
+          : (selectedPackMode !== 'all-packs'
+          ? String(currentPackTheme || selectedPackMode || 'theme')
+          : 'all-packs'));
+      const isRewardPackOpen = forceRewardOpen || (Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0);
+      const shouldRefreshReel = dataSourceLabel.indexOf('TMDB') !== -1 && (
+        isRewardPackOpen ||
+        activeReelCycleKey == null ||
+        activeReelCycleKey !== currentLiveDrawCycleKey() ||
+        activeReelThemeKey !== requestedReelThemeKey
+      );
+
+      if (currentPack) {
+        if (statusLineTarget && shouldRefreshReel) {
+          statusLineTarget.textContent = hasOwnedPack
+            ? ('Preparing owned ' + ownedPackLabel(ownedPack) + '...')
+            : (requestedTheme
+              ? 'Pulling a fresh themed pack...'
+              : 'Shuffling a fresh draw...');
+        } else if (statusLineTarget) {
+          statusLineTarget.textContent = hasOwnedPack
+            ? ('Opening owned ' + ownedPackLabel(ownedPack) + '...')
+            : 'Cracking a fresh pack...';
+        }
+      }
+
+      const refreshPromise = shouldRefreshReel
+        ? refreshPoolForPackOpen(false, requestedTheme).catch(function () { return false; })
+        : Promise.resolve(false);
+
+      await Promise.all([
+        refreshPromise,
+        new Promise(function (resolve) { setTimeout(resolve, 120); })
+      ]);
+      const openPool = getPackPool(packThemeForOpen);
+      if (dataSourceLabel.indexOf('TMDB') !== -1) {
+        const freshCandidatesAvailable = countFreshFilmCandidates(openPool);
+        if (freshCandidatesAvailable < filmSlotsForCurrentTheme(packThemeForOpen)) {
+          await refreshPoolForPackOpen(true, requestedTheme).catch(function () { return false; });
+        }
+      }
+      if (openPool.length < PACK_SIZE && !hasOwnedPack) resolvePackTheme(false);
+      updatePackMeta();
+      const draftedPack = await buildDraftPack(getPackPool(packThemeForOpen), {
+        themeKey: packThemeForOpen,
+        forceRewardBehavior: ownedGoldBoost || forceRewardOpen
+      });
+
+      if (hasOwnedPack && openOptions.consumeOwnedPack && Array.isArray(draftedPack) && draftedPack.length) {
+        const consumed = removeOwnedPackById(ownedPack.id);
+        if (consumed) {
+          saveProgress();
+          updatePackMeta();
+          if (shopPage && shopPage.classList.contains('active')) {
+            renderShop();
+          }
+        }
+      }
+
+      if (currentPack) {
+        currentPack.classList.remove('is-loading');
+        applyPackCueToElement(currentPack, draftedPack);
+        currentPack.classList.add('opening');
+        currentPack.classList.add('is-shuffling');
+      }
+
+      await new Promise(function (resolve) { setTimeout(resolve, 860); });
+
+      await finalizePackOpen(draftedPack, {
+        revealCarousel: revealCarousel
+      });
+      openedSuccessfully = true;
+    } catch (error) {
+      console.error('[filmTCG] openPack failed', error);
+      artworkStatus = 'Pack opening hit a network hiccup. Tap to try again.';
+      showToast('Pack opening stalled. Try again.');
+      updatePackMeta();
+      if (revealCarousel) {
+        backToPacks();
+      } else if (shopPage && shopPage.classList.contains('active')) {
+        renderShop();
+      }
     } finally {
+      if (!openedSuccessfully && currentPack) {
+        currentPack.classList.remove('is-loading');
+        currentPack.classList.remove('opening');
+        currentPack.classList.remove('is-shuffling');
+      }
       isOpeningPack = false;
     }
+    return openedSuccessfully;
   }
 
-  async function finalizePackOpen(draftedPack) {
+  async function finalizePackOpen(draftedPack, options) {
+    const finalizeOptions = options || {};
+    const revealCarousel = finalizeOptions.revealCarousel !== false;
     const pool = getPackPool();
     if (!pool.length && !(draftedPack && draftedPack.length)) {
       artworkStatus = 'No cards available for that pack theme yet.';
       resolvePackTheme(true);
       updatePackMeta();
-      backToPacks();
+      if (revealCarousel) {
+        backToPacks();
+      }
       return;
     }
 
-    pack = Array.isArray(draftedPack) && draftedPack.length ? draftedPack.slice() : await buildDraftPack(pool);
-    if (pack.some(function (card) { return card && card.cardType === 'person'; })) {
-      pack = await Promise.all(pack.map(function (card) {
+    let resolvedPack = Array.isArray(draftedPack) && draftedPack.length ? draftedPack.slice() : await buildDraftPack(pool);
+    if (resolvedPack.some(function (card) { return card && card.cardType === 'person'; })) {
+      resolvedPack = await Promise.all(resolvedPack.map(function (card) {
         return hydratePersonCardKnownFor(card);
       }));
     }
     const collectionKeysBefore = new Set(collection.map(cardKey).filter(Boolean));
-    applyDailyHuntsFromPack(pack, collectionKeysBefore);
+    applyDailyHuntsFromPack(resolvedPack, collectionKeysBefore);
     const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
-    pack.forEach(function (card) {
+    resolvedPack.forEach(function (card) {
       collection.unshift(card);
       const cardKey = filmIdentityKey(card);
       if (cardKey) activeReelSeenTitles.add(cardKey);
@@ -6595,7 +6859,7 @@ button, a, select { font: inherit; }
       progress.featuredRewardTheme = null;
       progress.featuredRewardThemes = [];
       progress.allPacksCinemaStreak = 0;
-      artworkStatus = pack.some(function (card) { return card.cardType === 'person'; })
+      artworkStatus = resolvedPack.some(function (card) { return card.cardType === 'person'; })
         ? 'Reward pack cracked. Premium pull plus a people insert delivered.'
         : 'Reward pack cracked. Premium pull delivered.';
       activeRewardSelection = null;
@@ -6612,15 +6876,23 @@ button, a, select { font: inherit; }
         progress.rewardChoicesAvailable += 1;
         ensureFeaturedRewardThemes(true);
         artworkStatus = 'Reward choice unlocked. Pick one of two featured packs.';
-      } else if (pack.some(function (card) { return card.cardType === 'person'; })) {
+      } else if (resolvedPack.some(function (card) { return card.cardType === 'person'; })) {
         artworkStatus = 'People insert found in the sixth slot.';
       }
     }
 
-    rememberPulledTitles(pack);
+    rememberPulledTitles(resolvedPack);
     saveCollection();
     saveProgress();
-    pack = sortPackForReveal(pack);
+    updatePackMeta();
+    if (collectionPage && collectionPage.classList.contains('active')) {
+      renderCollection();
+    }
+    if (shopPage && shopPage.classList.contains('active')) {
+      renderShop();
+    }
+    if (!revealCarousel) return;
+    pack = sortPackForReveal(resolvedPack);
     index = 0;
     renderCarousel();
   }
