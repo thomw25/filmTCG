@@ -713,6 +713,33 @@ button, a, select { font: inherit; }
   color: var(--pack-ink, #f8fafc);
 }
 
+.pack.has-custom-art {
+  background: transparent;
+}
+
+.pack-art-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  display: grid;
+  place-items: center;
+}
+
+.pack-shape-art,
+.pack-title-art {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(var(--pack-art-scale, 1.44));
+  transform-origin: center center;
+}
+
+.pack-title-art {
+  z-index: 1;
+}
+
 .pack.opening { animation: none; }
 .pack.is-shuffling {
   animation: packBurst 860ms cubic-bezier(.18,.88,.24,1) forwards;
@@ -841,6 +868,22 @@ button, a, select { font: inherit; }
   inset: 0;
   z-index: 2;
   opacity: 0;
+}
+
+.pack.has-custom-art .pack-top-seal,
+.pack.has-custom-art .pack-spine {
+  opacity: 0;
+}
+
+.pack.has-custom-art .pack-title,
+.pack.has-custom-art .pack-sub,
+.pack.has-custom-art .pack-tier,
+.pack.has-custom-art .pack-card-count {
+  display: none;
+}
+
+.pack.has-custom-art::after {
+  display: none;
 }
 
 .pack.is-gold .pack-twinkle {
@@ -3236,7 +3279,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-18</div>
+  <div class="sub">Build: packs-people-tier-19</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3572,6 +3615,53 @@ button, a, select { font: inherit; }
       foilShadow: 'rgba(88,46,7,.24)'
     }
   };
+  const PACK_ART_ASSETS = {
+    all: {
+      shape: 'design/pack-v2/shape/pack_All-cinema_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_All-Cinema_title.svg.svg',
+      scale: 1.44
+    },
+    horror: {
+      shape: 'design/pack-v2/shape/pack_horror_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_horror_title.svg.svg',
+      scale: 1.44
+    },
+    animation: {
+      shape: 'design/pack-v2/shape/pack_animation_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_animation_title.svg.svg',
+      scale: 1.44
+    },
+    eighties: {
+      shape: 'design/pack-v2/shape/pack_80s_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_80s_title.svg.svg',
+      scale: 1.44
+    },
+    noir: {
+      shape: 'design/pack-v2/shape/pack_noir_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_noir_title.svg.svg',
+      scale: 1.44
+    },
+    romcom: {
+      shape: 'design/pack-v2/shape/pack_romcom_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_romcom_title.svg.svg',
+      scale: 1.44
+    },
+    docs: {
+      shape: 'design/pack-v2/shape/pack_doc_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_doc_title.svg.svg',
+      scale: 1.44
+    },
+    actors: {
+      shape: 'design/pack-v2/shape/pack_actors_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_actors_title.svg.svg',
+      scale: 1.44
+    },
+    gold: {
+      shape: 'design/pack-v2/shape/pack_gold_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_gold_title.svg.svg',
+      scale: 1.44
+    }
+  };
   const FEMALE_DIRECTOR_NAMES = {
     'celine sciamma': true,
     'claire denis': true,
@@ -3587,7 +3677,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-40';
+  const BUILD_ID = 'logic-sync-41';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -6280,6 +6370,10 @@ button, a, select { font: inherit; }
 
   function buildPackFaceMarkup(themeKey, options) {
     const theme = PACK_THEMES[themeKey] || PACK_THEMES.all;
+    const artConfig = PACK_ART_ASSETS[themeKey] || null;
+    const hasCustomArt = Boolean(artConfig && artConfig.shape && artConfig.title);
+    const shapeAsset = hasCustomArt ? encodeURI(String(artConfig.shape)) : '';
+    const titleAsset = hasCustomArt ? encodeURI(String(artConfig.title)) : '';
     const style = '--pack-a:' + theme.colors[0]
       + '; --pack-b:' + theme.colors[1]
       + '; --pack-c:' + theme.colors[2]
@@ -6298,12 +6392,14 @@ button, a, select { font: inherit; }
       + '; --pack-tier-ink:' + (theme.tierInk || 'rgba(255,255,255,.84)')
       + '; --pack-tier-bg:' + (theme.tierBg || 'rgba(8,10,15,.32)')
       + '; --pack-tier-border:' + (theme.tierBorder || 'rgba(255,255,255,.16)')
-      + '; --pack-cta-ink:' + (theme.ctaInk || 'rgba(255,255,255,.84)');
+      + '; --pack-cta-ink:' + (theme.ctaInk || 'rgba(255,255,255,.84)')
+      + '; --pack-art-scale:' + (artConfig && artConfig.scale ? String(artConfig.scale) : '1.44');
     const config = options || {};
     const packTextureClass = themeKey === 'gold'
       ? ' is-gold'
       : (themeKey !== 'all' ? ' is-featured' : '');
-    const classes = 'pack' + packTextureClass + (config.extraClasses ? ' ' + config.extraClasses : '');
+    const customArtClass = hasCustomArt ? ' has-custom-art' : '';
+    const classes = 'pack' + packTextureClass + customArtClass + (config.extraClasses ? ' ' + config.extraClasses : '');
     let attrs = ' class="' + escapeHtml(classes) + '"';
     if (config.id) attrs += ' id="' + escapeHtml(config.id) + '"';
     if (config.disabled) attrs += ' aria-disabled="true"';
@@ -6311,6 +6407,12 @@ button, a, select { font: inherit; }
     attrs += ' aria-label="' + escapeHtml(theme.label) + '"';
     attrs += ' style="' + escapeHtml(style) + '"';
     return '<div' + attrs + '>'
+      + (hasCustomArt
+        ? '<div class="pack-art-wrap">'
+          + '<img class="pack-shape-art" src="' + escapeHtml(shapeAsset) + '" alt="" aria-hidden="true"' + cardImageAttrs('high') + '>'
+          + '<img class="pack-title-art" src="' + escapeHtml(titleAsset) + '" alt="" aria-hidden="true"' + cardImageAttrs('high') + '>'
+          + '</div>'
+        : '')
       + '<div class="pack-foil"></div>'
       + '<div class="pack-tear-line"></div>'
       + '<div class="pack-top-seal"></div>'
