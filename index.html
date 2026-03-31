@@ -715,10 +715,11 @@ button, a, select { font: inherit; }
 
 .pack.has-custom-art {
   background: transparent;
-  border: none;
-  border-radius: 0;
-  -webkit-clip-path: none;
-  clip-path: none;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 20px;
+  overflow: hidden;
+  -webkit-clip-path: inset(0 round 20px);
+  clip-path: inset(0 round 20px);
 }
 
 .pack-art-wrap {
@@ -735,10 +736,62 @@ button, a, select { font: inherit; }
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transform: scale(var(--pack-art-scale, 1.03));
+  transform: scale(var(--pack-art-scale, 1.44));
   transform-origin: center center;
   z-index: 0;
   filter: saturate(1.02) contrast(1.03);
+}
+
+.pack-title-art {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(var(--pack-title-art-scale, var(--pack-art-scale, 1.44)));
+  transform-origin: center center;
+  z-index: 1;
+}
+
+.pack.has-custom-art.has-title-art .pack-title {
+  visibility: hidden;
+}
+
+.pack.has-custom-art .pack-foil {
+  inset: 0;
+  opacity: 0.42;
+}
+
+.pack.has-custom-art .pack-glint {
+  top: -26px;
+  right: -24px;
+  width: 120px;
+  height: 290px;
+  opacity: 0.16;
+  filter: blur(1.2px);
+}
+
+.pack.has-custom-art .pack-glow {
+  opacity: 0.48;
+  filter: blur(12px);
+}
+
+.pack.has-custom-art .pack-grain {
+  opacity: 0.2;
+}
+
+.shop-pack-preview .pack .pack-glow,
+.shop-reward-option .pack .pack-glow {
+  opacity: 0.24;
+}
+
+.shop-pack-preview .pack .pack-glint,
+.shop-reward-option .pack .pack-glint {
+  opacity: 0.12;
+}
+
+.shop-pack-preview .pack .pack-foil,
+.shop-reward-option .pack .pack-foil {
+  opacity: 0.3;
 }
 
 .pack.opening { animation: none; }
@@ -3610,15 +3663,60 @@ button, a, select { font: inherit; }
     }
   };
   const PACK_ART_ASSETS = {
-    all: { scale: 1.03 },
-    horror: { scale: 1.03 },
-    animation: { scale: 1.03 },
-    eighties: { scale: 1.03 },
-    noir: { scale: 1.03 },
-    romcom: { scale: 1.03 },
-    docs: { scale: 1.03 },
-    actors: { scale: 1.03 },
-    gold: { scale: 1.03 }
+    all: {
+      shape: 'design/pack-v2/shape/pack_All-cinema_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_All-Cinema_title.svg.svg',
+      scale: 1.44,
+      titleScale: 1.44
+    },
+    horror: {
+      shape: 'design/pack-v2/shape/pack_horror_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_horror_title.svg.svg',
+      scale: 1.44,
+      titleScale: 1.44
+    },
+    animation: {
+      shape: 'design/pack-v2/shape/pack_animation_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_animation_title.svg.svg',
+      scale: 1.44,
+      titleScale: 1.44
+    },
+    eighties: {
+      shape: 'design/pack-v2/shape/pack_80s_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_80s_title.svg.svg',
+      scale: 1.44,
+      titleScale: 1.44
+    },
+    noir: {
+      shape: 'design/pack-v2/shape/pack_noir_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_noir_title.svg.svg',
+      scale: 1.44,
+      titleScale: 1.44
+    },
+    romcom: {
+      shape: 'design/pack-v2/shape/pack_romcom_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_romcom_title.svg.svg',
+      scale: 1.44,
+      titleScale: 1.44
+    },
+    docs: {
+      shape: 'design/pack-v2/shape/pack_doc_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_doc_title.svg.svg',
+      scale: 1.44,
+      titleScale: 1.44
+    },
+    actors: {
+      shape: 'design/pack-v2/shape/pack_actors_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_actors_title.svg.svg',
+      scale: 1.44,
+      titleScale: 1.44
+    },
+    gold: {
+      shape: 'design/pack-v2/shape/pack_gold_shape.svg.svg',
+      title: 'design/pack-v2/title/pack_gold_title.svg.svg',
+      scale: 1.44,
+      titleScale: 1.44
+    }
   };
   const PACK_SHAPE_TONES = {
     all: { top: '#BBD0FF', bottom: '#8F86E9', lineTop: '#605ABF', lineBottom: '#605ABF' },
@@ -3647,7 +3745,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-43';
+  const BUILD_ID = 'logic-sync-44';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -6360,7 +6458,7 @@ button, a, select { font: inherit; }
     }).concat(bottomYs.map(function (y) {
       return '<line x1="58.7554" y1="' + y + '" x2="298.582" y2="' + y + '" stroke="' + lineBottom + '" stroke-width="1.08192"/>';
     })).join('');
-    const svg = '<svg width="356" height="518" viewBox="0 0 356 518" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    const svg = '<svg width="245" height="382" viewBox="56 68 245 382" fill="none" xmlns="http://www.w3.org/2000/svg">'
       + '<path d="M296.939 68C299.101 68.0003 300.778 69.8909 300.519 72.0381L298.482 88.917V433.652L300.361 445.76C300.7 447.946 299.009 449.919 296.797 449.919H59.4768C57.3141 449.919 55.6378 448.028 55.8967 445.881L57.9338 429.002V84.2656L56.0549 72.1592C55.7159 69.9733 57.4064 68.0001 59.6184 68H296.939Z" fill="url(#packShapeGrad)"/>'
       + lines
       + '<defs><linearGradient id="packShapeGrad" x1="177.847" y1="68" x2="177.847" y2="449.919" gradientUnits="userSpaceOnUse"><stop stop-color="' + topStop + '"/><stop offset="1" stop-color="' + bottomStop + '"/></linearGradient></defs>'
@@ -6371,14 +6469,25 @@ button, a, select { font: inherit; }
   }
 
   function resolvePackShapeAsset(themeKey) {
+    const config = PACK_ART_ASSETS[themeKey] || PACK_ART_ASSETS.all || null;
+    if (config && config.shape) return config.shape;
     return buildPackShapeData(themeKey);
+  }
+
+  function resolvePackTitleAsset(themeKey) {
+    const config = PACK_ART_ASSETS[themeKey] || PACK_ART_ASSETS.all || null;
+    if (config && config.title) return config.title;
+    return '';
   }
 
   function buildPackFaceMarkup(themeKey, options) {
     const theme = PACK_THEMES[themeKey] || PACK_THEMES.all;
     const artConfig = PACK_ART_ASSETS[themeKey] || null;
     const shapeAsset = normalizeAssetSrc(resolvePackShapeAsset(themeKey));
+    const fallbackShapeAsset = normalizeAssetSrc(buildPackShapeData(themeKey));
+    const titleAsset = normalizeAssetSrc(resolvePackTitleAsset(themeKey));
     const hasCustomArt = Boolean(shapeAsset);
+    const hasTitleArt = Boolean(titleAsset);
     const style = '--pack-a:' + theme.colors[0]
       + '; --pack-b:' + theme.colors[1]
       + '; --pack-c:' + theme.colors[2]
@@ -6398,7 +6507,8 @@ button, a, select { font: inherit; }
       + '; --pack-tier-bg:' + (theme.tierBg || 'rgba(8,10,15,.32)')
       + '; --pack-tier-border:' + (theme.tierBorder || 'rgba(255,255,255,.16)')
       + '; --pack-cta-ink:' + (theme.ctaInk || 'rgba(255,255,255,.84)')
-      + '; --pack-art-scale:' + (artConfig && artConfig.scale ? String(artConfig.scale) : '1.03');
+      + '; --pack-art-scale:' + (artConfig && artConfig.scale ? String(artConfig.scale) : '1.44')
+      + '; --pack-title-art-scale:' + (artConfig && artConfig.titleScale ? String(artConfig.titleScale) : (artConfig && artConfig.scale ? String(artConfig.scale) : '1.44'));
     const config = options || {};
     const packTextureClass = themeKey === 'gold'
       ? ' is-gold'
@@ -6414,7 +6524,10 @@ button, a, select { font: inherit; }
     return '<div' + attrs + '>'
       + (hasCustomArt
         ? '<div class="pack-art-wrap">'
-          + '<img class="pack-shape-art" src="' + escapeHtml(shapeAsset) + '" alt="" aria-hidden="true" onerror="this.remove();"' + cardImageAttrs('high') + '>'
+          + '<img class="pack-shape-art" src="' + escapeHtml(shapeAsset) + '" data-fallback-src="' + escapeHtml(fallbackShapeAsset) + '" alt="" aria-hidden="true" onerror="if(this.dataset.fallbackSrc&&this.src!==this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}else{this.remove();}"' + cardImageAttrs('high') + '>'
+          + (hasTitleArt
+            ? '<img class="pack-title-art" src="' + escapeHtml(titleAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-title-art\');}" onerror="this.remove();"' + cardImageAttrs('high') + '>'
+            : '')
           + '</div>'
         : '')
       + '<div class="pack-foil"></div>'
