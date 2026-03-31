@@ -13,8 +13,8 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const LOGIC_VERSION = 'logic-2026-03-31-3';
-const POOL_SNAPSHOT_VERSION = 'server-rotation-21';
+const LOGIC_VERSION = 'logic-2026-03-31-7';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-24';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -146,6 +146,7 @@ const AUTEUR_DIRECTOR_NAMES = {
   'celine sciamma': true,
   'charles burnett': true,
   'chantal akerman': true,
+  'christopher nolan': true,
   'claire denis': true,
   'david cronenberg': true,
   'david fincher': true,
@@ -286,6 +287,10 @@ const TITLE_RARITY_FLOORS = {
   'the favourite': 'Epic',
   'the 400 blows': 'Epic',
   'the battle of algiers': 'Epic',
+  'the florida project': 'Epic',
+  'florida project': 'Epic',
+  'the blair witch project': 'Select',
+  'blair witch': 'Select',
   'the birds': 'Epic',
   'the color of pomegranates': 'Epic',
   'the french connection': 'Select',
@@ -881,6 +886,7 @@ function normalizePersonCandidate(configuration, person, roleConfig, sourceMovie
     name: person.name,
     profile: buildImageUrl(configuration, person.profile_path, 'profile'),
     popularity: Number(person.popularity) || 0,
+    castOrder: Number.isFinite(Number(person.order)) ? Number(person.order) : null,
     gender: person.gender != null ? Number(person.gender) : null,
     character: person.character || '',
     department: person.known_for_department || person.department || '',
@@ -896,12 +902,32 @@ function buildPeopleCandidatesForMovie(configuration, movieId, credits) {
   const candidates = [];
   const cast = Array.isArray(credits && credits.cast) ? credits.cast : [];
   const crew = Array.isArray(credits && credits.crew) ? credits.crew : [];
-
-  cast.filter(function (member) {
+  const sortedCast = cast.filter(function (member) {
     return member && member.id && member.name && member.profile_path;
   }).sort(function (a, b) {
     return (Number(a.order) || 999) - (Number(b.order) || 999);
-  }).slice(0, 5).forEach(function (actor) {
+  });
+  const leadCast = sortedCast.filter(function (member) {
+    const order = Number(member && member.order);
+    return Number.isFinite(order) && order >= 0 && order <= 4;
+  }).slice(0, 3);
+  const midCast = shuffledCopy(sortedCast.filter(function (member) {
+    const order = Number(member && member.order);
+    return Number.isFinite(order) && order >= 5 && order <= 16;
+  })).slice(0, 4);
+  const deepCast = shuffledCopy(sortedCast.filter(function (member) {
+    const order = Number(member && member.order);
+    return Number.isFinite(order) && order >= 17 && order <= 36;
+  })).slice(0, 3);
+  const actorCandidates = leadCast
+    .concat(midCast)
+    .concat(deepCast)
+    .concat(sortedCast.slice(0, 8));
+  const seenActorIds = new Set();
+  actorCandidates.forEach(function (actor) {
+    const actorId = Number(actor && actor.id) || 0;
+    if (!actorId || seenActorIds.has(actorId)) return;
+    seenActorIds.add(actorId);
     const candidate = normalizePersonCandidate(configuration, actor, {
       key: 'actor',
       type: 'actor',
@@ -958,16 +984,45 @@ async function getMoviePeople(movieIds) {
     });
   }
 
-  const candidates = Array.from(byPerson.values()).sort(function (a, b) {
-    return (Number(b.popularity) || 0) - (Number(a.popularity) || 0);
-  }).slice(0, 18);
+  const candidates = shuffledCopy(Array.from(byPerson.values())).map(function (candidate) {
+    const popularity = Number(candidate && candidate.popularity) || 0;
+    const castOrder = Number(candidate && candidate.castOrder);
+    const actorBoost = candidate && candidate.roleKey === 'actor' ? 420 : 280;
+    const billingBonus = candidate && candidate.roleKey === 'actor'
+      ? (Number.isFinite(castOrder)
+        ? (castOrder >= 5 && castOrder <= 18
+          ? 320
+          : (castOrder >= 19 && castOrder <= 42 ? 230 : (castOrder >= 0 && castOrder <= 4 ? 150 : 100)))
+        : 90)
+      : 0;
+    const midBandBoost = popularity >= 4 && popularity <= 22 ? 320 : (popularity <= 30 ? 120 : 0);
+    const nicheBoost = popularity >= 2 && popularity < 8 ? 120 : 0;
+    const mainstreamPenalty = popularity >= 26 ? (Math.pow(popularity - 26, 1.22) * 38) : 0;
+    const megastarPenalty = popularity >= 42 ? ((popularity - 42) * 120) : 0;
+    const seedScore = actorBoost
+      + billingBonus
+      + (Math.min(30, popularity) * 42)
+      + midBandBoost
+      + nicheBoost
+      - mainstreamPenalty
+      - megastarPenalty
+      + (Math.random() * 110);
+    return { candidate: candidate, seedScore: seedScore };
+  }).sort(function (a, b) {
+    return b.seedScore - a.seedScore;
+  }).slice(0, 34).map(function (entry) {
+    return entry.candidate;
+  });
 
   if (!candidates.length) return [];
 
   const enriched = await mapWithConcurrency(candidates, 3, async function (candidate) {
     try {
       const knownFor = await getPersonKnownFor(candidate.personId, candidate.roleKey, candidate.name);
-      return Object.assign({}, candidate, knownFor);
+      const knownForPopularity = Number(knownFor && knownFor.knownForPopularity) || 0;
+      return Object.assign({}, candidate, knownFor, {
+        popularity: Math.max(Number(candidate && candidate.popularity) || 0, knownForPopularity)
+      });
     } catch (error) {
       return candidate;
     }
@@ -982,8 +1037,18 @@ async function getMoviePeople(movieIds) {
     const bDepth = Number(b && b.knownForDepth) || 0;
     const aPopularity = Number(a && a.popularity) || 0;
     const bPopularity = Number(b && b.popularity) || 0;
-    return ((bTitles * 100) + (bPeak * 20) + (bDepth * 4) + bPopularity)
-      - ((aTitles * 100) + (aPeak * 20) + (aDepth * 4) + aPopularity);
+    const aOrder = Number(a && a.castOrder);
+    const bOrder = Number(b && b.castOrder);
+    const aCharacterLaneBonus = (a && a.roleKey === 'actor' && Number.isFinite(aOrder))
+      ? (aOrder >= 5 && aOrder <= 20 ? 85 : (aOrder >= 21 && aOrder <= 42 ? 55 : 0))
+      : 0;
+    const bCharacterLaneBonus = (b && b.roleKey === 'actor' && Number.isFinite(bOrder))
+      ? (bOrder >= 5 && bOrder <= 20 ? 85 : (bOrder >= 21 && bOrder <= 42 ? 55 : 0))
+      : 0;
+    const aPopScore = Math.min(26, aPopularity) - (aPopularity > 30 ? (aPopularity - 30) * 2.2 : 0);
+    const bPopScore = Math.min(26, bPopularity) - (bPopularity > 30 ? (bPopularity - 30) * 2.2 : 0);
+    return ((bTitles * 110) + (bPeak * 38) + (bDepth * 22) + bPopScore + bCharacterLaneBonus)
+      - ((aTitles * 110) + (aPeak * 38) + (aDepth * 22) + aPopScore + aCharacterLaneBonus);
   });
 }
 
@@ -1057,6 +1122,7 @@ async function searchPersonKnownFor(personId, nameQuery, roleKey) {
       return titleKey(person && person.name) === titleKey(query);
     }) || results[0];
     const knownFor = Array.isArray(exact && exact.known_for) ? exact.known_for : [];
+    const popularityHint = Number(exact && exact.popularity) || 0;
     const entries = knownFor.filter(function (item) {
       if (!item || !item.title) return false;
       if (item.media_type && item.media_type !== 'movie') return false;
@@ -1067,7 +1133,8 @@ async function searchPersonKnownFor(personId, nameQuery, roleKey) {
     return entries.slice(0, 6).map(function (movie, index) {
       return Object.assign({}, movie, {
         __knownForSourceBoost: 1,
-        __knownForSearchIndex: index
+        __knownForSearchIndex: index,
+        __personPopularityHint: popularityHint
       });
     });
   } catch (error) {
@@ -1090,7 +1157,8 @@ function buildKnownForMovieRecord(movie, roleKey) {
     genre: movie.genre || '',
     department: roleKey === 'director' ? 'Directing' : 'Acting',
     sourceBoost: Number(movie.__knownForSourceBoost) || 0,
-    searchIndex: Number(movie.__knownForSearchIndex) || 0
+    searchIndex: Number(movie.__knownForSearchIndex) || 0,
+    personPopularityHint: Number(movie.__personPopularityHint) || 0
   };
 }
 
@@ -1179,11 +1247,15 @@ function summarizeKnownForEntries(entries, roleKey) {
   const source = preferred.length >= 3
     ? preferred
     : (highSignal.length >= 3 ? highSignal : ranked);
+  const popularityHint = normalized.reduce(function (maxValue, movie) {
+    return Math.max(maxValue, Number(movie && movie.personPopularityHint) || 0);
+  }, 0);
 
   return {
     knownForTitles: source.slice(0, 3).map(function (movie) { return movie.title; }),
     knownForPeakRank: ranked.length ? rarityRank(ranked[0].rarity) : 0,
-    knownForDepth: ranked.filter(function (movie) { return rarityRank(movie.rarity) >= 2; }).length
+    knownForDepth: ranked.filter(function (movie) { return rarityRank(movie.rarity) >= 2; }).length,
+    knownForPopularity: popularityHint
   };
 }
 
@@ -1193,7 +1265,7 @@ function summarizeKnownForMovies(credits, roleKey) {
 
 async function getPersonKnownFor(personId, roleKey, nameQuery) {
   if (!personId) {
-    return { knownForTitles: [], knownForPeakRank: 0, knownForDepth: 0 };
+    return { knownForTitles: [], knownForPeakRank: 0, knownForDepth: 0, knownForPopularity: 0 };
   }
 
   const settled = await Promise.allSettled([
@@ -1378,7 +1450,8 @@ function computeMovieSignals(movie) {
   const recognizableMidCatalogProxy = year >= 1970 && year <= 2015 && voteCount >= 140 && popularity >= 5 && (recognition >= 2 || respect >= 1 || cult >= 1);
   const cultThrillerMysteryProxy = year >= 1975 && year <= 2005 && movieHasGenreId(movie, [53, 9648, 80, 27]) && voteCount >= 80 && (cult >= 2 || (respect >= 2 && popularity >= 5));
   const crowdMemoryComedyRomanceProxy = year >= 1975 && year <= 2015 && movieHasGenreId(movie, [35, 10749]) && voteCount >= 450 && popularity >= 8;
-  const horrorFranchiseStapleProxy = year >= 1970 && year <= 2015 && movieHasGenreId(movie, [27, 53]) && voteCount >= 300 && popularity >= 8;
+  const horrorFranchiseStapleProxy = year >= 1970 && year <= 2022 && movieHasGenreId(movie, [27, 53]) && voteCount >= 300 && popularity >= 8;
+  const modernHorrorRecognitionProxy = year >= 1990 && year <= 2022 && isHorrorThrillerLane && voteCount >= 280 && popularity >= 9 && (recognition >= 2 || cult >= 1 || respect >= 1);
   const concertFandomDocProxy = isMusicDocumentary && popularity >= 10 && canon < 2 && respect < 5;
   const lowSignalObscurityProxy = voteCount < 90 && popularity < 7 && recognition < 3 && canon < 2;
   const microObscureOverperformerProxy = voteAverage >= 7.7 && voteCount < 50 && popularity < 5 && canon < 2;
@@ -1408,6 +1481,7 @@ function computeMovieSignals(movie) {
     || recognizableMidCatalogProxy
     || crowdMemoryComedyRomanceProxy
     || horrorFranchiseStapleProxy
+    || modernHorrorRecognitionProxy
     || auteurPromotionProxy
     || underappreciatedBlackDirectorProxy
   );
@@ -1452,6 +1526,7 @@ function computeMovieSignals(movie) {
     cultThrillerMysteryProxy: cultThrillerMysteryProxy,
     crowdMemoryComedyRomanceProxy: crowdMemoryComedyRomanceProxy,
     horrorFranchiseStapleProxy: horrorFranchiseStapleProxy,
+    modernHorrorRecognitionProxy: modernHorrorRecognitionProxy,
     underappreciatedBlackDirectorProxy: underappreciatedBlackDirectorProxy,
     concertFandomDocProxy: concertFandomDocProxy,
     lowSignalObscurityProxy: lowSignalObscurityProxy,
@@ -1501,6 +1576,7 @@ function computePoolSelectionScore(movie) {
   if (signals.mainstreamRecognitionProxy || signals.belovedStudioClassicProxy) score += 4;
   if (signals.recognizableMidCatalogProxy) score += 3;
   if (signals.acclaimedModernGenreProxy || signals.modernAuteurLandmarkProxy) score += 3;
+  if (signals.modernHorrorRecognitionProxy) score += 3;
   if (signals.auteurBaselineProxy) score += 2;
   if (signals.auteurPromotionProxy) score += 2;
   if (signals.underappreciatedBlackDirectorProxy) score += 2;
@@ -1558,6 +1634,7 @@ function computeRarityScore(movie) {
   if (signals.cultThrillerMysteryProxy) bonus += 4;
   if (signals.crowdMemoryComedyRomanceProxy) bonus += 3;
   if (signals.horrorFranchiseStapleProxy) bonus += 3;
+  if (signals.modernHorrorRecognitionProxy) bonus += 3;
   if (signals.underappreciatedBlackDirectorProxy) bonus += 3;
   if (signals.titlePromotion) bonus += 5;
 
@@ -1814,6 +1891,10 @@ function rarityFloorForMovie(movie) {
   }
 
   if (signals.horrorFranchiseStapleProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
+  if (signals.modernHorrorRecognitionProxy) {
     floor = maxRarity(floor, 'Select');
   }
 

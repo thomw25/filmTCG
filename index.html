@@ -3236,7 +3236,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-17</div>
+  <div class="sub">Build: packs-people-tier-18</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3587,7 +3587,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-39';
+  const BUILD_ID = 'logic-sync-40';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -5775,6 +5775,8 @@ button, a, select { font: inherit; }
     if (isActor && knownForPeakRank >= 3 && knownForDepth >= 2) respect += 1;
     if (isActor && knownForPeakRank >= 2 && knownForDepth >= 4) respect += 1;
     if (isActor && knownForPeakRank >= 2 && popularity >= 22) respect += 1;
+    if (isActor && popularity >= 26) respect += 1;
+    if (isActor && popularity >= 42) respect += 1;
 
     let cult = 0;
     if (popularity >= 8 && popularity <= 30 && referenceRank >= 2) cult += 1;
@@ -5894,6 +5896,8 @@ button, a, select { font: inherit; }
       || (signals.isActor && signals.knownForPeakRank >= 2 && signals.knownForDepth >= 4)
       || (signals.isActor && signals.knownForPeakRank >= 2 && signals.knownForDepth >= 2 && signals.popularity >= 16)
       || (signals.isActor && signals.knownForPeakRank >= 2 && signals.popularity >= 22)
+      || (signals.isActor && signals.popularity >= 24 && signals.recognition >= 2)
+      || (signals.isActor && signals.popularity >= 30)
       || (signals.isActor && signals.popularity >= 40)
       || signals.floorRank >= 3
     ) {
@@ -5909,6 +5913,8 @@ button, a, select { font: inherit; }
       || (!signals.isDirector && signals.iconicStarProxy && signals.knownForPeakRank >= 3 && signals.knownForDepth >= 3 && signals.popularity >= 34)
       || (signals.isDirector && signals.recognition >= 3 && signals.respect >= 3)
       || (signals.isActor && signals.iconicStarProxy && signals.knownForPeakRank >= 3 && signals.knownForDepth >= 3 && signals.popularity >= 34)
+      || (signals.isActor && signals.popularity >= 46 && signals.knownForPeakRank >= 3)
+      || (signals.isActor && signals.popularity >= 58 && signals.referenceRank >= 2)
       || (signals.isActor && signals.popularity >= 66 && signals.knownForPeakRank >= 2)
     ) {
       rank = Math.max(rank, 4);
@@ -5963,6 +5969,7 @@ button, a, select { font: inherit; }
       sourceTitle: sourceMovie ? sourceMovie.title : null,
       sourceYear: sourceMovie ? sourceMovie.year : null,
       character: candidate.character || '',
+      castOrder: candidate.castOrder != null ? Number(candidate.castOrder) : null,
       linkUrl: candidate.linkUrl || null,
       popularity: candidate.popularity || 0
     });
@@ -5980,29 +5987,42 @@ button, a, select { font: inherit; }
       let weight = weights[candidate.roleKey] || 1;
       const popularity = Number(candidate && candidate.popularity) || 0;
       const knownForDepth = Number(candidate && candidate.knownForDepth) || 0;
+      const castOrder = Number(candidate && candidate.castOrder);
+      const sourceMovieYear = Number(candidate && candidate.sourceMovieYear) || 0;
 
       if (candidate.roleKey === 'actor') {
-        if (popularity >= 18) weight *= 0.9;
-        if (popularity >= 28) weight *= 0.76;
-        if (popularity >= 40) weight *= 0.6;
-        if (popularity >= 58) weight *= 0.44;
-        if (knownForDepth >= 2 && popularity <= 24) weight *= 1.14;
-        if (knownForDepth >= 3 && popularity <= 30) weight *= 1.1;
+        if (popularity >= 16) weight *= 0.82;
+        if (popularity >= 24) weight *= 0.62;
+        if (popularity >= 32) weight *= 0.46;
+        if (popularity >= 46) weight *= 0.3;
+        if (popularity >= 60) weight *= 0.18;
+        if (popularity >= 3 && popularity <= 14) weight *= 1.28;
+        if (knownForDepth >= 2 && popularity <= 20) weight *= 1.16;
+        if (knownForDepth >= 3 && popularity <= 28) weight *= 1.12;
+        if (Number.isFinite(castOrder)) {
+          if (castOrder >= 5 && castOrder <= 18) weight *= 1.34;
+          else if (castOrder >= 19 && castOrder <= 42) weight *= 1.16;
+          else if (castOrder >= 0 && castOrder <= 3) weight *= 0.88;
+        }
+        if (sourceMovieYear && sourceMovieYear <= 2000) weight *= 1.24;
+        else if (sourceMovieYear && sourceMovieYear <= 2010) weight *= 1.1;
       }
 
       if (themeKey === 'actors' && candidate.roleKey === 'actor') {
         const estimatedRank = rarityRank(derivePersonRarity(candidate, null));
         const actorPackBias = ({
-          1: 1.26,
-          2: 1.42,
-          3: 0.86,
-          4: 0.34
+          1: 1.44,
+          2: 1.34,
+          3: 0.72,
+          4: 0.22
         })[estimatedRank] || 1;
         weight *= actorPackBias;
-        if (popularity >= 24) weight *= 0.78;
-        if (popularity >= 36) weight *= 0.64;
-        if (popularity >= 50) weight *= 0.5;
+        if (popularity >= 20) weight *= 0.74;
+        if (popularity >= 30) weight *= 0.58;
+        if (popularity >= 40) weight *= 0.42;
+        if (popularity >= 52) weight *= 0.3;
         if (knownForDepth >= 2 && estimatedRank <= 2) weight *= 1.24;
+        if (sourceMovieYear && sourceMovieYear <= 2000) weight *= 1.22;
       }
       return {
         weight: weight,
@@ -6074,6 +6094,13 @@ button, a, select { font: inherit; }
     });
 
     let candidates = await fetchMoviePeople(validMovies.map(function (movie) { return movie.tmdbId; }));
+    candidates = (Array.isArray(candidates) ? candidates : []).map(function (candidate) {
+      const sourceMovie = sourceById[String(candidate && candidate.sourceMovieId)] || null;
+      return Object.assign({}, candidate, {
+        sourceMovieYear: Number(sourceMovie && sourceMovie.year) || 0,
+        sourceMovieRarity: normalizeRarityLabel(sourceMovie && sourceMovie.rarity)
+      });
+    });
     if (themeKey === 'actors') {
       const actorCandidates = candidates.filter(function (candidate) {
         return candidate && candidate.roleKey === 'actor';
@@ -6112,15 +6139,33 @@ button, a, select { font: inherit; }
       };
       const knownFor = seededKnownFor;
       const titleCount = Array.isArray(knownFor.knownForTitles) ? knownFor.knownForTitles.length : 0;
-      let candidateScore = (titleCount * 100) + ((Number(knownFor.knownForPeakRank) || 0) * 10) + (Number(knownFor.knownForDepth) || 0) + Math.round(Number(picked.popularity) || 0);
+      const popularity = Number(picked && picked.popularity) || 0;
+      const castOrder = Number(picked && picked.castOrder);
+      const sourceMovieYear = Number(picked && picked.sourceMovieYear) || 0;
+      const popularityBandBonus = popularity >= 4 && popularity <= 24 ? 18 : 0;
+      const mainstreamPenalty = popularity >= 28 ? ((popularity - 28) * 2.4) : 0;
+      const characterBonus = Number.isFinite(castOrder)
+        ? (castOrder >= 5 && castOrder <= 20 ? 24 : (castOrder >= 21 && castOrder <= 42 ? 12 : 0))
+        : 0;
+      const vintageBonus = sourceMovieYear
+        ? (sourceMovieYear <= 2000 ? 14 : (sourceMovieYear <= 2010 ? 7 : 0))
+        : 0;
+      let candidateScore = (titleCount * 130)
+        + ((Number(knownFor.knownForPeakRank) || 0) * 34)
+        + ((Number(knownFor.knownForDepth) || 0) * 22)
+        + Math.min(24, popularity)
+        + popularityBandBonus
+        + characterBonus
+        + vintageBonus
+        - mainstreamPenalty;
       if (themeKey === 'actors' && picked.roleKey === 'actor') {
         const estimatedRank = rarityRank(derivePersonRarity(Object.assign({}, picked, knownFor), null));
         const existingHighTierCount = existingCards.filter(function (card) {
           return card && card.cardType === 'person' && rarityRank(card.rarity) >= 3;
         }).length;
-        if (estimatedRank >= 4) candidateScore *= 0.62;
-        else if (estimatedRank >= 3) candidateScore *= 0.9;
-        if (existingHighTierCount >= 1 && estimatedRank >= 3) candidateScore *= 0.72;
+        if (estimatedRank >= 4) candidateScore *= 0.52;
+        else if (estimatedRank >= 3) candidateScore *= 0.82;
+        if (existingHighTierCount >= 1 && estimatedRank >= 3) candidateScore *= 0.66;
         if (existingHighTierCount >= 2 && estimatedRank >= 2) candidateScore *= 0.52;
       }
 
