@@ -13,8 +13,8 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const LOGIC_VERSION = 'logic-2026-03-30-10';
-const POOL_SNAPSHOT_VERSION = 'server-rotation-16';
+const LOGIC_VERSION = 'logic-2026-03-30-12';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-18';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -169,6 +169,7 @@ const TITLE_RARITY_FLOORS = {
   'grey gardens': 'Epic',
   'grave of the fireflies': 'Epic',
   'halloween': 'Epic',
+  'hereditary': 'Epic',
   'hard boiled': 'Epic',
   'his girl friday': 'Epic',
   'little shop of horrors': 'Select',
@@ -239,7 +240,11 @@ const TITLE_RARITY_FLOORS = {
   'yi yi': 'Legendary',
   'alien': 'Epic',
   'the thing': 'Epic',
-  'suspiria': 'Epic'
+  'suspiria': 'Epic',
+  'escape from l.a.': 'Select',
+  'escape from la': 'Select',
+  'julien donkey-boy': 'Select',
+  'pineapple express': 'Select'
   ,
   'the little mermaid': 'Epic',
   'little mermaid': 'Epic'
@@ -447,7 +452,12 @@ function titleRepeatPenalty(movie, repeatCounts) {
   if (!key || !repeatCounts || !repeatCounts.has(key)) return 0;
   const count = Number(repeatCounts.get(key)) || 0;
   if (count <= 0) return 0;
-  return count >= 4 ? 64 : (count >= 3 ? 46 : (count >= 2 ? 28 : 14));
+  if (count >= 6) return 340;
+  if (count >= 5) return 280;
+  if (count >= 4) return 220;
+  if (count >= 3) return 150;
+  if (count >= 2) return 95;
+  return 45;
 }
 
 function isTvMovieLike(movie) {
@@ -465,9 +475,12 @@ function computeDiversifiedPoolScore(movie, theme, repeatCounts) {
 
   score -= titleRepeatPenalty(movie, repeatCounts);
   if (repeatCounts && repeatCounts.has(movieIdentityKey(movie))) {
-    if (!signals.majorPromotionProxy) score -= 12;
-    if (signals.lowSignalObscurityProxy || signals.microObscureOverperformerProxy) score -= 16;
-    if (signals.voteCount < 240 && signals.popularity < 10) score -= 9;
+    const repeatCount = Number(repeatCounts.get(movieIdentityKey(movie))) || 0;
+    if (!signals.majorPromotionProxy) score -= 20;
+    if (signals.lowSignalObscurityProxy || signals.microObscureOverperformerProxy) score -= 28;
+    if (signals.voteCount < 240 && signals.popularity < 10) score -= 18;
+    if (repeatCount >= 3) score -= 28;
+    if (repeatCount >= 5) score -= 44;
   }
 
   if (isTvMovieLike(movie)) score -= 26;
@@ -535,7 +548,11 @@ function nextRotationIndex(limit, theme) {
 function sampleDistinctPageNumbers(count, maxPage) {
   const max = Math.max(1, Math.min(500, Number(maxPage) || 1));
   const target = Math.max(1, Math.min(Number(count) || 1, max));
-  const picked = new Set([1]);
+  const picked = new Set();
+
+  if (Math.random() < 0.28) {
+    picked.add(1);
+  }
 
   while (picked.size < target) {
     picked.add(1 + Math.floor(Math.random() * max));
@@ -974,7 +991,7 @@ async function searchPersonKnownFor(personId, nameQuery, roleKey) {
     });
     return entries.slice(0, 6).map(function (movie, index) {
       return Object.assign({}, movie, {
-        __knownForSourceBoost: 3,
+        __knownForSourceBoost: 1,
         __knownForSearchIndex: index
       });
     });
@@ -1013,7 +1030,10 @@ function getRelevantKnownForCredits(credits, roleKey) {
     });
   }
   return (Array.isArray(credits && credits.cast) ? credits.cast : []).filter(function (movie) {
-    return !isCombined || movie.media_type === 'movie';
+    if (isCombined && movie.media_type !== 'movie') return false;
+    const order = Number(movie && movie.order);
+    if (Number.isFinite(order) && order > 20) return false;
+    return true;
   });
 }
 
@@ -1043,31 +1063,47 @@ function summarizeKnownForEntries(entries, roleKey) {
     const voteAverage = Number(movie.vote_average) || 0;
     const sourceBoost = Number(movie.sourceBoost) || 0;
     const searchIndex = Number(movie.searchIndex) || 0;
-    const crowdPriority = Math.min(12000, voteCount) * 140 + Math.round(popularity * 6000);
-    const staturePriority = rarityRank(rarity) * 25000000 + score * 120000 + Math.round(voteAverage * 6000);
-    const sourcePriority = sourceBoost * 22000000 - (searchIndex * 250000);
-    const thinPenalty = voteCount < 20 && popularity < 4 && rarityRank(rarity) < 3 ? 9000000 : 0;
+    const castOrder = Number(movie && movie.order);
+    const leadBillingBonus = roleKey === 'actor' && Number.isFinite(castOrder) && castOrder >= 0 && castOrder <= 8
+      ? 700000
+      : 0;
+    const crowdPriority = Math.min(20000, voteCount) * 220 + Math.round(popularity * 9000);
+    const staturePriority = rarityRank(rarity) * 12000000 + score * 140000 + Math.round(voteAverage * 9000);
+    const sourcePriority = sourceBoost * 900000 - (searchIndex * 140000);
+    const thinPenalty = voteCount < 30 && popularity < 5 && rarityRank(rarity) < 3 ? 3500000 : 0;
 
     const priority = (
       staturePriority
       + crowdPriority
       + sourcePriority
+      + leadBillingBonus
       - thinPenalty
     );
 
     return {
       title: movie.title,
       rarity: rarity,
-      priority: priority
+      priority: priority,
+      voteCount: voteCount,
+      popularity: popularity
     };
   }).sort(function (a, b) {
     return b.priority - a.priority;
   });
 
   const preferred = ranked.filter(function (movie) {
-    return movie && (movie.priority >= 26000000 || rarityRank(movie.rarity) >= 2);
+    return movie && (movie.priority >= 14000000 || rarityRank(movie.rarity) >= 2);
   });
-  const source = preferred.length >= 3 ? preferred : ranked;
+  const highSignal = ranked.filter(function (movie) {
+    return movie && (
+      movie.voteCount >= 60
+      || movie.popularity >= 4
+      || rarityRank(movie.rarity) >= 2
+    );
+  });
+  const source = preferred.length >= 3
+    ? preferred
+    : (highSignal.length >= 3 ? highSignal : ranked);
 
   return {
     knownForTitles: source.slice(0, 3).map(function (movie) { return movie.title; }),
@@ -1252,6 +1288,7 @@ function computeMovieSignals(movie) {
   const acclaimedModernGenreProxy = year >= 1990 && isGenreLandmarkLane && recognition >= 3 && respect >= 3;
   const belovedStudioClassicProxy = year >= 1970 && year <= 2015 && voteCount >= 300 && (recognition >= 2 || popularity >= 10) && (respect >= 1 || cult >= 1);
   const catalogStapleProxy = year >= 1950 && year <= 2015 && voteCount >= 120 && popularity >= 5 && (respect >= 1 || cult >= 1);
+  const recognizableMidCatalogProxy = year >= 1970 && year <= 2015 && voteCount >= 140 && popularity >= 5 && (recognition >= 2 || respect >= 1 || cult >= 1);
   const cultThrillerMysteryProxy = year >= 1975 && year <= 2005 && movieHasGenreId(movie, [53, 9648, 80, 27]) && voteCount >= 80 && (cult >= 2 || (respect >= 2 && popularity >= 5));
   const crowdMemoryComedyRomanceProxy = year >= 1975 && year <= 2015 && movieHasGenreId(movie, [35, 10749]) && voteCount >= 450 && popularity >= 8;
   const horrorFranchiseStapleProxy = year >= 1970 && year <= 2015 && movieHasGenreId(movie, [27, 53]) && voteCount >= 300 && popularity >= 8;
@@ -1281,6 +1318,7 @@ function computeMovieSignals(movie) {
     || recognizableCatalogProxy
     || acclaimedModernGenreProxy
     || belovedStudioClassicProxy
+    || recognizableMidCatalogProxy
     || crowdMemoryComedyRomanceProxy
     || horrorFranchiseStapleProxy
   );
@@ -1317,6 +1355,7 @@ function computeMovieSignals(movie) {
     recognizableCatalogProxy: recognizableCatalogProxy,
     acclaimedModernGenreProxy: acclaimedModernGenreProxy,
     belovedStudioClassicProxy: belovedStudioClassicProxy,
+    recognizableMidCatalogProxy: recognizableMidCatalogProxy,
     catalogStapleProxy: catalogStapleProxy,
     cultThrillerMysteryProxy: cultThrillerMysteryProxy,
     crowdMemoryComedyRomanceProxy: crowdMemoryComedyRomanceProxy,
@@ -1367,6 +1406,7 @@ function computePoolSelectionScore(movie) {
   else if (signals.voteCount < 140) score -= 3;
 
   if (signals.mainstreamRecognitionProxy || signals.belovedStudioClassicProxy) score += 4;
+  if (signals.recognizableMidCatalogProxy) score += 3;
   if (signals.acclaimedModernGenreProxy || signals.modernAuteurLandmarkProxy) score += 3;
   if (signals.year >= 1980 && signals.year <= 2012 && signals.recognition >= 2) score += 1;
   if (signals.year >= 2018) score -= 2;
@@ -1413,6 +1453,7 @@ function computeRarityScore(movie) {
   if (signals.modernAuteurLandmarkProxy) bonus += 4;
   if (signals.mainstreamRecognitionProxy) bonus += 3;
   if (signals.recognizableCatalogProxy) bonus += 3;
+  if (signals.recognizableMidCatalogProxy) bonus += 2;
   if (signals.acclaimedModernGenreProxy) bonus += 4;
   if (signals.belovedStudioClassicProxy) bonus += 3;
   if (signals.catalogStapleProxy) bonus += 3;
@@ -1446,30 +1487,79 @@ function decadeSelectionChance(decade) {
 function pickFrontierMovie(bucket, decade, repeatCounts) {
   if (!bucket || !bucket.length) return null;
   const numericDecade = Number(decade) || 0;
-  const frontierSize = Math.max(1, Math.min(
+  const baseFrontierSize = Math.max(1, Math.min(
     bucket.length,
-    numericDecade <= 1929 ? 8 : (numericDecade <= 1949 ? 12 : 20)
+    numericDecade <= 1929 ? 14 : (numericDecade <= 1949 ? 22 : 38)
   ));
-  const frontier = bucket.slice(0, frontierSize);
-  const byRepeat = frontier.map(function (movie, index) {
-    const key = movieIdentityKey(movie);
-    const repeatCount = Number(repeatCounts && key ? repeatCounts.get(key) : 0) || 0;
-    return {
-      movie: movie,
-      index: index,
-      repeatCount: repeatCount
-    };
+
+  let frontierSize = baseFrontierSize;
+  let byRepeat = [];
+  let minRepeat = 0;
+  const maxFrontierSize = Math.min(bucket.length, Math.max(baseFrontierSize, 220));
+
+  while (frontierSize <= maxFrontierSize) {
+    const frontier = bucket.slice(0, frontierSize);
+    byRepeat = frontier.map(function (movie, index) {
+      const key = movieIdentityKey(movie);
+      const repeatCount = Number(repeatCounts && key ? repeatCounts.get(key) : 0) || 0;
+      return {
+        movie: movie,
+        index: index,
+        repeatCount: repeatCount
+      };
+    });
+    minRepeat = byRepeat.reduce(function (minValue, entry) {
+      return Math.min(minValue, entry.repeatCount);
+    }, Number.POSITIVE_INFINITY);
+    if (minRepeat === 0 || frontierSize === maxFrontierSize) break;
+    frontierSize = Math.min(maxFrontierSize, frontierSize + Math.max(12, Math.floor(frontierSize * 0.55)));
+  }
+
+  const candidateFrontier = byRepeat.filter(function (entry) {
+    return entry.repeatCount === minRepeat;
   });
-  const neverSeen = byRepeat.filter(function (entry) { return entry.repeatCount === 0; });
-  const barelySeen = byRepeat.filter(function (entry) { return entry.repeatCount <= 1; });
-  const lightlySeen = byRepeat.filter(function (entry) { return entry.repeatCount <= 2; });
-  const candidateFrontier = neverSeen.length
-    ? neverSeen
-    : (barelySeen.length ? barelySeen : (lightlySeen.length ? lightlySeen : byRepeat));
-  const weighted = candidateFrontier.map(function (entry, index) {
+
+  const deepCutChance = minRepeat >= 3
+    ? 0.62
+    : (minRepeat >= 2 ? 0.45 : (minRepeat >= 1 ? 0.22 : 0.08));
+  if (bucket.length > frontierSize + 24 && Math.random() < deepCutChance) {
+    const deepStart = Math.min(bucket.length - 1, frontierSize + 6);
+    const deepEnd = Math.min(bucket.length, deepStart + Math.max(24, Math.floor(bucket.length * 0.35)));
+    const deepRange = bucket.slice(deepStart, deepEnd).map(function (movie, offset) {
+      const key = movieIdentityKey(movie);
+      return {
+        movie: movie,
+        index: deepStart + offset,
+        repeatCount: Number(repeatCounts && key ? repeatCounts.get(key) : 0) || 0
+      };
+    });
+    if (deepRange.length) {
+      const deepMinRepeat = deepRange.reduce(function (minValue, entry) {
+        return Math.min(minValue, entry.repeatCount);
+      }, Number.POSITIVE_INFINITY);
+      const deepCandidates = deepRange.filter(function (entry) {
+        return entry.repeatCount === deepMinRepeat;
+      });
+      const deepWeighted = deepCandidates.map(function (entry) {
+        return {
+          movie: entry.movie,
+          weight: 1 / Math.pow((entry.index - deepStart) + 1, 0.24)
+        };
+      });
+      const deepPicked = weightedChoice(deepWeighted).movie;
+      const deepPickedIndex = bucket.indexOf(deepPicked);
+      if (deepPickedIndex !== -1) {
+        bucket.splice(deepPickedIndex, 1);
+      }
+      return deepPicked;
+    }
+  }
+
+  const weighted = candidateFrontier.map(function (entry) {
+    const repeatPenalty = entry.repeatCount > 0 ? (1 / (1 + (entry.repeatCount * 0.9))) : 1;
     return {
       movie: entry.movie,
-      weight: 1 / Math.pow(index + 1, 0.35)
+      weight: (1 / Math.pow(entry.index + 1, 0.28)) * repeatPenalty
     };
   });
   const picked = weightedChoice(weighted).movie;
@@ -1593,6 +1683,10 @@ function rarityFloorForMovie(movie) {
   }
 
   if (signals.recognizableCatalogProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
+  if (signals.recognizableMidCatalogProxy) {
     floor = maxRarity(floor, 'Select');
   }
 
