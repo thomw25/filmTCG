@@ -2799,7 +2799,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-18';
+  const BUILD_ID = 'logic-sync-20';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -2832,6 +2832,7 @@ button, a, select { font: inherit; }
     'alfred hitchcock': 'Legendary',
     'akira kurosawa': 'Legendary',
     'ingmar bergman': 'Legendary',
+    'hayao miyazaki': 'Legendary',
     'federico fellini': 'Legendary',
     'agnes varda': 'Legendary',
     'abbas kiarostami': 'Legendary',
@@ -4057,6 +4058,8 @@ button, a, select { font: inherit; }
     if (knownForDepth >= 3) recognition += 1;
     if (isDirector && knownForDepth >= 3) recognition += 1;
     if (isActor && knownForDepth >= 5) recognition += 1;
+    if (isActor && popularity >= 14 && knownForDepth >= 2) recognition += 1;
+    if (isActor && knownForPeakRank >= 2 && knownForDepth >= 4) recognition += 1;
 
     let respect = 0;
     if (referenceRank >= 2) respect += 1;
@@ -4069,6 +4072,8 @@ button, a, select { font: inherit; }
     if (isDirector && knownForPeakRank >= 4 && knownForDepth >= 3) respect += 1;
     if (isActor && referenceRank >= 3 && popularity >= 12) respect += 1;
     if (isActor && knownForPeakRank >= 3 && knownForDepth >= 3) respect += 1;
+    if (isActor && knownForPeakRank >= 3 && knownForDepth >= 2) respect += 1;
+    if (isActor && knownForPeakRank >= 2 && knownForDepth >= 4) respect += 1;
 
     let cult = 0;
     if (popularity >= 8 && popularity <= 30 && referenceRank >= 2) cult += 1;
@@ -4114,6 +4119,15 @@ button, a, select { font: inherit; }
       (knownForPeakRank >= 3 && knownForDepth >= 4 && popularity >= 4)
       || (knownForPeakRank >= 2 && knownForDepth >= 5 && popularity >= 4)
     ));
+    const actorRecognitionProxy = Boolean(isActor && (
+      (popularity >= 14 && knownForDepth >= 2)
+      || (popularity >= 10 && knownForPeakRank >= 3)
+      || (knownForPeakRank >= 2 && knownForDepth >= 4)
+    ));
+    const actorPrestigeProxy = Boolean(isActor && (
+      (knownForPeakRank >= 3 && knownForDepth >= 2 && popularity >= 8)
+      || (knownForPeakRank >= 2 && knownForDepth >= 5)
+    ));
 
     return {
       recognition: recognition,
@@ -4129,6 +4143,8 @@ button, a, select { font: inherit; }
       majorActorProxy: majorActorProxy,
       actorPantheonProxy: actorPantheonProxy,
       characterActorProxy: characterActorProxy,
+      actorRecognitionProxy: actorRecognitionProxy,
+      actorPrestigeProxy: actorPrestigeProxy,
       sourceRank: sourceRank,
       knownForPeakRank: knownForPeakRank,
       knownForDepth: knownForDepth,
@@ -4165,6 +4181,9 @@ button, a, select { font: inherit; }
       || signals.majorActorProxy
       || signals.iconicStarProxy
       || signals.characterActorProxy
+      || signals.actorRecognitionProxy
+      || signals.actorPrestigeProxy
+      || (signals.isActor && signals.knownForPeakRank >= 2 && signals.knownForDepth >= 4)
       || signals.floorRank >= 3
     ) {
       rank = Math.max(rank, 3);
@@ -4250,17 +4269,17 @@ button, a, select { font: inherit; }
       if (themeKey === 'actors' && candidate.roleKey === 'actor') {
         const estimatedRank = rarityRank(derivePersonRarity(candidate, null));
         const actorPackBias = ({
-          1: 1.38,
-          2: 1.56,
-          3: 0.5,
-          4: 0.1
+          1: 1.42,
+          2: 1.62,
+          3: 0.42,
+          4: 0.07
         })[estimatedRank] || 1;
         weight *= actorPackBias;
 
         const popularity = Number(candidate && candidate.popularity) || 0;
-        if (popularity >= 24) weight *= 0.78;
-        if (popularity >= 36) weight *= 0.55;
-        if (popularity >= 50) weight *= 0.38;
+        if (popularity >= 24) weight *= 0.72;
+        if (popularity >= 36) weight *= 0.46;
+        if (popularity >= 50) weight *= 0.28;
 
         const knownForDepth = Number(candidate && candidate.knownForDepth) || 0;
         if (knownForDepth >= 2 && estimatedRank <= 2) weight *= 1.18;
@@ -4379,8 +4398,8 @@ button, a, select { font: inherit; }
         const existingHighTierCount = existingCards.filter(function (card) {
           return card && card.cardType === 'person' && rarityRank(card.rarity) >= 3;
         }).length;
-        if (estimatedRank >= 4) candidateScore *= 0.45;
-        else if (estimatedRank >= 3) candidateScore *= 0.82;
+        if (estimatedRank >= 4) candidateScore *= 0.35;
+        else if (estimatedRank >= 3) candidateScore *= 0.72;
         if (existingHighTierCount >= 1 && estimatedRank >= 3) candidateScore *= 0.45;
         if (existingHighTierCount >= 2 && estimatedRank >= 2) candidateScore *= 0.3;
       }

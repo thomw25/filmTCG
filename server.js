@@ -13,8 +13,8 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const LOGIC_VERSION = 'logic-2026-03-30-12';
-const POOL_SNAPSHOT_VERSION = 'server-rotation-18';
+const LOGIC_VERSION = 'logic-2026-03-31-1';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-19';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -117,6 +117,24 @@ const FEMALE_DIRECTOR_NAMES = {
   'sofia coppola': true
 };
 
+const UNDERAPPRECIATED_BLACK_DIRECTOR_NAMES = {
+  'bill gunn': true,
+  'charles burnett': true,
+  'cheryl dunye': true,
+  'euzhan palcy': true,
+  'gordon parks': true,
+  'haile gerima': true,
+  'jamaa fanaka': true,
+  'julie dash': true,
+  'kasi lemmons': true,
+  'marlon riggs': true,
+  'melvin van peebles': true,
+  'nia dacosta': true,
+  'radha blank': true,
+  'rick famuyiwa': true,
+  'shaka king': true
+};
+
 const RARITY_ORDER = {
   Prolific: 1,
   Base: 1,
@@ -155,6 +173,7 @@ const TITLE_RARITY_FLOORS = {
   'city of god': 'Epic',
   'cleo from 5 to 7': 'Epic',
   'black panther': 'Epic',
+  'candyman': 'Select',
   'close-up': 'Epic',
   'come and see': 'Legendary',
   'dazed and confused': 'Epic',
@@ -1142,6 +1161,10 @@ function isFemaleDirectedMovie(movie) {
   return Number(movie.directorGender) === 1 || Boolean(FEMALE_DIRECTOR_NAMES[normalizePersonName(movie.directorName)]);
 }
 
+function isUnderappreciatedBlackDirectorMovie(movie) {
+  return Boolean(UNDERAPPRECIATED_BLACK_DIRECTOR_NAMES[normalizePersonName(movie && movie.directorName)]);
+}
+
 function derivePacks(movie) {
   const tags = new Set(['all']);
   const lookup = {};
@@ -1218,6 +1241,7 @@ function computeMovieSignals(movie) {
   const isComedyLane = movieHasGenreId(movie, 35);
   const isActionCrimeLane = movieHasGenreId(movie, [28, 80, 53]);
   const isHongKongLanguage = ['cn', 'zh'].indexOf(originalLanguage) !== -1;
+  const underappreciatedBlackDirectorProxy = isUnderappreciatedBlackDirectorMovie(movie);
 
   let recognition = 0;
   if (popularity >= 12) recognition += 1;
@@ -1321,6 +1345,7 @@ function computeMovieSignals(movie) {
     || recognizableMidCatalogProxy
     || crowdMemoryComedyRomanceProxy
     || horrorFranchiseStapleProxy
+    || underappreciatedBlackDirectorProxy
   );
   const titlePromotion = EPIC_PROMOTION_TITLES.has(titleKey(movie && movie.title));
 
@@ -1360,6 +1385,7 @@ function computeMovieSignals(movie) {
     cultThrillerMysteryProxy: cultThrillerMysteryProxy,
     crowdMemoryComedyRomanceProxy: crowdMemoryComedyRomanceProxy,
     horrorFranchiseStapleProxy: horrorFranchiseStapleProxy,
+    underappreciatedBlackDirectorProxy: underappreciatedBlackDirectorProxy,
     concertFandomDocProxy: concertFandomDocProxy,
     lowSignalObscurityProxy: lowSignalObscurityProxy,
     microObscureOverperformerProxy: microObscureOverperformerProxy,
@@ -1408,6 +1434,7 @@ function computePoolSelectionScore(movie) {
   if (signals.mainstreamRecognitionProxy || signals.belovedStudioClassicProxy) score += 4;
   if (signals.recognizableMidCatalogProxy) score += 3;
   if (signals.acclaimedModernGenreProxy || signals.modernAuteurLandmarkProxy) score += 3;
+  if (signals.underappreciatedBlackDirectorProxy) score += 2;
   if (signals.year >= 1980 && signals.year <= 2012 && signals.recognition >= 2) score += 1;
   if (signals.year >= 2018) score -= 2;
   if (signals.year >= 2022) score -= 2;
@@ -1460,6 +1487,7 @@ function computeRarityScore(movie) {
   if (signals.cultThrillerMysteryProxy) bonus += 4;
   if (signals.crowdMemoryComedyRomanceProxy) bonus += 3;
   if (signals.horrorFranchiseStapleProxy) bonus += 3;
+  if (signals.underappreciatedBlackDirectorProxy) bonus += 3;
   if (signals.titlePromotion) bonus += 5;
 
   let penalty = 0;
@@ -1718,6 +1746,10 @@ function rarityFloorForMovie(movie) {
     floor = maxRarity(floor, 'Select');
   }
 
+  if (signals.underappreciatedBlackDirectorProxy) {
+    floor = maxRarity(floor, 'Select');
+  }
+
   if (signals.modernPrestigeLandmarkProxy) {
     floor = maxRarity(floor, 'Epic');
   }
@@ -1739,6 +1771,10 @@ function rarityFloorForMovie(movie) {
   }
 
   if (signals.cult >= 4 && signals.respect >= 3) {
+    floor = maxRarity(floor, 'Epic');
+  }
+
+  if (signals.underappreciatedBlackDirectorProxy && (signals.respect >= 3 || signals.cult >= 3)) {
     floor = maxRarity(floor, 'Epic');
   }
 
@@ -2050,13 +2086,13 @@ async function buildCardPool(limit, themeContext) {
     repeatCounts
   );
 
-  ranked.forEach(function (movie) {
+  const enriched = await mapWithConcurrency(ranked, 8, enrichMovieWithCredits);
+
+  enriched.forEach(function (movie) {
     const baseRarity = assignRarity(movie);
     const raised = maxRarity(baseRarity, rarityFloorForMovie(movie));
     movie.rarity = minRarity(raised, rarityCeilingForMovie(movie));
   });
-
-  const enriched = await mapWithConcurrency(ranked, 8, enrichMovieWithCredits);
 
   return enriched.map(function (movie) {
     return normalizeMovie(configuration, genreMap, movie);
@@ -2369,17 +2405,20 @@ async function routeApi(req, res, url) {
       return;
     }
 
+    const matchedWithCredits = await enrichMovieWithCredits(matched);
+
     writeJson(res, 200, {
       match: {
-        title: matched.title || title,
-        year: extractYear(matched.release_date),
-        tmdbId: matched.id || null,
-        popularity: Number(matched.popularity) || 0,
-        voteAverage: Number(matched.vote_average) || 0,
-        voteCount: Number(matched.vote_count) || 0,
-        genreIds: Array.isArray(matched.genre_ids) ? matched.genre_ids : []
+        title: matchedWithCredits.title || title,
+        year: extractYear(matchedWithCredits.release_date),
+        tmdbId: matchedWithCredits.id || null,
+        popularity: Number(matchedWithCredits.popularity) || 0,
+        voteAverage: Number(matchedWithCredits.vote_average) || 0,
+        voteCount: Number(matchedWithCredits.vote_count) || 0,
+        genreIds: Array.isArray(matchedWithCredits.genre_ids) ? matchedWithCredits.genre_ids : [],
+        directorName: matchedWithCredits.directorName || null
       },
-      debug: explainMovieRarity(matched)
+      debug: explainMovieRarity(matchedWithCredits)
     });
     return;
   }
