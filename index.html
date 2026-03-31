@@ -3141,7 +3141,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-14</div>
+  <div class="sub">Build: packs-people-tier-15</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3492,7 +3492,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-36';
+  const BUILD_ID = 'logic-sync-37';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -3633,6 +3633,12 @@ button, a, select { font: inherit; }
   const LIVE_DRAW_REFRESH_INTERVAL = 3;
   const THEME_POOL_LIMIT = 900;
   const BACKEND_FETCH_TIMEOUT_MS = 12000;
+  const IS_MOBILE_RUNTIME = detectMobileRuntime();
+  const PACK_OPEN_REFRESH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 3600 : 7600;
+  const PERSON_INSERT_FETCH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 1800 : 4200;
+  const PERSON_BIO_FETCH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 1000 : 2600;
+  const MOBILE_POOL_LIMIT = 860;
+  const MOBILE_PACK_REFRESH_SAMPLE = 620;
   const DAILY_HUNT_COUNT = 3;
   const DAILY_HUNT_THEME_TAGS = ['horror', 'animation', 'noir', 'romcom', 'docs'];
   const DAILY_HUNT_TICKET_REWARD = 120;
@@ -3734,6 +3740,18 @@ button, a, select { font: inherit; }
     return typeof value === 'string' ? value.trim().replace(/\/+$/, '') : '';
   }
 
+  function detectMobileRuntime() {
+    try {
+      const ua = String(navigator && navigator.userAgent || '').toLowerCase();
+      const mobileAgent = /iphone|ipad|ipod|android|mobile|silk|kindle|blackberry|opera mini|iemobile/.test(ua);
+      const coarsePointer = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+      const narrowViewport = typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 900px)').matches;
+      return mobileAgent || coarsePointer || narrowViewport;
+    } catch (error) {
+      return false;
+    }
+  }
+
   function resolveBackendBase() {
     const params = new URLSearchParams(window.location.search);
     const queryValue = normalizeBackendBase(params.get('backend'));
@@ -3768,8 +3786,102 @@ button, a, select { font: inherit; }
     }
   }
 
+  function trimStoredText(value, maxLength) {
+    const limit = Math.max(8, Number(maxLength) || 0);
+    const text = String(value || '').trim();
+    if (!text) return '';
+    if (text.length <= limit) return text;
+    return text.slice(0, limit - 1).trim() + '…';
+  }
+
+  function compactCardForStorage(card) {
+    const normalized = normalizeMovieRecord(card || {});
+    const base = {
+      cardType: normalized.cardType || 'film',
+      title: normalized.title || '',
+      rarity: normalizeRarityLabel(normalized.rarity),
+      genre: normalized.genre || '',
+      year: normalized.year || '',
+      desc: trimStoredText(normalized.desc || '', normalized.cardType === 'person' ? 320 : 220),
+      packs: Array.isArray(normalized.packs) ? normalized.packs.slice(0, 8) : ['all'],
+      poster: normalized.poster || null,
+      still: normalized.still || null,
+      artMode: normalized.artMode || '',
+      tmdbId: normalized.tmdbId || null,
+      originalLanguage: normalized.originalLanguage || '',
+      voteAverage: Number(normalized.voteAverage) || 0,
+      voteCount: Number(normalized.voteCount) || 0,
+      popularity: Number(normalized.popularity) || 0,
+      releaseDate: normalized.releaseDate || null
+    };
+
+    if (base.cardType === 'person') {
+      base.profile = normalized.profile || null;
+      base.roleKey = normalized.roleKey || '';
+      base.roleLabel = normalized.roleLabel || '';
+      base.personType = normalized.personType || '';
+      base.personId = normalized.personId || null;
+      base.sourceTitle = normalized.sourceTitle || null;
+      base.sourceYear = normalized.sourceYear || null;
+      base.character = normalized.character || '';
+      base.knownForTitles = Array.isArray(normalized.knownForTitles) ? normalized.knownForTitles.filter(Boolean).slice(0, 3) : [];
+      base.knownForPeakRank = Number(normalized.knownForPeakRank) || 0;
+      base.knownForDepth = Number(normalized.knownForDepth) || 0;
+      base.biography = trimStoredText(normalized.biography || '', 360);
+      base.linkUrl = normalized.linkUrl || null;
+    } else {
+      base.directorName = normalized.directorName || '';
+      base.directorGender = normalized.directorGender != null ? Number(normalized.directorGender) : null;
+      base.genreNames = Array.isArray(normalized.genreNames) ? normalized.genreNames.filter(Boolean).slice(0, 8) : [];
+      base.tags = Array.isArray(normalized.tags) ? normalized.tags.filter(Boolean).slice(0, 10) : [];
+      base.tagline = trimStoredText(normalized.tagline || '', 140);
+      base.runtime = Number(normalized.runtime) || 0;
+    }
+
+    return base;
+  }
+
+  function isQuotaExceededError(error) {
+    const message = String(error && error.message || error || '').toLowerCase();
+    return message.indexOf('quota') !== -1
+      || message.indexOf('exceeded') !== -1
+      || message.indexOf('storage') !== -1;
+  }
+
+  function trySetLocalStorage(key, value) {
+    try {
+      localStorage.setItem(key, value);
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: error };
+    }
+  }
+
   function saveCollection() {
-    localStorage.setItem('collection', JSON.stringify(collection));
+    const source = Array.isArray(collection) ? collection : [];
+    const compactCards = source.map(compactCardForStorage);
+    const key = 'collection';
+    const primary = trySetLocalStorage(key, JSON.stringify(compactCards));
+    if (primary.ok) return true;
+    if (!isQuotaExceededError(primary.error)) {
+      console.warn('[filmTCG] saveCollection failed', primary.error);
+      return false;
+    }
+
+    let keepCount = compactCards.length;
+    while (keepCount > 120) {
+      keepCount = Math.max(120, Math.floor(keepCount * 0.85));
+      const trimmed = compactCards.slice(0, keepCount);
+      const attempt = trySetLocalStorage(key, JSON.stringify(trimmed));
+      if (attempt.ok) {
+        collection = source.slice(0, keepCount);
+        showToast('Storage was full on this device. Kept most recent cards.');
+        return true;
+      }
+    }
+
+    console.warn('[filmTCG] saveCollection quota fallback exhausted', primary.error);
+    return false;
   }
 
   function loadBookmarks() {
@@ -3782,7 +3894,10 @@ button, a, select { font: inherit; }
   }
 
   function saveBookmarks() {
-    localStorage.setItem('filmtcg.bookmarks', JSON.stringify(bookmarks));
+    try {
+      localStorage.setItem('filmtcg.bookmarks', JSON.stringify(bookmarks));
+    } catch (error) {
+    }
   }
 
   function loadShowcase() {
@@ -3796,7 +3911,10 @@ button, a, select { font: inherit; }
 
   function saveShowcase() {
     showcase = Array.isArray(showcase) ? showcase.filter(Boolean).slice(0, 4) : [];
-    localStorage.setItem('filmtcg.showcase', JSON.stringify(showcase));
+    try {
+      localStorage.setItem('filmtcg.showcase', JSON.stringify(showcase));
+    } catch (error) {
+    }
   }
 
   function loadCollectionView() {
@@ -3809,7 +3927,10 @@ button, a, select { font: inherit; }
   }
 
   function saveCollectionView() {
-    localStorage.setItem('filmtcg.collectionView', collectionView);
+    try {
+      localStorage.setItem('filmtcg.collectionView', collectionView);
+    } catch (error) {
+    }
   }
 
   function aggregateCollectionEntries(cards) {
@@ -3975,7 +4096,10 @@ button, a, select { font: inherit; }
     progress.featuredRewardTheme = progress.featuredRewardThemes[0] || null;
     progress.tickets = Math.max(0, Number(progress.tickets) || 0);
     progress.sealedPacks = [];
-    localStorage.setItem('filmtcg.progress', JSON.stringify(progress));
+    try {
+      localStorage.setItem('filmtcg.progress', JSON.stringify(progress));
+    } catch (error) {
+    }
   }
 
   function todayLocalKey() {
@@ -4681,7 +4805,9 @@ button, a, select { font: inherit; }
     return { headers: headers };
   }
 
-  async function fetchBackendJson(path) {
+  async function fetchBackendJson(path, options) {
+    const config = options || {};
+    const timeoutMs = Math.max(800, Number(config.timeoutMs) || BACKEND_FETCH_TIMEOUT_MS);
     const requestOptions = backendFetchOptions();
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     let timeoutId = null;
@@ -4689,7 +4815,7 @@ button, a, select { font: inherit; }
       requestOptions.signal = controller.signal;
       timeoutId = setTimeout(function () {
         controller.abort();
-      }, BACKEND_FETCH_TIMEOUT_MS);
+      }, timeoutMs);
     }
 
     let response;
@@ -4697,7 +4823,7 @@ button, a, select { font: inherit; }
       response = await fetch(TMDB_BACKEND_BASE + path, requestOptions);
     } catch (error) {
       if (error && error.name === 'AbortError') {
-        throw new Error('Request timeout after ' + BACKEND_FETCH_TIMEOUT_MS + 'ms for ' + path);
+        throw new Error('Request timeout after ' + timeoutMs + 'ms for ' + path);
       }
       throw error;
     } finally {
@@ -4742,8 +4868,10 @@ button, a, select { font: inherit; }
   }
 
   async function refreshPoolForPackOpen(forceRefresh, themeKey) {
-    const params = '/api/card-pool?limit=' + CARD_POOL_LIMIT + '&sample=' + PACK_REFRESH_SAMPLE + '&shuffle=1' + backendThemeParam(themeKey) + (forceRefresh ? '&refresh=1' : '');
-    const data = await fetchBackendJson(params);
+    const poolLimit = IS_MOBILE_RUNTIME ? MOBILE_POOL_LIMIT : CARD_POOL_LIMIT;
+    const sampleSize = IS_MOBILE_RUNTIME ? MOBILE_PACK_REFRESH_SAMPLE : PACK_REFRESH_SAMPLE;
+    const params = '/api/card-pool?limit=' + poolLimit + '&sample=' + sampleSize + '&shuffle=1' + backendThemeParam(themeKey) + (forceRefresh ? '&refresh=1' : '');
+    const data = await fetchBackendJson(params, { timeoutMs: PACK_OPEN_REFRESH_TIMEOUT_MS });
     if (!data || !Array.isArray(data.movies) || data.movies.length < 50) return false;
     replaceMoviePool(data.movies, (data.sourceLabel || 'TMDB') + ' Fresh Draw');
     activeReelCycleKey = currentLiveDrawCycleKey();
@@ -4765,7 +4893,7 @@ button, a, select { font: inherit; }
       return Number(id) || 0;
     }).filter(Boolean);
     if (!ids.length) return [];
-    const data = await fetchBackendJson('/api/movie-people?movieIds=' + ids.join(','));
+    const data = await fetchBackendJson('/api/movie-people?movieIds=' + ids.join(','), { timeoutMs: PERSON_INSERT_FETCH_TIMEOUT_MS });
     return data && Array.isArray(data.people) ? data.people : [];
   }
 
@@ -4784,7 +4912,7 @@ button, a, select { font: inherit; }
       return personKnownForCache.get(cacheKey);
     }
 
-    const data = await fetchBackendJson('/api/person-known-for?personId=' + encodeURIComponent(String(normalizedPersonId)) + '&role=' + encodeURIComponent(roleKey === 'director' ? 'director' : 'actor') + '&name=' + encodeURIComponent(String(personName || '')) + (forceRefresh ? '&refresh=1' : ''));
+    const data = await fetchBackendJson('/api/person-known-for?personId=' + encodeURIComponent(String(normalizedPersonId)) + '&role=' + encodeURIComponent(roleKey === 'director' ? 'director' : 'actor') + '&name=' + encodeURIComponent(String(personName || '')) + (forceRefresh ? '&refresh=1' : ''), { timeoutMs: PERSON_INSERT_FETCH_TIMEOUT_MS });
     const normalized = {
       knownForTitles: Array.isArray(data && data.knownForTitles) ? data.knownForTitles.filter(Boolean).slice(0, 3) : [],
       knownForPeakRank: Number(data && data.knownForPeakRank) || 0,
@@ -4805,7 +4933,7 @@ button, a, select { font: inherit; }
     if (!forceRefresh && personBioCache.has(cacheKey)) {
       return personBioCache.get(cacheKey);
     }
-    const data = await fetchBackendJson('/api/person-profile?personId=' + encodeURIComponent(String(normalizedPersonId)));
+    const data = await fetchBackendJson('/api/person-profile?personId=' + encodeURIComponent(String(normalizedPersonId)), { timeoutMs: PERSON_BIO_FETCH_TIMEOUT_MS });
     const biography = String(data && data.biography || '').trim();
     if (biography) {
       personBioCache.set(cacheKey, biography);
@@ -4832,6 +4960,21 @@ button, a, select { font: inherit; }
       card.desc = role + ' card.' + sourceLabel;
     }
     return card;
+  }
+
+  function hydratePackPeopleInBackground(cards) {
+    const peopleCards = (Array.isArray(cards) ? cards : []).filter(function (card) {
+      return card && card.cardType === 'person' && card.personId;
+    });
+    if (!peopleCards.length) return;
+
+    Promise.all(peopleCards.map(function (card) {
+      return hydratePersonCardKnownFor(card).catch(function () { return card; });
+    })).then(function () {
+      saveCollection();
+      if (collectionPage.classList.contains('active')) renderCollection();
+    }).catch(function () {
+    });
   }
 
   async function rehydrateCollectionPeopleKnownFor() {
@@ -7021,8 +7164,17 @@ button, a, select { font: inherit; }
       openedSuccessfully = true;
     } catch (error) {
       console.error('[filmTCG] openPack failed', error);
-      artworkStatus = 'Pack opening hit a network hiccup. Tap to try again.';
-      showToast('Pack opening stalled. Try again.');
+      const errorMessage = String(error && error.message || error || '').toLowerCase();
+      if (isQuotaExceededError(error)) {
+        artworkStatus = 'Device storage ran out while saving this pull. Try again.';
+        showToast('Storage is full on this device. Trimmed save data and retry.');
+      } else if (errorMessage.indexOf('timeout') !== -1 || (error && error.name === 'AbortError')) {
+        artworkStatus = 'Connection slowed down during pack open. Tap to retry.';
+        showToast('Connection was slow. Tap to open again.');
+      } else {
+        artworkStatus = 'Pack opening hit a network hiccup. Tap to try again.';
+        showToast('Pack opening stalled. Try again.');
+      }
       updatePackMeta();
       if (revealCarousel) {
         backToPacks();
@@ -7055,11 +7207,9 @@ button, a, select { font: inherit; }
     }
 
     let resolvedPack = Array.isArray(draftedPack) && draftedPack.length ? draftedPack.slice() : await buildDraftPack(pool);
-    if (resolvedPack.some(function (card) { return card && card.cardType === 'person'; })) {
-      resolvedPack = await Promise.all(resolvedPack.map(function (card) {
-        return hydratePersonCardKnownFor(card);
-      }));
-    }
+    const hasPersonCards = resolvedPack.some(function (card) {
+      return card && card.cardType === 'person';
+    });
     const collectionKeysBefore = new Set(collection.map(cardKey).filter(Boolean));
     applyDailyHuntsFromPack(resolvedPack, collectionKeysBefore);
     const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
@@ -7091,7 +7241,7 @@ button, a, select { font: inherit; }
         progress.rewardChoicesAvailable += 1;
         ensureFeaturedRewardThemes(true);
         artworkStatus = 'Reward choice unlocked. Pick one of two featured packs.';
-      } else if (resolvedPack.some(function (card) { return card.cardType === 'person'; })) {
+      } else if (hasPersonCards) {
         artworkStatus = 'People insert found in the sixth slot.';
       }
     }
@@ -7105,6 +7255,9 @@ button, a, select { font: inherit; }
     }
     if (shopPage && shopPage.classList.contains('active')) {
       renderShop();
+    }
+    if (hasPersonCards) {
+      hydratePackPeopleInBackground(resolvedPack);
     }
     if (!revealCarousel) return resolvedPack;
     pack = sortPackForReveal(resolvedPack);
