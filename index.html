@@ -3663,60 +3663,15 @@ button, a, select { font: inherit; }
     }
   };
   const PACK_ART_ASSETS = {
-    all: {
-      shape: 'design/pack-v2/shape/pack_All-cinema_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_All-Cinema_title.svg.svg',
-      scale: 1.44,
-      titleScale: 1.44
-    },
-    horror: {
-      shape: 'design/pack-v2/shape/pack_horror_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_horror_title.svg.svg',
-      scale: 1.44,
-      titleScale: 1.44
-    },
-    animation: {
-      shape: 'design/pack-v2/shape/pack_animation_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_animation_title.svg.svg',
-      scale: 1.44,
-      titleScale: 1.44
-    },
-    eighties: {
-      shape: 'design/pack-v2/shape/pack_80s_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_80s_title.svg.svg',
-      scale: 1.44,
-      titleScale: 1.44
-    },
-    noir: {
-      shape: 'design/pack-v2/shape/pack_noir_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_noir_title.svg.svg',
-      scale: 1.44,
-      titleScale: 1.44
-    },
-    romcom: {
-      shape: 'design/pack-v2/shape/pack_romcom_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_romcom_title.svg.svg',
-      scale: 1.44,
-      titleScale: 1.44
-    },
-    docs: {
-      shape: 'design/pack-v2/shape/pack_doc_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_doc_title.svg.svg',
-      scale: 1.44,
-      titleScale: 1.44
-    },
-    actors: {
-      shape: 'design/pack-v2/shape/pack_actors_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_actors_title.svg.svg',
-      scale: 1.44,
-      titleScale: 1.44
-    },
-    gold: {
-      shape: 'design/pack-v2/shape/pack_gold_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_gold_title.svg.svg',
-      scale: 1.44,
-      titleScale: 1.44
-    }
+    all: { scale: 1.44 },
+    horror: { scale: 1.44 },
+    animation: { scale: 1.44 },
+    eighties: { scale: 1.44 },
+    noir: { scale: 1.44 },
+    romcom: { scale: 1.44 },
+    docs: { scale: 1.44 },
+    actors: { scale: 1.44 },
+    gold: { scale: 1.44 }
   };
   const PACK_SHAPE_TONES = {
     all: { top: '#BBD0FF', bottom: '#8F86E9', lineTop: '#605ABF', lineBottom: '#605ABF' },
@@ -3745,7 +3700,8 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-44';
+  const BUILD_ID = 'logic-sync-45';
+  console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -6469,14 +6425,10 @@ button, a, select { font: inherit; }
   }
 
   function resolvePackShapeAsset(themeKey) {
-    const config = PACK_ART_ASSETS[themeKey] || PACK_ART_ASSETS.all || null;
-    if (config && config.shape) return config.shape;
     return buildPackShapeData(themeKey);
   }
 
   function resolvePackTitleAsset(themeKey) {
-    const config = PACK_ART_ASSETS[themeKey] || PACK_ART_ASSETS.all || null;
-    if (config && config.title) return config.title;
     return '';
   }
 
@@ -6484,7 +6436,6 @@ button, a, select { font: inherit; }
     const theme = PACK_THEMES[themeKey] || PACK_THEMES.all;
     const artConfig = PACK_ART_ASSETS[themeKey] || null;
     const shapeAsset = normalizeAssetSrc(resolvePackShapeAsset(themeKey));
-    const fallbackShapeAsset = normalizeAssetSrc(buildPackShapeData(themeKey));
     const titleAsset = normalizeAssetSrc(resolvePackTitleAsset(themeKey));
     const hasCustomArt = Boolean(shapeAsset);
     const hasTitleArt = Boolean(titleAsset);
@@ -6524,7 +6475,7 @@ button, a, select { font: inherit; }
     return '<div' + attrs + '>'
       + (hasCustomArt
         ? '<div class="pack-art-wrap">'
-          + '<img class="pack-shape-art" src="' + escapeHtml(shapeAsset) + '" data-fallback-src="' + escapeHtml(fallbackShapeAsset) + '" alt="" aria-hidden="true" onerror="if(this.dataset.fallbackSrc&&this.src!==this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}else{this.remove();}"' + cardImageAttrs('high') + '>'
+          + '<img class="pack-shape-art" src="' + escapeHtml(shapeAsset) + '" alt="" aria-hidden="true" onerror="this.remove();"' + cardImageAttrs('high') + '>'
           + (hasTitleArt
             ? '<img class="pack-title-art" src="' + escapeHtml(titleAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-title-art\');}" onerror="this.remove();"' + cardImageAttrs('high') + '>'
             : '')
