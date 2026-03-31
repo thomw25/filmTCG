@@ -13,8 +13,8 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const LOGIC_VERSION = 'logic-2026-03-30-7';
-const POOL_SNAPSHOT_VERSION = 'server-rotation-13';
+const LOGIC_VERSION = 'logic-2026-03-30-10';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-16';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -872,10 +872,9 @@ async function getMoviePeople(movieIds) {
 
   if (!candidates.length) return [];
 
-  const enriched = await mapWithConcurrency(candidates, 4, async function (candidate) {
+  const enriched = await mapWithConcurrency(candidates, 3, async function (candidate) {
     try {
-      const searchedEntries = await searchPersonKnownFor(candidate.personId, candidate.name, candidate.roleKey);
-      const knownFor = summarizeKnownForEntries(searchedEntries, candidate.roleKey);
+      const knownFor = await getPersonKnownFor(candidate.personId, candidate.roleKey, candidate.name);
       return Object.assign({}, candidate, knownFor);
     } catch (error) {
       return candidate;
@@ -1444,18 +1443,33 @@ function decadeSelectionChance(decade) {
   return 1;
 }
 
-function pickFrontierMovie(bucket, decade) {
+function pickFrontierMovie(bucket, decade, repeatCounts) {
   if (!bucket || !bucket.length) return null;
   const numericDecade = Number(decade) || 0;
   const frontierSize = Math.max(1, Math.min(
     bucket.length,
-    numericDecade <= 1929 ? 4 : (numericDecade <= 1949 ? 5 : 8)
+    numericDecade <= 1929 ? 8 : (numericDecade <= 1949 ? 12 : 20)
   ));
   const frontier = bucket.slice(0, frontierSize);
-  const weighted = frontier.map(function (movie, index) {
+  const byRepeat = frontier.map(function (movie, index) {
+    const key = movieIdentityKey(movie);
+    const repeatCount = Number(repeatCounts && key ? repeatCounts.get(key) : 0) || 0;
     return {
       movie: movie,
-      weight: 1 / (index + 1)
+      index: index,
+      repeatCount: repeatCount
+    };
+  });
+  const neverSeen = byRepeat.filter(function (entry) { return entry.repeatCount === 0; });
+  const barelySeen = byRepeat.filter(function (entry) { return entry.repeatCount <= 1; });
+  const lightlySeen = byRepeat.filter(function (entry) { return entry.repeatCount <= 2; });
+  const candidateFrontier = neverSeen.length
+    ? neverSeen
+    : (barelySeen.length ? barelySeen : (lightlySeen.length ? lightlySeen : byRepeat));
+  const weighted = candidateFrontier.map(function (entry, index) {
+    return {
+      movie: entry.movie,
+      weight: 1 / Math.pow(index + 1, 0.35)
     };
   });
   const picked = weightedChoice(weighted).movie;
@@ -1466,7 +1480,7 @@ function pickFrontierMovie(bucket, decade) {
   return picked;
 }
 
-function selectDiversifiedPool(movies, limit) {
+function selectDiversifiedPool(movies, limit, repeatCounts) {
   const buckets = new Map();
   const ordered = Array.isArray(movies) ? movies.slice() : [];
 
@@ -1496,7 +1510,7 @@ function selectDiversifiedPool(movies, limit) {
           ? (Math.random() < Math.min(1, chance + 0.12))
           : (Math.random() < chance);
         if (!shouldTake) continue;
-        const picked = pickFrontierMovie(bucket, decade);
+        const picked = pickFrontierMovie(bucket, decade, repeatCounts);
         if (picked) {
           selected.push(picked);
           addedThisRound = true;
@@ -1511,7 +1525,7 @@ function selectDiversifiedPool(movies, limit) {
       const chosenDecade = modernCandidates[Math.floor(Math.random() * modernCandidates.length)];
       const bucket = buckets.get(chosenDecade);
       if (bucket && bucket.length) {
-        const picked = pickFrontierMovie(bucket, chosenDecade);
+        const picked = pickFrontierMovie(bucket, chosenDecade, repeatCounts);
         if (picked) {
           selected.push(picked);
           addedThisRound = true;
@@ -1526,7 +1540,7 @@ function selectDiversifiedPool(movies, limit) {
         .filter(function (entry) { return entry.size > 0; })
         .sort(function (a, b) { return b.size - a.size; })[0];
       if (!fallbackDecade) break;
-      const picked = pickFrontierMovie(buckets.get(fallbackDecade.decade), fallbackDecade.decade);
+      const picked = pickFrontierMovie(buckets.get(fallbackDecade.decade), fallbackDecade.decade, repeatCounts);
       if (!picked) break;
       selected.push(picked);
     }
@@ -1938,7 +1952,8 @@ async function buildCardPool(limit, themeContext) {
     Array.from(deduped.values()).sort(function (a, b) {
       return computeDiversifiedPoolScore(b, themeContext, repeatCounts) - computeDiversifiedPoolScore(a, themeContext, repeatCounts);
     }),
-    limit
+    limit,
+    repeatCounts
   );
 
   ranked.forEach(function (movie) {
@@ -1973,7 +1988,7 @@ async function buildThemePool(limit, theme) {
     return computeDiversifiedPoolScore(b, normalizedTheme, repeatCounts) - computeDiversifiedPoolScore(a, normalizedTheme, repeatCounts);
   });
 
-  return shuffledCopy(selectDiversifiedPool(scoredThemePool, targetLimit)).slice(0, targetLimit);
+  return shuffledCopy(selectDiversifiedPool(scoredThemePool, targetLimit, repeatCounts)).slice(0, targetLimit);
 }
 
 async function buildPoolForRequest(limit, theme) {
