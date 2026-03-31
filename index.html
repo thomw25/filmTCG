@@ -3690,17 +3690,7 @@ button, a, select { font: inherit; }
     actors: { scale: 1.14 },
     gold: { scale: 1.14 }
   };
-  const PACK_ART_STATIC = {
-    all: './design/pack-v2/composite/pack_all_composite.svg',
-    horror: './design/pack-v2/composite/pack_horror_composite.svg',
-    animation: './design/pack-v2/composite/pack_animation_composite.svg',
-    eighties: './design/pack-v2/composite/pack_eighties_composite.svg',
-    noir: './design/pack-v2/composite/pack_noir_composite.svg',
-    romcom: './design/pack-v2/composite/pack_romcom_composite.svg',
-    docs: './design/pack-v2/composite/pack_docs_composite.svg',
-    actors: './design/pack-v2/composite/pack_actors_composite.svg',
-    gold: './design/pack-v2/composite/pack_gold_composite.svg'
-  };
+  const PACK_ART_STATIC = {};
   const PACK_SHAPE_TONES = {
     all: { top: '#BBD0FF', bottom: '#8F86E9', lineTop: '#605ABF', lineBottom: '#605ABF' },
     horror: { top: '#F33951', bottom: '#884044', lineTop: '#A13846', lineBottom: '#DA2248' },
@@ -3728,7 +3718,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-49';
+  const BUILD_ID = 'logic-sync-50';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6453,13 +6443,11 @@ button, a, select { font: inherit; }
   }
 
   function resolvePackShapeAsset(themeKey) {
-    const staticAsset = PACK_ART_STATIC[themeKey] || PACK_ART_STATIC.all || '';
-    if (staticAsset) return staticAsset;
     return buildPackShapeData(themeKey);
   }
 
   function resolvePackCompositeAsset(themeKey) {
-    return PACK_ART_STATIC[themeKey] || PACK_ART_STATIC.all || '';
+    return '';
   }
 
   function resolvePackTitleAsset(themeKey) {
@@ -6472,7 +6460,7 @@ button, a, select { font: inherit; }
     const compositeAsset = normalizeAssetSrc(resolvePackCompositeAsset(themeKey));
     const shapeAsset = normalizeAssetSrc(resolvePackShapeAsset(themeKey));
     const hasCustomArt = Boolean(compositeAsset);
-    const renderedArtAsset = compositeAsset || shapeAsset;
+    const renderedArtAsset = shapeAsset;
     const style = '--pack-a:' + theme.colors[0]
       + '; --pack-b:' + theme.colors[1]
       + '; --pack-c:' + theme.colors[2]
