@@ -396,7 +396,7 @@ button, a, select { font: inherit; }
   height: 286px;
   padding: 16px 14px 20px;
   animation: none;
-  transition: transform 180ms ease, filter 180ms ease;
+  transition: transform 220ms ease, filter 220ms ease;
   will-change: transform, filter;
   transform-origin: center bottom;
 }
@@ -512,7 +512,7 @@ button, a, select { font: inherit; }
   height: 286px;
   padding: 16px 14px 20px;
   animation: none;
-  transition: transform 180ms ease, filter 180ms ease;
+  transition: transform 220ms ease, filter 220ms ease;
   will-change: transform, filter;
   transform-origin: center bottom;
 }
@@ -597,8 +597,8 @@ button, a, select { font: inherit; }
 .shop-pack-preview .pack:hover,
 .shop-reward-option:hover .pack,
 .shop-reward-option .pack:hover {
-  transform: translateY(-8px) scale(1.024);
-  filter: saturate(1.08) brightness(1.02);
+  transform: translateY(-8px) scale(1.024) rotate(.18deg);
+  filter: saturate(1.08) brightness(1.03);
 }
 
 .shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-foil,
@@ -608,7 +608,7 @@ button, a, select { font: inherit; }
 .shop-reward-option:hover .pack.has-loaded-shape .pack-foil,
 .shop-reward-option:hover .pack.has-loaded-title .pack-foil {
   opacity: 0.9;
-  background-position: 74% -8%, 50% 50%;
+  background-position: 68% -4%, 50% 50%;
 }
 
 .shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-glint,
@@ -617,8 +617,8 @@ button, a, select { font: inherit; }
 .shop-pack-preview:hover .pack.has-loaded-title .pack-glint,
 .shop-reward-option:hover .pack.has-loaded-shape .pack-glint,
 .shop-reward-option:hover .pack.has-loaded-title .pack-glint {
-  opacity: 0.38;
-  transform: translateX(-14px) rotate(12deg);
+  opacity: 0.42;
+  transform: translateX(-16px) rotate(13deg);
 }
 
 .shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-glow,
@@ -627,7 +627,7 @@ button, a, select { font: inherit; }
 .shop-pack-preview:hover .pack.has-loaded-title .pack-glow,
 .shop-reward-option:hover .pack.has-loaded-shape .pack-glow,
 .shop-reward-option:hover .pack.has-loaded-title .pack-glow {
-  opacity: 0.3;
+  opacity: 0.34;
 }
 
 .shop-trade-row {
@@ -833,6 +833,11 @@ button, a, select { font: inherit; }
   clip-path: none;
 }
 
+.pack.has-loaded-shape:not(.is-loading):not(.opening):not(.is-shuffling),
+.pack.has-loaded-title:not(.is-loading):not(.opening):not(.is-shuffling) {
+  animation: packArtFloat 4.8s ease-in-out infinite;
+}
+
 .pack-art-wrap {
   position: absolute;
   inset: 0;
@@ -891,32 +896,35 @@ button, a, select { font: inherit; }
 .pack.has-loaded-shape .pack-foil,
 .pack.has-loaded-title .pack-foil {
   display: block;
-  inset: 4.5% 8.5% 5.5% 8.5%;
+  inset: 5% 8.5% 6% 8.5%;
   border-radius: 17px;
   background:
-    linear-gradient(108deg, rgba(255,255,255,.48) 0%, rgba(255,255,255,.2) 9%, rgba(255,255,255,0) 21%, rgba(255,255,255,.14) 42%, rgba(255,255,255,0) 63%),
-    linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,0) 18%, rgba(61,56,130,.1) 100%);
+    linear-gradient(108deg, rgba(255,255,255,.54) 0%, rgba(255,255,255,.24) 10%, rgba(255,255,255,0) 24%, rgba(255,255,255,.12) 46%, rgba(255,255,255,0) 66%),
+    linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,0) 18%, rgba(61,56,130,.09) 100%);
   background-size: 164% 164%, 100% 100%;
   background-position: 118% -10%, 50% 50%;
   mix-blend-mode: screen;
-  opacity: 0.78;
-  filter: blur(.25px);
+  opacity: 0.76;
+  filter: blur(.45px);
+  clip-path: inset(0 round 17px);
 }
 
 .pack.has-loaded-shape .pack-glint,
 .pack.has-loaded-title .pack-glint {
   display: block;
-  top: 2%;
-  right: 18%;
-  width: 31%;
+  top: 4%;
+  right: 12%;
+  width: 38%;
   height: 92%;
   background:
-    linear-gradient(180deg, rgba(255,255,255,.48), rgba(255,255,255,.12) 34%, rgba(255,255,255,0)),
-    linear-gradient(180deg, rgba(187,208,255,.24), rgba(255,255,255,0) 64%);
-  opacity: 0.3;
+    radial-gradient(ellipse at 50% 50%, rgba(255,255,255,.42) 0%, rgba(255,255,255,.16) 22%, rgba(255,255,255,.04) 40%, rgba(255,255,255,0) 72%),
+    linear-gradient(180deg, rgba(187,208,255,.18), rgba(255,255,255,0) 66%);
+  opacity: 0.26;
   transform: rotate(13deg);
-  filter: blur(.8px);
+  filter: blur(1.2px);
   mix-blend-mode: screen;
+  border-radius: 999px;
+  clip-path: inset(0 round 999px);
 }
 
 .pack.has-loaded-shape .pack-glow,
@@ -927,21 +935,22 @@ button, a, select { font: inherit; }
   height: 92px;
   transform: translateX(-50%);
   background: radial-gradient(circle, rgba(255,255,255,.2) 0%, rgba(255,255,255,.05) 36%, rgba(255,255,255,0) 72%);
-  opacity: 0.34;
+  opacity: 0.3;
   filter: blur(22px);
+  clip-path: inset(0 round 999px);
 }
 
 .pack.has-loaded-shape .pack-grain,
 .pack.has-loaded-title .pack-grain {
   inset: 6% 9.5% 7% 9.5%;
   background:
-    linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 18%, rgba(255,255,255,0) 68%, rgba(55,51,121,.1) 100%),
-    radial-gradient(circle at 50% 14%, rgba(255,255,255,.11) 0%, transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 18%, rgba(255,255,255,0) 68%, rgba(55,51,121,.1) 100%),
+    radial-gradient(circle at 50% 14%, rgba(255,255,255,.13) 0%, transparent 34%),
     repeating-linear-gradient(135deg, rgba(255,255,255,.018) 0 2px, rgba(0,0,0,.012) 2px 4px),
     radial-gradient(circle at 22% 28%, rgba(255,255,255,.045) 0 1px, transparent 1.2px),
     radial-gradient(circle at 68% 68%, rgba(0,0,0,.035) 0 1px, transparent 1px);
   mix-blend-mode: soft-light;
-  opacity: 0.18;
+  opacity: 0.16;
   border-radius: 16px;
 }
 
@@ -2930,6 +2939,11 @@ button, a, select { font: inherit; }
   50% { transform: scale(1.01); }
 }
 
+@keyframes packArtFloat {
+  0%, 100% { transform: translateY(0) rotate(-0.18deg) scale(1); }
+  50% { transform: translateY(-4px) rotate(0.18deg) scale(1.008); }
+}
+
 @keyframes packBurst {
   0% { transform: scale(1) translateY(0); filter: saturate(1); }
   22% { transform: scale(0.95) translateY(5px); filter: saturate(1.02); }
@@ -2974,12 +2988,12 @@ button, a, select { font: inherit; }
 
 @keyframes packFoilShift {
   0%, 100% { background-position: 118% -10%, 50% 50%; }
-  50% { background-position: 70% 4%, 50% 50%; }
+  50% { background-position: 64% 6%, 50% 50%; }
 }
 
 @keyframes packGlintSweep {
   0%, 100% { transform: translateX(0) rotate(13deg); opacity: 0.22; }
-  50% { transform: translateX(-26px) rotate(13deg); opacity: 0.34; }
+  50% { transform: translateX(-22px) rotate(13deg); opacity: 0.32; }
 }
 
 @keyframes packBodyFade {
