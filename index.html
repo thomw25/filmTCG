@@ -716,6 +716,9 @@ button, a, select { font: inherit; }
 .pack.has-custom-art {
   background: transparent;
   border: none;
+  border-radius: 0;
+  -webkit-clip-path: none;
+  clip-path: none;
 }
 
 .pack-art-wrap {
@@ -727,27 +730,15 @@ button, a, select { font: inherit; }
   place-items: center;
 }
 
-.pack-shape-art,
-.pack-title-art {
+.pack-shape-art {
   position: absolute;
   width: 100%;
   height: 100%;
   object-fit: contain;
   transform: scale(var(--pack-art-scale, 1.03));
   transform-origin: center center;
-}
-
-.pack-shape-art {
   z-index: 0;
   filter: saturate(1.02) contrast(1.03);
-}
-
-.pack-title-art {
-  z-index: 1;
-}
-
-.pack.has-custom-art.has-title-art .pack-title {
-  visibility: hidden;
 }
 
 .pack.opening { animation: none; }
@@ -3417,7 +3408,6 @@ button, a, select { font: inherit; }
 <div id="appToast" class="app-toast" aria-live="polite"></div>
 
 <script src="./config.js"></script>
-<script src="./design/pack-v2/pack-shape-data.js"></script>
 <script>
 (function () {
   const DEFAULT_BACKEND_BASE = /^https?:$/.test(window.location.protocol)
@@ -3620,52 +3610,28 @@ button, a, select { font: inherit; }
     }
   };
   const PACK_ART_ASSETS = {
-    all: {
-      shape: 'design/pack-v2/shape/pack_All-cinema_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_All-Cinema_title.svg.svg',
-      scale: 1.03
-    },
-    horror: {
-      shape: 'design/pack-v2/shape/pack_horror_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_horror_title.svg.svg',
-      scale: 1.03
-    },
-    animation: {
-      shape: 'design/pack-v2/shape/pack_animation_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_animation_title.svg.svg',
-      scale: 1.03
-    },
-    eighties: {
-      shape: 'design/pack-v2/shape/pack_80s_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_80s_title.svg.svg',
-      scale: 1.03
-    },
-    noir: {
-      shape: 'design/pack-v2/shape/pack_noir_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_noir_title.svg.svg',
-      scale: 1.03
-    },
-    romcom: {
-      shape: 'design/pack-v2/shape/pack_romcom_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_romcom_title.svg.svg',
-      scale: 1.03
-    },
-    docs: {
-      shape: 'design/pack-v2/shape/pack_doc_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_doc_title.svg.svg',
-      scale: 1.03
-    },
-    actors: {
-      shape: 'design/pack-v2/shape/pack_actors_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_actors_title.svg.svg',
-      scale: 1.03
-    },
-    gold: {
-      shape: 'design/pack-v2/shape/pack_gold_shape.svg.svg',
-      title: 'design/pack-v2/title/pack_gold_title.svg.svg',
-      scale: 1.03
-    }
+    all: { scale: 1.03 },
+    horror: { scale: 1.03 },
+    animation: { scale: 1.03 },
+    eighties: { scale: 1.03 },
+    noir: { scale: 1.03 },
+    romcom: { scale: 1.03 },
+    docs: { scale: 1.03 },
+    actors: { scale: 1.03 },
+    gold: { scale: 1.03 }
   };
+  const PACK_SHAPE_TONES = {
+    all: { top: '#BBD0FF', bottom: '#8F86E9', lineTop: '#605ABF', lineBottom: '#605ABF' },
+    horror: { top: '#F33951', bottom: '#884044', lineTop: '#A13846', lineBottom: '#DA2248' },
+    animation: { top: '#373EE6', bottom: '#67B8EA', lineTop: '#7BA8D1', lineBottom: '#2B314C' },
+    eighties: { top: '#61A398', bottom: '#71E1FB', lineTop: '#70E0F9', lineBottom: '#62A49A' },
+    noir: { top: '#272C46', bottom: '#7CAAD3', lineTop: '#7BA8D1', lineBottom: '#2B314C' },
+    romcom: { top: '#9230B1', bottom: '#FF2495', lineTop: '#FE2596', lineBottom: '#9331B1' },
+    docs: { top: '#00FEA4', bottom: '#00A796', lineTop: '#01A896', lineBottom: '#00F3A2' },
+    actors: { top: '#747361', bottom: '#ECCB88', lineTop: '#C9B17D', lineBottom: '#988D6D' },
+    gold: { top: '#FFFCAB', bottom: '#FFC540', lineTop: '#FFC540', lineBottom: '#FFFBA9' }
+  };
+  const PACK_SHAPE_URI_CACHE = {};
   const FEMALE_DIRECTOR_NAMES = {
     'celine sciamma': true,
     'claire denis': true,
@@ -3681,7 +3647,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-42';
+  const BUILD_ID = 'logic-sync-43';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -6379,29 +6345,40 @@ button, a, select { font: inherit; }
     return encodeURI(raw);
   }
 
-  function resolvePackShapeAsset(themeKey) {
-    const embeddedShapes = window.FILMTCG_PACK_SHAPE_DATA && typeof window.FILMTCG_PACK_SHAPE_DATA === 'object'
-      ? window.FILMTCG_PACK_SHAPE_DATA
-      : null;
-    if (embeddedShapes && embeddedShapes[themeKey]) return embeddedShapes[themeKey];
-    if (PACK_ART_ASSETS[themeKey] && PACK_ART_ASSETS[themeKey].shape) return PACK_ART_ASSETS[themeKey].shape;
-    if (PACK_ART_ASSETS.all && PACK_ART_ASSETS.all.shape) return PACK_ART_ASSETS.all.shape;
-    return '';
+  function buildPackShapeData(themeKey) {
+    const resolvedKey = PACK_SHAPE_TONES[themeKey] ? themeKey : 'all';
+    if (PACK_SHAPE_URI_CACHE[resolvedKey]) return PACK_SHAPE_URI_CACHE[resolvedKey];
+    const tones = PACK_SHAPE_TONES[resolvedKey];
+    const lineTop = tones.lineTop || tones.top || '#605ABF';
+    const lineBottom = tones.lineBottom || tones.bottom || lineTop;
+    const topStop = tones.top || '#BBD0FF';
+    const bottomStop = tones.bottom || '#8F86E9';
+    const topYs = [88.7369, 93.4252, 98.1136, 102.802];
+    const bottomYs = [416.92, 421.609, 426.297, 430.985];
+    const lines = topYs.map(function (y) {
+      return '<line x1="58.7554" y1="' + y + '" x2="298.582" y2="' + y + '" stroke="' + lineTop + '" stroke-width="1.08192"/>';
+    }).concat(bottomYs.map(function (y) {
+      return '<line x1="58.7554" y1="' + y + '" x2="298.582" y2="' + y + '" stroke="' + lineBottom + '" stroke-width="1.08192"/>';
+    })).join('');
+    const svg = '<svg width="356" height="518" viewBox="0 0 356 518" fill="none" xmlns="http://www.w3.org/2000/svg">'
+      + '<path d="M296.939 68C299.101 68.0003 300.778 69.8909 300.519 72.0381L298.482 88.917V433.652L300.361 445.76C300.7 447.946 299.009 449.919 296.797 449.919H59.4768C57.3141 449.919 55.6378 448.028 55.8967 445.881L57.9338 429.002V84.2656L56.0549 72.1592C55.7159 69.9733 57.4064 68.0001 59.6184 68H296.939Z" fill="url(#packShapeGrad)"/>'
+      + lines
+      + '<defs><linearGradient id="packShapeGrad" x1="177.847" y1="68" x2="177.847" y2="449.919" gradientUnits="userSpaceOnUse"><stop stop-color="' + topStop + '"/><stop offset="1" stop-color="' + bottomStop + '"/></linearGradient></defs>'
+      + '</svg>';
+    const dataUri = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    PACK_SHAPE_URI_CACHE[resolvedKey] = dataUri;
+    return dataUri;
   }
 
-  function resolvePackTitleAsset(themeKey) {
-    if (PACK_ART_ASSETS[themeKey] && PACK_ART_ASSETS[themeKey].title) return PACK_ART_ASSETS[themeKey].title;
-    if (PACK_ART_ASSETS.all && PACK_ART_ASSETS.all.title) return PACK_ART_ASSETS.all.title;
-    return '';
+  function resolvePackShapeAsset(themeKey) {
+    return buildPackShapeData(themeKey);
   }
 
   function buildPackFaceMarkup(themeKey, options) {
     const theme = PACK_THEMES[themeKey] || PACK_THEMES.all;
     const artConfig = PACK_ART_ASSETS[themeKey] || null;
     const shapeAsset = normalizeAssetSrc(resolvePackShapeAsset(themeKey));
-    const titleAsset = normalizeAssetSrc(resolvePackTitleAsset(themeKey));
     const hasCustomArt = Boolean(shapeAsset);
-    const hasTitleArt = Boolean(titleAsset);
     const style = '--pack-a:' + theme.colors[0]
       + '; --pack-b:' + theme.colors[1]
       + '; --pack-c:' + theme.colors[2]
@@ -6437,10 +6414,7 @@ button, a, select { font: inherit; }
     return '<div' + attrs + '>'
       + (hasCustomArt
         ? '<div class="pack-art-wrap">'
-          + '<img class="pack-shape-art" src="' + escapeHtml(shapeAsset) + '" alt="" aria-hidden="true"' + cardImageAttrs('high') + '>'
-          + (hasTitleArt
-            ? '<img class="pack-title-art" src="' + escapeHtml(titleAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-title-art\');}" onerror="this.remove();"' + cardImageAttrs('high') + '>'
-            : '')
+          + '<img class="pack-shape-art" src="' + escapeHtml(shapeAsset) + '" alt="" aria-hidden="true" onerror="this.remove();"' + cardImageAttrs('high') + '>'
           + '</div>'
         : '')
       + '<div class="pack-foil"></div>'
