@@ -395,6 +395,7 @@ button, a, select { font: inherit; }
   width: 194px;
   height: 286px;
   padding: 16px 14px 20px;
+  transition: transform 180ms ease, filter 180ms ease;
 }
 
 .shop-pack-preview .pack .pack-copy {
@@ -507,6 +508,7 @@ button, a, select { font: inherit; }
   width: 194px;
   height: 286px;
   padding: 16px 14px 20px;
+  transition: transform 180ms ease, filter 180ms ease;
 }
 
 .shop-reward-option .pack .pack-copy {
@@ -543,9 +545,76 @@ button, a, select { font: inherit; }
   display: none;
 }
 
+.shop-pack-preview .pack.has-loaded-shape .pack-foil,
+.shop-pack-preview .pack.has-loaded-shape .pack-glow,
+.shop-pack-preview .pack.has-loaded-shape .pack-glint,
+.shop-pack-preview .pack.has-loaded-title .pack-foil,
+.shop-pack-preview .pack.has-loaded-title .pack-glow,
+.shop-pack-preview .pack.has-loaded-title .pack-glint,
+.shop-reward-option .pack.has-loaded-shape .pack-foil,
+.shop-reward-option .pack.has-loaded-shape .pack-glow,
+.shop-reward-option .pack.has-loaded-shape .pack-glint,
+.shop-reward-option .pack.has-loaded-title .pack-foil,
+.shop-reward-option .pack.has-loaded-title .pack-glow,
+.shop-reward-option .pack.has-loaded-title .pack-glint {
+  display: block;
+}
+
+.shop-pack-preview .pack.has-loaded-shape .pack-foil,
+.shop-pack-preview .pack.has-loaded-title .pack-foil,
+.shop-reward-option .pack.has-loaded-shape .pack-foil,
+.shop-reward-option .pack.has-loaded-title .pack-foil {
+  opacity: 0.48;
+}
+
+.shop-pack-preview .pack.has-loaded-shape .pack-glint,
+.shop-pack-preview .pack.has-loaded-title .pack-glint,
+.shop-reward-option .pack.has-loaded-shape .pack-glint,
+.shop-reward-option .pack.has-loaded-title .pack-glint {
+  opacity: 0.15;
+}
+
+.shop-pack-preview .pack.has-loaded-shape .pack-glow,
+.shop-pack-preview .pack.has-loaded-title .pack-glow,
+.shop-reward-option .pack.has-loaded-shape .pack-glow,
+.shop-reward-option .pack.has-loaded-title .pack-glow {
+  opacity: 0.17;
+}
+
 .shop-pack-preview .pack .pack-grain,
 .shop-reward-option .pack .pack-grain {
   opacity: 0.06;
+}
+
+@media (hover:hover) and (pointer:fine) {
+  .shop-item:hover .shop-pack-preview .pack,
+  .shop-reward-option:hover .pack {
+    transform: translateY(-5px) scale(1.018);
+    filter: saturate(1.03);
+  }
+
+  .shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-foil,
+  .shop-item:hover .shop-pack-preview .pack.has-loaded-title .pack-foil,
+  .shop-reward-option:hover .pack.has-loaded-shape .pack-foil,
+  .shop-reward-option:hover .pack.has-loaded-title .pack-foil {
+    opacity: 0.64;
+    background-position: 84% -1%, 50% 50%;
+  }
+
+  .shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-glint,
+  .shop-item:hover .shop-pack-preview .pack.has-loaded-title .pack-glint,
+  .shop-reward-option:hover .pack.has-loaded-shape .pack-glint,
+  .shop-reward-option:hover .pack.has-loaded-title .pack-glint {
+    opacity: 0.24;
+    transform: translateX(-8px) rotate(12deg);
+  }
+
+  .shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-glow,
+  .shop-item:hover .shop-pack-preview .pack.has-loaded-title .pack-glow,
+  .shop-reward-option:hover .pack.has-loaded-shape .pack-glow,
+  .shop-reward-option:hover .pack.has-loaded-title .pack-glow {
+    opacity: 0.24;
+  }
 }
 
 .shop-trade-row {
@@ -808,17 +877,45 @@ button, a, select { font: inherit; }
 
 .pack.has-loaded-shape .pack-foil,
 .pack.has-loaded-title .pack-foil {
-  display: none;
+  display: block;
+  inset: 8% 10.5% 9.5% 10.5%;
+  border-radius: 17px;
+  background:
+    linear-gradient(104deg, rgba(255,255,255,.26) 0%, rgba(255,255,255,.11) 8%, rgba(255,255,255,0) 18%, rgba(255,255,255,.065) 38%, rgba(255,255,255,0) 56%),
+    linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,0) 22%, rgba(61,56,130,.08) 100%);
+  background-size: 138% 138%, 100% 100%;
+  background-position: 92% 0, 50% 50%;
+  mix-blend-mode: screen;
+  opacity: 0.62;
+  filter: blur(.15px);
 }
 
 .pack.has-loaded-shape .pack-glint,
 .pack.has-loaded-title .pack-glint {
-  display: none;
+  display: block;
+  top: 7%;
+  right: 23%;
+  width: 24%;
+  height: 70%;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.08) 34%, rgba(255,255,255,0)),
+    linear-gradient(180deg, rgba(187,208,255,.16), rgba(255,255,255,0) 64%);
+  opacity: 0.22;
+  transform: rotate(12deg);
+  filter: blur(.6px);
+  mix-blend-mode: screen;
 }
 
 .pack.has-loaded-shape .pack-glow,
 .pack.has-loaded-title .pack-glow {
-  display: none;
+  display: block;
+  inset: auto auto 34px 50%;
+  width: 156px;
+  height: 72px;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(255,255,255,.14) 0%, rgba(255,255,255,.03) 38%, rgba(255,255,255,0) 72%);
+  opacity: 0.26;
+  filter: blur(18px);
 }
 
 .pack.has-loaded-shape .pack-grain,
@@ -901,6 +998,13 @@ button, a, select { font: inherit; }
 .pack-twinkle {
   position: absolute;
   pointer-events: none;
+}
+
+.pack-foil,
+.pack-glint,
+.pack-glow,
+.pack-grain {
+  transition: opacity 180ms ease, transform 180ms ease, filter 180ms ease, background-position 180ms ease;
 }
 
 .pack-foil {
