@@ -13,8 +13,8 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const LOGIC_VERSION = 'logic-2026-03-30-6';
-const POOL_SNAPSHOT_VERSION = 'server-rotation-12';
+const LOGIC_VERSION = 'logic-2026-03-30-7';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-13';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -1367,11 +1367,13 @@ function computePoolSelectionScore(movie) {
   else if (signals.voteCount < 60) score -= 8;
   else if (signals.voteCount < 140) score -= 3;
 
-  if (signals.mainstreamRecognitionProxy || signals.belovedStudioClassicProxy) score += 6;
-  if (signals.acclaimedModernGenreProxy || signals.modernAuteurLandmarkProxy) score += 4;
-  if (signals.year >= 1980 && signals.year <= 2012 && signals.recognition >= 2) score += 2;
+  if (signals.mainstreamRecognitionProxy || signals.belovedStudioClassicProxy) score += 4;
+  if (signals.acclaimedModernGenreProxy || signals.modernAuteurLandmarkProxy) score += 3;
+  if (signals.year >= 1980 && signals.year <= 2012 && signals.recognition >= 2) score += 1;
   if (signals.year >= 2018) score -= 2;
   if (signals.year >= 2022) score -= 2;
+  if (signals.popularity >= 28 && signals.voteCount >= 4500 && !signals.majorPromotionProxy) score -= 4;
+  if (signals.popularity >= 42 && !signals.blockbusterRespectProxy && !signals.modernPrestigeLandmarkProxy) score -= 4;
 
   const jitter = signals.voteCount < 120
     ? (Math.random() * 18)

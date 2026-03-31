@@ -2790,7 +2790,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-10';
+  const BUILD_ID = 'logic-sync-11';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -2917,8 +2917,8 @@ button, a, select { font: inherit; }
     actors: { actor: 24, director: 1 },
     all: {}
   };
-  const RECENT_PULL_MEMORY = 140;
-  const RECENT_PULL_HARD_EXCLUDE = 90;
+  const RECENT_PULL_MEMORY = 180;
+  const RECENT_PULL_HARD_EXCLUDE = 120;
   const LIVE_DRAW_REFRESH_INTERVAL = 3;
   const THEME_POOL_LIMIT = 900;
   const SAMPLE_MOVIES = [
@@ -4209,19 +4209,20 @@ button, a, select { font: inherit; }
       if (themeKey === 'actors' && candidate.roleKey === 'actor') {
         const estimatedRank = rarityRank(derivePersonRarity(candidate, null));
         const actorPackBias = ({
-          1: 0.7,
-          2: 1.15,
-          3: 1.2,
-          4: 0.62
+          1: 1.08,
+          2: 1.28,
+          3: 0.84,
+          4: 0.32
         })[estimatedRank] || 1;
         weight *= actorPackBias;
 
         const popularity = Number(candidate && candidate.popularity) || 0;
-        if (popularity >= 36) weight *= 0.82;
-        if (popularity >= 52) weight *= 0.72;
+        if (popularity >= 30) weight *= 0.84;
+        if (popularity >= 44) weight *= 0.68;
+        if (popularity >= 58) weight *= 0.56;
 
         const knownForDepth = Number(candidate && candidate.knownForDepth) || 0;
-        if (knownForDepth >= 2) weight *= 1.08;
+        if (knownForDepth >= 2 && estimatedRank <= 2) weight *= 1.12;
       }
       return {
         weight: weight,
@@ -4278,7 +4279,7 @@ button, a, select { font: inherit; }
     return shuffledCopy(deduped).slice(0, 12);
   }
 
-  async function maybeBuildPersonInsert(sourceMovies, themeKey, isGoldRewardPack, existingPersonKeys) {
+  async function maybeBuildPersonInsert(sourceMovies, themeKey, isGoldRewardPack, existingPersonKeys, existingPersonCards) {
     const insertChance = themeKey === 'actors'
       ? 1
       : (isGoldRewardPack ? PERSON_INSERT_CHANCE_GOLD : PERSON_INSERT_CHANCE);
@@ -4302,6 +4303,7 @@ button, a, select { font: inherit; }
       }
     }
     const existingKeys = existingPersonKeys || new Set();
+    const existingCards = Array.isArray(existingPersonCards) ? existingPersonCards : [];
     if (existingKeys.size) {
       const filteredCandidates = candidates.filter(function (candidate) {
         return candidate && !existingKeys.has(personKey(candidate.name));
@@ -4330,7 +4332,17 @@ button, a, select { font: inherit; }
       };
       const knownFor = seededKnownFor;
       const titleCount = Array.isArray(knownFor.knownForTitles) ? knownFor.knownForTitles.length : 0;
-      const candidateScore = (titleCount * 100) + ((Number(knownFor.knownForPeakRank) || 0) * 10) + (Number(knownFor.knownForDepth) || 0) + Math.round(Number(picked.popularity) || 0);
+      let candidateScore = (titleCount * 100) + ((Number(knownFor.knownForPeakRank) || 0) * 10) + (Number(knownFor.knownForDepth) || 0) + Math.round(Number(picked.popularity) || 0);
+      if (themeKey === 'actors' && picked.roleKey === 'actor') {
+        const estimatedRank = rarityRank(derivePersonRarity(Object.assign({}, picked, knownFor), null));
+        const existingHighTierCount = existingCards.filter(function (card) {
+          return card && card.cardType === 'person' && rarityRank(card.rarity) >= 3;
+        }).length;
+        if (estimatedRank >= 4) candidateScore *= 0.45;
+        else if (estimatedRank >= 3) candidateScore *= 0.82;
+        if (existingHighTierCount >= 1 && estimatedRank >= 3) candidateScore *= 0.45;
+        if (existingHighTierCount >= 2 && estimatedRank >= 2) candidateScore *= 0.3;
+      }
 
       if (candidateScore > bestScore) {
         bestCandidate = picked;
@@ -4951,6 +4963,21 @@ button, a, select { font: inherit; }
     return filtered.length ? filtered[Math.floor(Math.random() * filtered.length)] : null;
   }
 
+  function filterMovieCandidatesByMode(candidates, excludedTitles, avoidedTitles, ownedTitles, mode) {
+    const excluded = excludedTitles || new Set();
+    const avoided = avoidedTitles || new Set();
+    const owned = ownedTitles || new Set();
+    const source = Array.isArray(candidates) ? candidates : [];
+    return source.filter(function (movie) {
+      const key = filmIdentityKey(movie);
+      if (!key || excluded.has(key)) return false;
+      if (mode === 'fresh') return !avoided.has(key) && !owned.has(key);
+      if (mode === 'notRecent') return !avoided.has(key);
+      if (mode === 'notOwned') return !owned.has(key);
+      return true;
+    });
+  }
+
   function buildAvoidedTitleSet() {
     const avoided = buildRecentPullSet();
     activeReelSeenTitles.forEach(function (key) {
@@ -4997,16 +5024,17 @@ button, a, select { font: inherit; }
       buckets[movie.rarity].push(movie);
     });
 
-    function chooseAcrossRarities(prioritizedRarities) {
+    function chooseAcrossRarities(prioritizedRarities, mode) {
       const remainingRarities = Object.keys(buckets).filter(function (rarity) {
         return prioritizedRarities.indexOf(rarity) === -1;
       });
       const orderedRarities = prioritizedRarities.concat(remainingRarities);
       for (let i = 0; i < orderedRarities.length; i += 1) {
         const rarity = orderedRarities[i];
-        const candidates = filterMovieCandidatesByFreshness(buckets[rarity] || [], excludedTitles, avoidedTitles, preferredOwnedTitles);
-        const pick = chooseCandidateWithAvoidance(candidates, excludedTitles, avoidedTitles, preferredOwnedTitles);
-        if (pick) return pick;
+        const candidates = filterMovieCandidatesByMode(buckets[rarity] || [], excludedTitles, avoidedTitles, preferredOwnedTitles, mode);
+        if (candidates.length) {
+          return candidates[Math.floor(Math.random() * candidates.length)];
+        }
       }
       return null;
     }
@@ -5015,16 +5043,29 @@ button, a, select { font: inherit; }
       let premiumCandidates = []
         .concat(buckets.Legendary || [])
         .concat(buckets.Epic || []);
-
-      const premiumPick = chooseCandidateWithAvoidance(premiumCandidates, excludedTitles, avoidedTitles, preferredOwnedTitles);
-      if (premiumPick) {
-        return cloneMovie(premiumPick);
+      const premiumModes = ['fresh', 'notRecent', 'notOwned', 'any'];
+      for (let modeIndex = 0; modeIndex < premiumModes.length; modeIndex += 1) {
+        const premiumCandidatesByMode = filterMovieCandidatesByMode(
+          premiumCandidates,
+          excludedTitles,
+          avoidedTitles,
+          preferredOwnedTitles,
+          premiumModes[modeIndex]
+        );
+        if (premiumCandidatesByMode.length) {
+          return cloneMovie(premiumCandidatesByMode[Math.floor(Math.random() * premiumCandidatesByMode.length)]);
+        }
       }
     }
 
     const availableOdds = PULL_ODDS.filter(function (entry) { return buckets[entry.rarity] && buckets[entry.rarity].length; });
     const pickedRarity = availableOdds.length ? weightedChoice(availableOdds).rarity : 'Base';
-    let pickedMovie = chooseAcrossRarities([pickedRarity]);
+    let pickedMovie = null;
+    const selectionModes = ['fresh', 'notRecent', 'notOwned', 'any'];
+
+    for (let modeIndex = 0; modeIndex < selectionModes.length && !pickedMovie; modeIndex += 1) {
+      pickedMovie = chooseAcrossRarities([pickedRarity], selectionModes[modeIndex]);
+    }
 
     if (!pickedMovie) {
       pickedMovie = chooseCandidateWithAvoidance(pool, excludedTitles, avoidedTitles, preferredOwnedTitles);
@@ -5116,7 +5157,7 @@ button, a, select { font: inherit; }
 
     for (let personIndex = 0; personIndex < personSlots; personIndex += 1) {
       chain = chain.then(function () {
-        return maybeBuildPersonInsert(drafted, currentPackTheme, isBoostedRewardPack, existingPersonKeys)
+        return maybeBuildPersonInsert(drafted, currentPackTheme, isBoostedRewardPack, existingPersonKeys, personInserts)
           .catch(function () { return null; })
           .then(function (personInsert) {
             if (personInsert) {
