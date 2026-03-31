@@ -3090,7 +3090,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-6</div>
+  <div class="sub">Build: packs-people-tier-7</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3434,7 +3434,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-28';
+  const BUILD_ID = 'logic-sync-29';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -3459,8 +3459,8 @@ button, a, select { font: inherit; }
   ];
   const PACK_HIGH_TIER_CAP = 1;
   const PACK_MONO_STREAK_LIMIT = 2;
-  const PERSON_INSERT_CHANCE = 0.2;
-  const PERSON_INSERT_CHANCE_GOLD = 0.34;
+  const PERSON_INSERT_CHANCE = 0.12;
+  const PERSON_INSERT_CHANCE_GOLD = 0.24;
   const PERSON_RARITY_FLOORS = {
     'martin scorsese': 'Legendary',
     'buster keaton': 'Legendary',
@@ -3513,6 +3513,7 @@ button, a, select { font: inherit; }
     'kurt russell': 'Epic',
     'robert downey jr.': 'Epic',
     'robert downey jr': 'Epic',
+    'morgan freeman': 'Epic',
     'robert duvall': 'Select',
     'sean penn': 'Epic',
     'timothee chalamet': 'Epic',
@@ -4368,11 +4369,11 @@ button, a, select { font: inherit; }
   function buildPackHookMarkup() {
     if (progress.rewardChoicesAvailable > 0) {
       const count = Math.max(0, Number(progress.rewardChoicesAvailable) || 0);
-      const suffix = count === 1 ? '' : 's';
-      return '<div class="pack-hook"><strong>' + String(count) + '</strong> reward pack' + suffix + ' ready in <strong>Shop</strong></div>';
+      const choiceLabel = count === 1 ? 'choice' : 'choices';
+      return '<div class="pack-hook"><strong>' + String(count) + '</strong> reward genre ' + choiceLabel + ' ready</div>';
     }
 
-    return '<div class="pack-hook">' + escapeHtml(String(packsUntilReward())) + ' packs until <strong>reward</strong></div>';
+    return '<div class="pack-hook">' + escapeHtml(String(packsUntilReward())) + ' packs until <strong>reward genre choice</strong></div>';
   }
 
   function escapeHtml(value) {
@@ -5601,6 +5602,7 @@ button, a, select { font: inherit; }
       || signals.actorRecognitionProxy
       || signals.actorPrestigeProxy
       || (signals.isActor && signals.knownForPeakRank >= 2 && signals.knownForDepth >= 4)
+      || (signals.isActor && signals.popularity >= 40)
       || signals.floorRank >= 3
     ) {
       rank = Math.max(rank, 3);
@@ -5615,6 +5617,7 @@ button, a, select { font: inherit; }
       || (!signals.isDirector && signals.iconicStarProxy && signals.knownForPeakRank >= 3 && signals.knownForDepth >= 3 && signals.popularity >= 34)
       || (signals.isDirector && signals.recognition >= 3 && signals.respect >= 3)
       || (signals.isActor && signals.iconicStarProxy && signals.knownForPeakRank >= 3 && signals.knownForDepth >= 3 && signals.popularity >= 34)
+      || (signals.isActor && signals.popularity >= 66 && signals.knownForPeakRank >= 2)
     ) {
       rank = Math.max(rank, 4);
     }
@@ -5686,17 +5689,17 @@ button, a, select { font: inherit; }
       if (themeKey === 'actors' && candidate.roleKey === 'actor') {
         const estimatedRank = rarityRank(derivePersonRarity(candidate, null));
         const actorPackBias = ({
-          1: 1.42,
-          2: 1.62,
-          3: 0.42,
-          4: 0.07
+          1: 1.26,
+          2: 1.42,
+          3: 0.86,
+          4: 0.34
         })[estimatedRank] || 1;
         weight *= actorPackBias;
 
         const popularity = Number(candidate && candidate.popularity) || 0;
-        if (popularity >= 24) weight *= 0.72;
-        if (popularity >= 36) weight *= 0.46;
-        if (popularity >= 50) weight *= 0.28;
+        if (popularity >= 24) weight *= 0.86;
+        if (popularity >= 36) weight *= 0.72;
+        if (popularity >= 50) weight *= 0.56;
 
         const knownForDepth = Number(candidate && candidate.knownForDepth) || 0;
         if (knownForDepth >= 2 && estimatedRank <= 2) weight *= 1.18;
@@ -5815,10 +5818,10 @@ button, a, select { font: inherit; }
         const existingHighTierCount = existingCards.filter(function (card) {
           return card && card.cardType === 'person' && rarityRank(card.rarity) >= 3;
         }).length;
-        if (estimatedRank >= 4) candidateScore *= 0.35;
-        else if (estimatedRank >= 3) candidateScore *= 0.72;
-        if (existingHighTierCount >= 1 && estimatedRank >= 3) candidateScore *= 0.45;
-        if (existingHighTierCount >= 2 && estimatedRank >= 2) candidateScore *= 0.3;
+        if (estimatedRank >= 4) candidateScore *= 0.62;
+        else if (estimatedRank >= 3) candidateScore *= 0.9;
+        if (existingHighTierCount >= 1 && estimatedRank >= 3) candidateScore *= 0.72;
+        if (existingHighTierCount >= 2 && estimatedRank >= 2) candidateScore *= 0.52;
       }
 
       if (candidateScore > bestScore) {
