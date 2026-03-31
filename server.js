@@ -332,6 +332,22 @@ const TITLE_RARITY_FLOORS = {
   'little mermaid': 'Epic'
 };
 
+const TITLE_YEAR_RARITY_FLOORS = {
+  'the lighthouse::2019': 'Epic',
+  'lighthouse::2019': 'Epic',
+  'the postman::1994': 'Epic',
+  'il postino::1994': 'Epic',
+  'the postman::1997': 'Select'
+};
+
+const TITLE_YEAR_RARITY_CEILINGS = {
+  'the lighthouse::2019': 'Epic',
+  'lighthouse::2019': 'Epic',
+  'the postman::1994': 'Epic',
+  'il postino::1994': 'Epic',
+  'the postman::1997': 'Select'
+};
+
 const CANON_SHORT_TITLES = [
   'A Grand Day Out',
   'The Wrong Trousers',
@@ -367,6 +383,16 @@ function titleKey(value) {
     .replace(/[\u0300-\u036f]/g, '')
     .trim()
     .toLowerCase();
+}
+
+function titleYearKey(movie) {
+  const title = titleKey(movie && movie.title);
+  const year = Number(
+    (movie && movie.year)
+    || extractYear(movie && (movie.releaseDate || movie.release_date))
+  ) || 0;
+  if (!title || !year) return '';
+  return title + '::' + String(year);
 }
 
 function rarityByRank(rank) {
@@ -1849,6 +1875,8 @@ function assignRarity(movie) {
 }
 
 function rarityFloorForMovie(movie) {
+  const exactFloor = TITLE_YEAR_RARITY_FLOORS[titleYearKey(movie)];
+  if (exactFloor) return normalizeRarityLabel(exactFloor);
   const titleFloor = TITLE_RARITY_FLOORS[titleKey(movie && movie.title)];
   if (titleFloor) return normalizeRarityLabel(titleFloor);
   const signals = computeMovieSignals(movie);
@@ -1998,6 +2026,8 @@ function rarityFloorForMovie(movie) {
 }
 
 function rarityCeilingForMovie(movie) {
+  const exactCeiling = TITLE_YEAR_RARITY_CEILINGS[titleYearKey(movie)];
+  if (exactCeiling) return normalizeRarityLabel(exactCeiling);
   if (TITLE_RARITY_FLOORS[titleKey(movie && movie.title)]) {
     return 'Legendary';
   }
