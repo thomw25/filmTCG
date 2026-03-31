@@ -823,7 +823,16 @@ button, a, select { font: inherit; }
 
 .pack.has-loaded-shape .pack-grain,
 .pack.has-loaded-title .pack-grain {
-  opacity: 0.04;
+  inset: 8.5% 11% 10% 11%;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,0) 18%, rgba(255,255,255,0) 68%, rgba(55,51,121,.08) 100%),
+    radial-gradient(circle at 50% 14%, rgba(255,255,255,.07) 0%, transparent 34%),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.012) 0 2px, rgba(0,0,0,.01) 2px 4px),
+    radial-gradient(circle at 22% 28%, rgba(255,255,255,.035) 0 1px, transparent 1.2px),
+    radial-gradient(circle at 68% 68%, rgba(0,0,0,.03) 0 1px, transparent 1px);
+  mix-blend-mode: soft-light;
+  opacity: 0.095;
+  border-radius: 16px;
 }
 
 .shop-pack-preview .pack .pack-glow,
@@ -3735,19 +3744,24 @@ button, a, select { font: inherit; }
       shape: svgToDataUri(`
         <svg width="356" height="518" viewBox="0 0 356 518" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M296.939 68C299.101 68.0003 300.778 69.8909 300.519 72.0381L298.482 88.917V433.652L300.361 445.76C300.7 447.946 299.009 449.919 296.797 449.919H59.4768C57.3141 449.919 55.6378 448.028 55.8967 445.881L57.9338 429.002V84.2656L56.0549 72.1592C55.7159 69.9733 57.4064 68.0001 59.6184 68H296.939Z" fill="url(#paint0_linear_1_251)"/>
-        <line x1="58.7554" y1="88.7369" x2="298.582" y2="88.7369" stroke="#605ABF" stroke-width="1.08192"/>
-        <line x1="58.7554" y1="416.92" x2="298.582" y2="416.92" stroke="#605ABF" stroke-width="1.08192"/>
-        <line x1="58.7554" y1="93.4252" x2="298.582" y2="93.4252" stroke="#605ABF" stroke-width="1.08192"/>
-        <line x1="58.7554" y1="421.609" x2="298.582" y2="421.609" stroke="#605ABF" stroke-width="1.08192"/>
-        <line x1="58.7554" y1="98.1136" x2="298.582" y2="98.1136" stroke="#605ABF" stroke-width="1.08192"/>
-        <line x1="58.7554" y1="426.297" x2="298.582" y2="426.297" stroke="#605ABF" stroke-width="1.08192"/>
-        <line x1="58.7554" y1="102.802" x2="298.582" y2="102.802" stroke="#605ABF" stroke-width="1.08192"/>
-        <line x1="58.7554" y1="430.985" x2="298.582" y2="430.985" stroke="#605ABF" stroke-width="1.08192"/>
+        <g filter="url(#packLineShadow)" stroke="#605ABF" stroke-linecap="round" stroke-opacity=".42" stroke-width=".88">
+        <line x1="58.7554" y1="88.7369" x2="298.582" y2="88.7369"/>
+        <line x1="58.7554" y1="416.92" x2="298.582" y2="416.92"/>
+        <line x1="58.7554" y1="93.4252" x2="298.582" y2="93.4252"/>
+        <line x1="58.7554" y1="421.609" x2="298.582" y2="421.609"/>
+        <line x1="58.7554" y1="98.1136" x2="298.582" y2="98.1136"/>
+        <line x1="58.7554" y1="426.297" x2="298.582" y2="426.297"/>
+        <line x1="58.7554" y1="102.802" x2="298.582" y2="102.802"/>
+        <line x1="58.7554" y1="430.985" x2="298.582" y2="430.985"/>
+        </g>
         <defs>
         <linearGradient id="paint0_linear_1_251" x1="177.847" y1="78.098" x2="177.847" y2="449.919" gradientUnits="userSpaceOnUse">
         <stop stop-color="#BBD0FF"/>
         <stop offset="1" stop-color="#8F86E9"/>
         </linearGradient>
+        <filter id="packLineShadow" x="56" y="87" width="246" height="346" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+        <feDropShadow dx="0" dy="0.65" stdDeviation="0.35" flood-color="#4F4A9E" flood-opacity=".18"/>
+        </filter>
         </defs>
         </svg>
       `),
