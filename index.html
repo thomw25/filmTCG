@@ -149,6 +149,98 @@ button, a, select { font: inherit; }
   flex-wrap: wrap;
 }
 
+.daily-hunts-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.daily-hunts-list {
+  display: grid;
+  gap: 12px;
+}
+
+.daily-hunt-card {
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015));
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.daily-hunt-card.is-complete {
+  border-color: rgba(96,165,250,.44);
+  box-shadow: 0 0 0 1px rgba(96,165,250,.25) inset;
+}
+
+.daily-hunt-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.daily-hunt-title {
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.daily-hunt-meta {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.daily-hunt-progress {
+  height: 8px;
+  width: 100%;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(148,163,184,.2);
+  border: 1px solid rgba(148,163,184,.24);
+}
+
+.daily-hunt-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #60a5fa, #c084fc);
+}
+
+.daily-hunt-summary {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.daily-reward-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(251,191,36,.08);
+}
+
+.daily-reward-copy {
+  color: rgba(255,255,255,.84);
+  font-size: 0.88rem;
+}
+
+.daily-claim-btn {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  color: #0f172a;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+
+.daily-claim-btn:disabled {
+  cursor: default;
+  opacity: 0.66;
+}
+
 .view-toggle {
   display: inline-flex;
   padding: 4px;
@@ -2512,6 +2604,7 @@ button, a, select { font: inherit; }
 
 <div class="nav">
   <button id="pullTab" class="active" type="button">Pull</button>
+  <button id="dailyTab" type="button">Daily</button>
   <button id="collectionTab" type="button">Collection</button>
 </div>
 
@@ -2601,6 +2694,13 @@ button, a, select { font: inherit; }
       <input id="collectionSearch" class="collection-search" type="search" placeholder="Search title, director, role, or year">
     </div>
     <div id="collectionGrid" class="collection-grid"></div>
+  </div>
+</div>
+
+<div id="daily" class="page">
+  <div class="collection-shell">
+    <h2>Daily Challenges</h2>
+    <div id="dailyHuntsPanel" class="daily-hunts-panel"></div>
   </div>
 </div>
 
@@ -2799,7 +2899,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-20';
+  const BUILD_ID = 'logic-sync-21';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -2937,6 +3037,8 @@ button, a, select { font: inherit; }
   const RECENT_PULL_HARD_EXCLUDE = 120;
   const LIVE_DRAW_REFRESH_INTERVAL = 3;
   const THEME_POOL_LIMIT = 900;
+  const DAILY_HUNT_COUNT = 3;
+  const DAILY_HUNT_THEME_TAGS = ['horror', 'animation', 'noir', 'romcom', 'docs'];
   const SAMPLE_MOVIES = [
     { title: 'Jaws', rarity: 'Base', genre: 'Thriller', desc: 'Shark terrorizes a beach town.', packs: ['all', 'horror'] },
     { title: 'Ferris Bueller\'s Day Off', rarity: 'Base', genre: 'Comedy', desc: 'A perfect skip day through Chicago.', packs: ['all'] },
@@ -2960,6 +3062,7 @@ button, a, select { font: inherit; }
   let movies = SAMPLE_MOVIES.map(normalizeMovieRecord);
   let collection = loadCollection();
   let progress = loadProgress();
+  let dailyHuntsState = loadDailyHuntsState();
   let bookmarks = loadBookmarks();
   let showcase = loadShowcase();
   let pack = [];
@@ -2989,12 +3092,15 @@ button, a, select { font: inherit; }
   const personBioCache = new Map();
 
   const pullPage = document.getElementById('pull');
+  const dailyPage = document.getElementById('daily');
   const collectionPage = document.getElementById('collection');
   const pullArea = document.getElementById('pullArea');
+  const dailyHuntsPanel = document.getElementById('dailyHuntsPanel');
   const collectionGrid = document.getElementById('collectionGrid');
   const showcasePanel = document.getElementById('showcasePanel');
   const collectionSearchEl = document.getElementById('collectionSearch');
   const pullTab = document.getElementById('pullTab');
+  const dailyTab = document.getElementById('dailyTab');
   const collectionTab = document.getElementById('collectionTab');
   const cardModal = document.getElementById('cardModal');
   const modalBody = document.getElementById('modalBody');
@@ -3216,6 +3322,356 @@ button, a, select { font: inherit; }
       : [];
     progress.featuredRewardTheme = progress.featuredRewardThemes[0] || null;
     localStorage.setItem('filmtcg.progress', JSON.stringify(progress));
+  }
+
+  function todayLocalKey() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return String(year) + '-' + month + '-' + day;
+  }
+
+  function msUntilNextLocalMidnight() {
+    const now = new Date();
+    const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+    return Math.max(0, nextMidnight.getTime() - now.getTime());
+  }
+
+  function formatCountdown(ms) {
+    const totalMinutes = Math.max(0, Math.floor(ms / 60000));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return String(hours) + 'h ' + String(minutes).padStart(2, '0') + 'm';
+  }
+
+  function hashStringSeed(value) {
+    let hash = 2166136261;
+    const text = String(value || '');
+    for (let i = 0; i < text.length; i += 1) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  function createSeededRng(seed) {
+    let state = (Number(seed) >>> 0) || 1;
+    return function () {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+      return state / 4294967296;
+    };
+  }
+
+  function seededShuffle(items, rng) {
+    const source = Array.isArray(items) ? items.slice() : [];
+    for (let i = source.length - 1; i > 0; i -= 1) {
+      const swapIndex = Math.floor((rng ? rng() : Math.random()) * (i + 1));
+      const temp = source[i];
+      source[i] = source[swapIndex];
+      source[swapIndex] = temp;
+    }
+    return source;
+  }
+
+  function randomIntWithRng(rng, min, max) {
+    const low = Math.min(Number(min) || 0, Number(max) || 0);
+    const high = Math.max(Number(min) || 0, Number(max) || 0);
+    return low + Math.floor((rng ? rng() : Math.random()) * ((high - low) + 1));
+  }
+
+  function dailyThemeLabel(tag) {
+    const theme = PACK_THEMES[tag];
+    return theme && theme.label ? theme.label : String(tag || 'Theme');
+  }
+
+  function loadDailyHuntsState() {
+    try {
+      const stored = JSON.parse(localStorage.getItem('filmtcg.dailyHunts') || '{}');
+      return {
+        dayKey: String(stored.dayKey || ''),
+        hunts: Array.isArray(stored.hunts) ? stored.hunts.slice(0, DAILY_HUNT_COUNT) : [],
+        bonusClaimed: Boolean(stored.bonusClaimed)
+      };
+    } catch (error) {
+      return {
+        dayKey: '',
+        hunts: [],
+        bonusClaimed: false
+      };
+    }
+  }
+
+  function saveDailyHuntsState() {
+    const hunts = Array.isArray(dailyHuntsState && dailyHuntsState.hunts)
+      ? dailyHuntsState.hunts.slice(0, DAILY_HUNT_COUNT)
+      : [];
+    const payload = {
+      dayKey: String(dailyHuntsState && dailyHuntsState.dayKey || ''),
+      hunts: hunts,
+      bonusClaimed: Boolean(dailyHuntsState && dailyHuntsState.bonusClaimed)
+    };
+    localStorage.setItem('filmtcg.dailyHunts', JSON.stringify(payload));
+  }
+
+  function buildDailyHuntsForDay(dayKey) {
+    const rng = createSeededRng(hashStringSeed('filmtcg-hunts:' + String(dayKey || '')));
+    const themeTag = DAILY_HUNT_THEME_TAGS[Math.floor(rng() * DAILY_HUNT_THEME_TAGS.length)] || 'horror';
+
+    const openTarget = randomIntWithRng(rng, 3, 5);
+    const selectTarget = randomIntWithRng(rng, 3, 5);
+    const personTarget = randomIntWithRng(rng, 2, 3);
+    const actorTarget = randomIntWithRng(rng, 1, 2);
+    const directorTarget = randomIntWithRng(rng, 1, 2);
+    const epicTarget = 1;
+    const uniqueTarget = randomIntWithRng(rng, 4, 7);
+    const themeTarget = randomIntWithRng(rng, 3, 5);
+
+    const templates = [
+      {
+        id: 'open_packs',
+        type: 'open_packs',
+        target: openTarget,
+        label: 'Open ' + String(openTarget) + ' packs',
+        detail: 'Any theme counts.'
+      },
+      {
+        id: 'select_plus',
+        type: 'select_plus',
+        target: selectTarget,
+        label: 'Pull ' + String(selectTarget) + ' Select+ cards',
+        detail: 'Select, Epic, or Legendary.'
+      },
+      {
+        id: 'person_cards',
+        type: 'person_cards',
+        target: personTarget,
+        label: 'Pull ' + String(personTarget) + ' People cards',
+        detail: 'Actors and directors both count.'
+      },
+      {
+        id: 'actor_cards',
+        type: 'actor_cards',
+        target: actorTarget,
+        label: 'Pull ' + String(actorTarget) + ' Actor cards',
+        detail: 'People pack helps here.'
+      },
+      {
+        id: 'director_cards',
+        type: 'director_cards',
+        target: directorTarget,
+        label: 'Pull ' + String(directorTarget) + ' Director cards',
+        detail: 'Auteur hunting time.'
+      },
+      {
+        id: 'epic_plus',
+        type: 'epic_plus',
+        target: epicTarget,
+        label: 'Pull ' + String(epicTarget) + ' Epic+ card',
+        detail: 'Epic or Legendary.'
+      },
+      {
+        id: 'new_unique',
+        type: 'new_unique',
+        target: uniqueTarget,
+        label: 'Find ' + String(uniqueTarget) + ' new cards',
+        detail: 'New to your collection only.'
+      },
+      {
+        id: 'theme_cards:' + themeTag,
+        type: 'theme_cards',
+        target: themeTarget,
+        meta: { tag: themeTag },
+        label: 'Pull ' + String(themeTarget) + ' ' + dailyThemeLabel(themeTag) + ' cards',
+        detail: 'Film cards in that lane.'
+      }
+    ];
+
+    const primary = templates[0];
+    const options = seededShuffle(templates.slice(1), rng);
+    const chosen = [primary].concat(options.slice(0, Math.max(0, DAILY_HUNT_COUNT - 1)));
+    return chosen.map(function (hunt) {
+      return {
+        id: hunt.id,
+        type: hunt.type,
+        target: Math.max(1, Number(hunt.target) || 1),
+        progress: 0,
+        label: hunt.label,
+        detail: hunt.detail || '',
+        meta: hunt.meta || null,
+        completed: false
+      };
+    });
+  }
+
+  function ensureDailyHuntsState(forceRefresh) {
+    const today = todayLocalKey();
+    const hunts = Array.isArray(dailyHuntsState && dailyHuntsState.hunts) ? dailyHuntsState.hunts : [];
+    const shouldReset = Boolean(forceRefresh)
+      || !dailyHuntsState
+      || dailyHuntsState.dayKey !== today
+      || hunts.length !== DAILY_HUNT_COUNT;
+    if (shouldReset) {
+      dailyHuntsState = {
+        dayKey: today,
+        hunts: buildDailyHuntsForDay(today),
+        bonusClaimed: false
+      };
+      saveDailyHuntsState();
+    }
+    return dailyHuntsState;
+  }
+
+  function isDailyHuntComplete(hunt) {
+    return Number(hunt && hunt.progress) >= Number(hunt && hunt.target);
+  }
+
+  function areAllDailyHuntsComplete(state) {
+    const hunts = Array.isArray(state && state.hunts) ? state.hunts : [];
+    return hunts.length > 0 && hunts.every(function (hunt) {
+      return isDailyHuntComplete(hunt);
+    });
+  }
+
+  function applyDailyHuntsFromPack(cards, collectionKeysBefore) {
+    const state = ensureDailyHuntsState(false);
+    const hunts = Array.isArray(state.hunts) ? state.hunts : [];
+    if (!hunts.length) return;
+
+    const collectionKeys = new Set(Array.from(collectionKeysBefore || []).filter(Boolean));
+    const stats = {
+      openPacks: 1,
+      selectPlus: 0,
+      epicPlus: 0,
+      personCards: 0,
+      actorCards: 0,
+      directorCards: 0,
+      newUnique: 0,
+      themeCounts: {}
+    };
+
+    DAILY_HUNT_THEME_TAGS.forEach(function (tag) {
+      stats.themeCounts[tag] = 0;
+    });
+
+    (Array.isArray(cards) ? cards : []).forEach(function (card) {
+      const rank = rarityRank(card && card.rarity);
+      if (rank >= 2) stats.selectPlus += 1;
+      if (rank >= 3) stats.epicPlus += 1;
+
+      if (card && card.cardType === 'person') {
+        stats.personCards += 1;
+        if (card.roleKey === 'actor') stats.actorCards += 1;
+        if (card.roleKey === 'director') stats.directorCards += 1;
+      } else {
+        DAILY_HUNT_THEME_TAGS.forEach(function (tag) {
+          if (movieHasTag(card, tag)) {
+            stats.themeCounts[tag] = (stats.themeCounts[tag] || 0) + 1;
+          }
+        });
+      }
+
+      const key = cardKey(card);
+      if (key && !collectionKeys.has(key)) {
+        stats.newUnique += 1;
+        collectionKeys.add(key);
+      }
+    });
+
+    let changed = false;
+    hunts.forEach(function (hunt) {
+      const target = Math.max(1, Number(hunt && hunt.target) || 1);
+      const previous = Math.max(0, Number(hunt && hunt.progress) || 0);
+      let delta = 0;
+      if (hunt.type === 'open_packs') delta = stats.openPacks;
+      else if (hunt.type === 'select_plus') delta = stats.selectPlus;
+      else if (hunt.type === 'epic_plus') delta = stats.epicPlus;
+      else if (hunt.type === 'person_cards') delta = stats.personCards;
+      else if (hunt.type === 'actor_cards') delta = stats.actorCards;
+      else if (hunt.type === 'director_cards') delta = stats.directorCards;
+      else if (hunt.type === 'new_unique') delta = stats.newUnique;
+      else if (hunt.type === 'theme_cards') {
+        const tag = String(hunt && hunt.meta && hunt.meta.tag || '');
+        delta = Number(stats.themeCounts[tag]) || 0;
+      }
+      const next = Math.min(target, previous + Math.max(0, delta));
+      if (next !== previous) {
+        hunt.progress = next;
+        changed = true;
+      }
+      const nextCompleted = next >= target;
+      if (Boolean(hunt.completed) !== nextCompleted) {
+        hunt.completed = nextCompleted;
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      saveDailyHuntsState();
+      if (dailyPage && dailyPage.classList.contains('active')) {
+        renderDailyHunts();
+      }
+    }
+  }
+
+  function claimDailyHuntReward() {
+    const state = ensureDailyHuntsState(false);
+    if (!areAllDailyHuntsComplete(state) || state.bonusClaimed) return;
+    state.bonusClaimed = true;
+    progress.rewardChoicesAvailable += 1;
+    ensureFeaturedRewardThemes(true);
+    saveDailyHuntsState();
+    saveProgress();
+    updatePackMeta();
+    if (pullPage && pullPage.classList.contains('active')) {
+      backToPacks();
+    }
+    renderDailyHunts();
+    showToast('Daily reward claimed: +1 reward choice.');
+  }
+
+  function renderDailyHunts() {
+    ensureDailyHuntsState(false);
+    if (!dailyHuntsPanel) return;
+    const state = dailyHuntsState || {};
+    const hunts = Array.isArray(state.hunts) ? state.hunts : [];
+    const completedCount = hunts.filter(function (hunt) {
+      return isDailyHuntComplete(hunt);
+    }).length;
+    const allComplete = hunts.length > 0 && completedCount === hunts.length;
+    const countdown = formatCountdown(msUntilNextLocalMidnight());
+
+    const huntsMarkup = hunts.map(function (hunt) {
+      const target = Math.max(1, Number(hunt && hunt.target) || 1);
+      const progressValue = Math.max(0, Math.min(target, Number(hunt && hunt.progress) || 0));
+      const pct = Math.max(0, Math.min(100, Math.round((progressValue / target) * 100)));
+      return '<div class="daily-hunt-card ' + (pct >= 100 ? 'is-complete' : '') + '">'
+        + '<div class="daily-hunt-head">'
+        + '<div class="daily-hunt-title">' + escapeHtml(hunt.label || 'Daily Hunt') + '</div>'
+        + '<div class="daily-hunt-meta">' + String(progressValue) + '/' + String(target) + '</div>'
+        + '</div>'
+        + '<div class="daily-hunt-progress"><div class="daily-hunt-fill" style="width:' + String(pct) + '%;"></div></div>'
+        + '<div class="daily-hunt-summary">' + escapeHtml(hunt.detail || '') + '</div>'
+        + '</div>';
+    }).join('');
+
+    dailyHuntsPanel.innerHTML = '<div class="collection-topbar">'
+      + '<div class="collection-stats">'
+      + '<div class="collection-stat"><div class="collection-stat-label">Completed</div><div class="collection-stat-value">' + String(completedCount) + '/' + String(hunts.length || DAILY_HUNT_COUNT) + '</div></div>'
+      + '<div class="collection-stat"><div class="collection-stat-label">Resets In</div><div class="collection-stat-value">' + escapeHtml(countdown) + '</div></div>'
+      + '<div class="collection-stat"><div class="collection-stat-label">Reward</div><div class="collection-stat-value">+1 Choice</div></div>'
+      + '</div>'
+      + '</div>'
+      + '<div class="daily-hunts-list">' + huntsMarkup + '</div>'
+      + '<div class="daily-reward-row">'
+      + '<div class="daily-reward-copy">' + (allComplete ? 'All hunts complete. Claim your bonus reward choice.' : 'Complete all three hunts to unlock one bonus reward choice.') + '</div>'
+      + '<button id="dailyClaimButton" class="daily-claim-btn" type="button" ' + ((allComplete && !state.bonusClaimed) ? '' : 'disabled') + '>' + (state.bonusClaimed ? 'Claimed' : 'Claim Reward') + '</button>'
+      + '</div>';
+
+    const claimButton = document.getElementById('dailyClaimButton');
+    if (claimButton) {
+      claimButton.addEventListener('click', claimDailyHuntReward);
+    }
   }
 
   function normalizeFilmIdentityText(value) {
@@ -5404,6 +5860,8 @@ button, a, select { font: inherit; }
         return hydratePersonCardKnownFor(card);
       }));
     }
+    const collectionKeysBefore = new Set(collection.map(cardKey).filter(Boolean));
+    applyDailyHuntsFromPack(pack, collectionKeysBefore);
     const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
     pack.forEach(function (card) {
       collection.unshift(card);
@@ -5660,10 +6118,13 @@ button, a, select { font: inherit; }
 
   function showPage(id) {
     pullPage.classList.toggle('active', id === 'pull');
+    dailyPage.classList.toggle('active', id === 'daily');
     collectionPage.classList.toggle('active', id === 'collection');
     pullTab.classList.toggle('active', id === 'pull');
+    dailyTab.classList.toggle('active', id === 'daily');
     collectionTab.classList.toggle('active', id === 'collection');
     if (id === 'collection') renderCollection();
+    if (id === 'daily') renderDailyHunts();
   }
 
   async function init() {
@@ -5703,6 +6164,7 @@ button, a, select { font: inherit; }
       artworkStatus = 'Live pool was unusable. Falling back to the sample set.';
     }
 
+    ensureDailyHuntsState(false);
     rehydrateCollectionPeopleKnownFor().catch(function () { return false; });
 
     isPoolLoading = false;
@@ -5777,6 +6239,7 @@ button, a, select { font: inherit; }
     });
 
     pullTab.addEventListener('click', function () { showPage('pull'); });
+    dailyTab.addEventListener('click', function () { showPage('daily'); });
     collectionTab.addEventListener('click', function () { showPage('collection'); });
   }
 
