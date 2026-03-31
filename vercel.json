@@ -10,11 +10,7 @@
     "server.js": {
       "memory": 2048,
       "maxDuration": 60,
-      "includeFiles": [
-        "index.html",
-        "config.js",
-        "design/**"
-      ]
+      "includeFiles": "**/*"
     }
   }
 }
