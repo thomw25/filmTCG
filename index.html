@@ -40,6 +40,7 @@ button, a, select { font: inherit; }
   border-bottom: 1px solid var(--border);
   background: rgba(0,0,0,0.18);
   backdrop-filter: blur(10px);
+  position: relative;
 }
 
 .title {
@@ -52,6 +53,36 @@ button, a, select { font: inherit; }
   color: var(--muted);
   font-size: 0.92rem;
   margin-top: 4px;
+}
+
+.ticket-badge {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(251,191,36,.45);
+  background: linear-gradient(135deg, rgba(251,191,36,.28), rgba(245,158,11,.16));
+  color: #fffbeb;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  box-shadow: 0 10px 22px rgba(0,0,0,.22);
+}
+
+.ticket-badge-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: #3f2d07;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
 }
 
 .nav {
@@ -346,6 +377,100 @@ button, a, select { font: inherit; }
   opacity: 0.62;
 }
 
+.shop-action-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.shop-buy-open-btn {
+  border: 1px solid rgba(251,191,36,.45);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 750;
+  color: #fffbeb;
+  background: linear-gradient(135deg, rgba(251,191,36,.28), rgba(245,158,11,.18));
+}
+
+.shop-buy-open-btn:disabled {
+  cursor: default;
+  opacity: 0.62;
+}
+
+.shop-reward-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.shop-reward-option {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 180ms ease;
+}
+
+.shop-reward-option:hover {
+  transform: translateY(-4px);
+}
+
+.shop-reward-option .pack {
+  width: 178px;
+  height: 254px;
+  padding: 14px;
+}
+
+.shop-reward-option .pack .pack-title {
+  font-size: 1.28rem;
+}
+
+.shop-reward-option .pack .pack-tier {
+  margin-top: 7px;
+  font-size: 0.64rem;
+  padding: 6px 8px;
+}
+
+.shop-reward-option .pack .pack-card-count {
+  margin-top: 6px;
+  font-size: 0.6rem;
+}
+
+.shop-trade-row {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  background: rgba(255,255,255,.03);
+}
+
+.shop-trade-copy {
+  color: rgba(255,255,255,.84);
+  font-size: 0.86rem;
+}
+
+.shop-trade-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 750;
+  color: #0f172a;
+  background: linear-gradient(135deg, #fde68a, #f59e0b);
+}
+
+.shop-trade-btn:disabled {
+  cursor: default;
+  opacity: 0.62;
+}
+
 .shop-inventory-list {
   display: grid;
   gap: 8px;
@@ -358,6 +483,21 @@ button, a, select { font: inherit; }
   color: rgba(255,255,255,.84);
   font-size: 0.84rem;
   background: rgba(255,255,255,.03);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.shop-open-owned-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 750;
+  color: #e0f2fe;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
 }
 
 .view-toggle {
@@ -2684,6 +2824,18 @@ button, a, select { font: inherit; }
   .sub {
     font-size: 0.84rem;
   }
+  .ticket-badge {
+    top: 10px;
+    right: 12px;
+    padding: 6px 9px;
+    gap: 6px;
+    font-size: 0.82rem;
+  }
+  .ticket-badge-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 0.72rem;
+  }
   .collection-search {
     width: 100%;
   }
@@ -2749,6 +2901,7 @@ button, a, select { font: inherit; }
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
   <div class="sub">Build: packs-people-tier-2</div>
+  <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
 <div class="nav">
@@ -2772,10 +2925,6 @@ button, a, select { font: inherit; }
       <div class="collection-stat">
         <div class="collection-stat-label">Pack Tier</div>
           <div class="collection-stat-value" id="packSeriesValue">Base Pack</div>
-      </div>
-      <div class="collection-stat">
-        <div class="collection-stat-label">Tickets</div>
-        <div class="collection-stat-value" id="ticketBalanceValue">0</div>
       </div>
     </div>
     <div class="collection-controls">
@@ -3087,7 +3236,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-23';
+  const BUILD_ID = 'logic-sync-24';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -3228,6 +3377,7 @@ button, a, select { font: inherit; }
   const DAILY_HUNT_COUNT = 3;
   const DAILY_HUNT_THEME_TAGS = ['horror', 'animation', 'noir', 'romcom', 'docs'];
   const DAILY_HUNT_TICKET_REWARD = 120;
+  const DUPLICATE_TRADE_VALUES = { Base: 2, Select: 5, Epic: 14, Legendary: 40 };
   const STARTING_TICKETS = 240;
   const SHOP_PACKS = [
     { id: 'all', theme: 'all', label: 'All Cinema Pack', blurb: 'Balanced pull from the full shelf.', price: 60 },
@@ -4016,7 +4166,9 @@ button, a, select { font: inherit; }
 
   function buildPackHookMarkup() {
     if (progress.rewardChoicesAvailable > 0) {
-      return '<div class="pack-hook"><strong>Choose 1</strong> reward pack</div>';
+      const count = Math.max(0, Number(progress.rewardChoicesAvailable) || 0);
+      const suffix = count === 1 ? '' : 's';
+      return '<div class="pack-hook"><strong>' + String(count) + '</strong> reward pack' + suffix + ' ready in <strong>Shop</strong></div>';
     }
 
     return '<div class="pack-hook">' + escapeHtml(String(packsUntilReward())) + ' packs until <strong>reward</strong></div>';
@@ -4594,20 +4746,24 @@ button, a, select { font: inherit; }
 
   function updatePackMeta() {
     const rewardThemeKeys = progress.rewardChoicesAvailable > 0 ? ensureFeaturedRewardThemes(false) : [];
-    const displayThemeKey = rewardThemeKeys[0] || currentPackTheme;
-    const pool = progress.rewardChoicesAvailable > 0
+    const isRewardContext = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
+    const displayThemeKey = isRewardContext
+      ? (progress.featuredRewardTheme || rewardThemeKeys[0] || currentPackTheme)
+      : currentPackTheme;
+    const pool = isRewardContext
       ? movies
       : getPackPool(displayThemeKey === 'gold' ? 'all' : displayThemeKey);
     const theme = PACK_THEMES[displayThemeKey] || PACK_THEMES.all;
-    document.getElementById('packThemeLabel').textContent = progress.rewardChoicesAvailable > 0 ? 'Reward Choice' : theme.label;
+    document.getElementById('packThemeLabel').textContent = isRewardContext ? 'Reward Choice' : theme.label;
     document.getElementById('poolSizeValue').textContent = String(pool.length);
-    document.getElementById('packSeriesValue').textContent = progress.rewardChoicesAvailable > 0
+    document.getElementById('packSeriesValue').textContent = isRewardContext
       ? 'Choose 1'
       : theme.tier;
+    const ticketText = String(Math.max(0, Number(progress.tickets) || 0));
     const ticketValue = document.getElementById('ticketBalanceValue');
-    if (ticketValue) {
-      ticketValue.textContent = String(Math.max(0, Number(progress.tickets) || 0));
-    }
+    if (ticketValue) ticketValue.textContent = ticketText;
+    const ticketBadgeValue = document.getElementById('ticketBadgeValue');
+    if (ticketBadgeValue) ticketBadgeValue.textContent = ticketText;
   }
 
   function formatTickets(value) {
@@ -4650,7 +4806,7 @@ button, a, select { font: inherit; }
 
   function buildOwnedPackQuickMarkup() {
     const owned = getOwnedPacks();
-    if (!owned.length || progress.rewardChoicesAvailable > 0) return '';
+    if (!owned.length) return '';
     const selected = selectedOwnedPack();
     if (selected && !selectedOwnedPackId) {
       selectedOwnedPackId = String(selected.id || '');
@@ -4668,7 +4824,73 @@ button, a, select { font: inherit; }
       + '</div>';
   }
 
-  function buyShopPack(packId) {
+  function duplicateTradeSummary() {
+    const grouped = aggregateCollectionEntries(collection);
+    const byRarity = { Base: 0, Select: 0, Epic: 0, Legendary: 0 };
+    let duplicateCards = 0;
+    let ticketValue = 0;
+
+    grouped.forEach(function (entry) {
+      const extraCount = Math.max(0, Number(entry && entry.count) - 1);
+      if (!extraCount) return;
+      const rarity = normalizeRarityLabel(entry && entry.card && entry.card.rarity);
+      const valuePer = Number(DUPLICATE_TRADE_VALUES[rarity]) || 0;
+      duplicateCards += extraCount;
+      byRarity[rarity] = (byRarity[rarity] || 0) + extraCount;
+      ticketValue += extraCount * valuePer;
+    });
+
+    return {
+      duplicateCards: duplicateCards,
+      ticketValue: ticketValue,
+      byRarity: byRarity
+    };
+  }
+
+  function tradeInDuplicates() {
+    const summary = duplicateTradeSummary();
+    if (!summary.duplicateCards || !summary.ticketValue) {
+      showToast('No duplicates ready to trade.');
+      return;
+    }
+
+    const seen = new Set();
+    const kept = [];
+    const traded = [];
+
+    (Array.isArray(collection) ? collection : []).forEach(function (card) {
+      const key = cardKey(card);
+      if (!key) return;
+      if (!seen.has(key)) {
+        seen.add(key);
+        kept.push(card);
+      } else {
+        traded.push(card);
+      }
+    });
+
+    const gained = traded.reduce(function (sum, card) {
+      return sum + (Number(DUPLICATE_TRADE_VALUES[normalizeRarityLabel(card && card.rarity)]) || 0);
+    }, 0);
+
+    collection = kept;
+    progress.tickets = Math.max(0, Number(progress.tickets) || 0) + gained;
+    saveCollection();
+    saveProgress();
+    updatePackMeta();
+    if (collectionPage && collectionPage.classList.contains('active')) {
+      renderCollection();
+    }
+    if (pullPage && pullPage.classList.contains('active')) {
+      backToPacks();
+    }
+    renderShop();
+    showToast('Traded ' + String(traded.length) + ' dupes for ' + String(gained) + ' Tickets.');
+  }
+
+  async function buyShopPack(packId, options) {
+    const buyOptions = options || {};
+    const shouldOpenNow = Boolean(buyOptions.openNow);
     const packDef = SHOP_PACKS.find(function (item) {
       return item && item.id === packId;
     });
@@ -4684,11 +4906,19 @@ button, a, select { font: inherit; }
     progress.tickets = balance - price;
     owned.push(nextPack);
     progress.sealedPacks = owned;
-    if (!selectedOwnedPackId) {
+    if (shouldOpenNow) {
+      selectedOwnedPackId = String(nextPack.id || '');
+    } else if (!selectedOwnedPackId) {
       selectedOwnedPackId = String(nextPack.id || '');
     }
     saveProgress();
     updatePackMeta();
+    if (shouldOpenNow) {
+      showToast('Bought ' + packDef.label + '. Opening now...');
+      await openOwnedPackFromInventory();
+      return;
+    }
+
     if (shopPage && shopPage.classList.contains('active')) {
       renderShop();
     }
@@ -4698,28 +4928,80 @@ button, a, select { font: inherit; }
     showToast('Bought ' + packDef.label + '.');
   }
 
+  async function openRewardPackFromShop(themeKey) {
+    if (isOpeningPack || isPoolLoading) return;
+    if (Math.max(0, Number(progress.rewardChoicesAvailable) || 0) <= 0) {
+      showToast('No reward packs ready yet.');
+      return;
+    }
+    const rewardThemes = ensureFeaturedRewardThemes(false);
+    const resolvedTheme = normalizeOwnedPackTheme(themeKey || rewardThemes[0] || 'horror');
+    activeRewardSelection = 'featured';
+    progress.featuredRewardTheme = resolvedTheme;
+    currentPackTheme = resolvedTheme;
+    needsPoolRestoreAfterReward = selectedPackMode === 'all-packs' || selectedPackMode !== currentPackTheme;
+    showPage('pull');
+    updatePackMeta();
+    backToPacks();
+    await openPack({
+      themeKey: resolvedTheme,
+      forceRewardOpen: true
+    });
+  }
+
   function renderShop() {
     if (!shopPanel) return;
     const tickets = Math.max(0, Number(progress.tickets) || 0);
     const owned = getOwnedPacks();
+    const rewardsReady = Math.max(0, Number(progress.rewardChoicesAvailable) || 0);
+    const tradeSummary = duplicateTradeSummary();
     const cardsMarkup = SHOP_PACKS.map(function (packDef) {
       const canAfford = tickets >= Number(packDef.price);
       return '<div class="shop-item">'
         + '<div class="shop-pack-preview">' + buildPackFaceMarkup(packDef.theme) + '</div>'
         + '<div class="shop-item-title">' + escapeHtml(packDef.label) + '</div>'
         + '<div class="shop-item-meta">' + escapeHtml(packDef.blurb || '') + '</div>'
+        + '<div class="shop-action-row">'
         + '<button class="shop-buy-btn" type="button" data-buy-pack="' + escapeHtml(packDef.id) + '"' + (canAfford ? '' : ' disabled') + '>Buy · ' + String(packDef.price) + ' Tickets</button>'
+        + '<button class="shop-buy-open-btn" type="button" data-buy-open-pack="' + escapeHtml(packDef.id) + '"' + (canAfford ? '' : ' disabled') + '>Buy + Open</button>'
+        + '</div>'
         + '</div>';
     }).join('');
-    const inventoryPreview = owned.slice(0, 8).map(function (item) {
-      return '<div class="shop-inventory-item">' + escapeHtml(ownedPackLabel(item)) + '</div>';
+    const inventoryPreview = owned.slice(0, 12).map(function (item) {
+      return '<div class="shop-inventory-item"><span>' + escapeHtml(ownedPackLabel(item)) + '</span><button class="shop-open-owned-btn" type="button" data-open-owned="' + escapeHtml(String(item.id || '')) + '">Open Now</button></div>';
     }).join('');
+    const rewardThemes = rewardsReady > 0 ? ensureFeaturedRewardThemes(false) : [];
+    const rewardLeftKey = rewardThemes[0] || 'horror';
+    const rewardRightKey = rewardThemes[1] || chooseFeaturedRewardTheme(rewardLeftKey) || 'animation';
+    const rewardLeftTheme = PACK_THEMES[rewardLeftKey] || PACK_THEMES.horror;
+    const rewardRightTheme = PACK_THEMES[rewardRightKey] || PACK_THEMES.animation;
+    const rewardMarkup = rewardsReady > 0
+      ? ('<div class="collection-topbar">'
+        + '<div class="collection-stats">'
+        + '<div class="collection-stat"><div class="collection-stat-label">Rewards Ready</div><div class="collection-stat-value">' + String(rewardsReady) + '</div></div>'
+        + '<div class="collection-stat"><div class="collection-stat-label">Action</div><div class="collection-stat-value">Open Here</div></div>'
+        + '</div>'
+        + '</div>'
+        + '<div class="shop-reward-grid">'
+        + '<button class="shop-reward-option" type="button" data-open-reward="' + escapeHtml(rewardLeftKey) + '">' + buildPackFaceMarkup(rewardLeftKey) + '<div class="reward-pack-caption">Reward: ' + escapeHtml(rewardLeftTheme.label) + '</div></button>'
+        + '<button class="shop-reward-option" type="button" data-open-reward="' + escapeHtml(rewardRightKey) + '">' + buildPackFaceMarkup(rewardRightKey) + '<div class="reward-pack-caption">Reward: ' + escapeHtml(rewardRightTheme.label) + '</div></button>'
+        + '</div>')
+      : '';
+    const tradeBreakdown = 'B:' + String(tradeSummary.byRarity.Base || 0)
+      + ' · S:' + String(tradeSummary.byRarity.Select || 0)
+      + ' · E:' + String(tradeSummary.byRarity.Epic || 0)
+      + ' · L:' + String(tradeSummary.byRarity.Legendary || 0);
     shopPanel.innerHTML = '<div class="collection-topbar">'
       + '<div class="collection-stats">'
       + '<div class="collection-stat"><div class="collection-stat-label">Tickets</div><div class="collection-stat-value">' + formatTickets(tickets) + '</div></div>'
       + '<div class="collection-stat"><div class="collection-stat-label">Owned Packs</div><div class="collection-stat-value">' + String(owned.length) + '</div></div>'
-      + '<div class="collection-stat"><div class="collection-stat-label">Tip</div><div class="collection-stat-value">Buy In Shop · Open In Pull</div></div>'
+      + '<div class="collection-stat"><div class="collection-stat-label">Tip</div><div class="collection-stat-value">Buy + Open Here</div></div>'
       + '</div>'
+      + '</div>'
+      + rewardMarkup
+      + '<div class="shop-trade-row">'
+      + '<div class="shop-trade-copy">Trade in duplicates for Tickets. Keeps one copy of each card. ' + escapeHtml(tradeBreakdown) + '</div>'
+      + '<button id="tradeDuplicatesButton" class="shop-trade-btn" type="button"' + (tradeSummary.ticketValue > 0 ? '' : ' disabled') + '>Trade Duplicates · +' + String(tradeSummary.ticketValue) + ' Tickets</button>'
       + '</div>'
       + '<div class="shop-grid">' + cardsMarkup + '</div>'
       + '<div class="collection-topbar"><div class="collection-stats"><div class="collection-stat"><div class="collection-stat-label">Inventory</div><div class="collection-stat-value">' + String(owned.length ? 'Ready' : 'Empty') + '</div></div></div></div>'
@@ -4728,6 +5010,26 @@ button, a, select { font: inherit; }
     shopPanel.querySelectorAll('[data-buy-pack]').forEach(function (button) {
       button.addEventListener('click', function () {
         buyShopPack(button.getAttribute('data-buy-pack'));
+      });
+    });
+    shopPanel.querySelectorAll('[data-buy-open-pack]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        buyShopPack(button.getAttribute('data-buy-open-pack'), { openNow: true });
+      });
+    });
+    shopPanel.querySelectorAll('[data-open-reward]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        openRewardPackFromShop(button.getAttribute('data-open-reward'));
+      });
+    });
+    const tradeButton = document.getElementById('tradeDuplicatesButton');
+    if (tradeButton) {
+      tradeButton.addEventListener('click', tradeInDuplicates);
+    }
+    shopPanel.querySelectorAll('[data-open-owned]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        selectedOwnedPackId = String(button.getAttribute('data-open-owned') || '');
+        openOwnedPackFromInventory();
       });
     });
   }
@@ -5649,22 +5951,6 @@ button, a, select { font: inherit; }
   }
 
   function buildPackMarkup() {
-    if (progress.rewardChoicesAvailable > 0) {
-      const rewardThemes = ensureFeaturedRewardThemes(false);
-      const leftThemeKey = rewardThemes[0] || 'horror';
-      const rightThemeKey = rewardThemes[1] || chooseFeaturedRewardTheme(leftThemeKey) || 'animation';
-      const leftTheme = PACK_THEMES[leftThemeKey] || PACK_THEMES.horror;
-      const rightTheme = PACK_THEMES[rightThemeKey] || PACK_THEMES.animation;
-      return buildPackHookMarkup()
-        + '<div class="reward-choice-wrap">'
-        + '<div class="reward-choice-copy">Choose your reward pack. Pick one, watch it snap forward, then crack it open.</div>'
-        + '<div class="reward-choice-grid">'
-        + '<button class="reward-pack-option is-left" type="button" data-reward-choice="featured" data-reward-theme="' + escapeHtml(leftThemeKey) + '">' + buildPackFaceMarkup(leftThemeKey) + '<div class="reward-pack-caption">Featured: ' + escapeHtml(leftTheme.label) + '</div></button>'
-        + '<button class="reward-pack-option is-right" type="button" data-reward-choice="featured" data-reward-theme="' + escapeHtml(rightThemeKey) + '">' + buildPackFaceMarkup(rightThemeKey) + '<div class="reward-pack-caption">Featured: ' + escapeHtml(rightTheme.label) + '</div></button>'
-        + '</div></div>'
-        + '<div class="status-line">Choose one reward pack to open.</div>';
-    }
-
     const loadingClass = isPoolLoading ? ' is-loading' : '';
     return buildPackHookMarkup()
       + buildPackFaceMarkup(currentPackTheme, {
@@ -5679,14 +5965,6 @@ button, a, select { font: inherit; }
 
   function backToPacks() {
     pullArea.innerHTML = buildPackMarkup();
-    if (progress.rewardChoicesAvailable > 0) {
-      pullArea.querySelectorAll('.reward-pack-option').forEach(function (button) {
-        button.addEventListener('click', function () {
-          chooseRewardPack(button.dataset.rewardChoice, button.dataset.rewardTheme || null, button);
-        });
-      });
-      return;
-    }
     const button = document.getElementById('openPackButton');
     if (isPoolLoading) return;
     button.addEventListener('click', openPack);
@@ -6169,15 +6447,14 @@ button, a, select { font: inherit; }
 
   async function openOwnedPackFromInventory() {
     if (isOpeningPack || isPoolLoading) return;
-    if (progress.rewardChoicesAvailable > 0) {
-      showToast('Choose your reward pack first.');
-      return;
-    }
     const ownedPack = selectedOwnedPack();
     if (!ownedPack) {
       showToast('No owned packs ready.');
       return;
     }
+    showPage('pull');
+    updatePackMeta();
+    backToPacks();
     await openPack({
       ownedPack: ownedPack,
       consumeOwnedPack: true
@@ -6188,9 +6465,11 @@ button, a, select { font: inherit; }
     const openOptions = options || {};
     const ownedPack = openOptions.ownedPack || null;
     const hasOwnedPack = Boolean(ownedPack && ownedPack.id);
-    const packThemeForOpen = hasOwnedPack
+    const forcedThemeKey = openOptions.themeKey ? normalizeOwnedPackTheme(openOptions.themeKey) : '';
+    const forceRewardOpen = Boolean(openOptions.forceRewardOpen);
+    const packThemeForOpen = forcedThemeKey || (hasOwnedPack
       ? normalizeOwnedPackTheme(ownedPack.theme)
-      : currentPackTheme;
+      : currentPackTheme);
     const ownedGoldBoost = hasOwnedPack && packThemeForOpen === 'gold';
     if (isOpeningPack || isPoolLoading) return;
     isOpeningPack = true;
@@ -6206,15 +6485,15 @@ button, a, select { font: inherit; }
       }
     }
 
-    const requestedTheme = hasOwnedPack
-      ? (packThemeForOpen === 'all' ? '' : packThemeForOpen)
-      : (selectedPackMode !== 'all-packs' ? currentPackTheme : '');
+    const requestedTheme = packThemeForOpen === 'all' ? '' : packThemeForOpen;
     const requestedReelThemeKey = hasOwnedPack
       ? ('owned:' + String(packThemeForOpen || 'all'))
-      : (selectedPackMode !== 'all-packs'
+      : (forceRewardOpen
+        ? ('reward:' + String(packThemeForOpen || 'all'))
+        : (selectedPackMode !== 'all-packs'
         ? String(currentPackTheme || selectedPackMode || 'theme')
-        : 'all-packs');
-    const isRewardPackOpen = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
+        : 'all-packs'));
+    const isRewardPackOpen = forceRewardOpen || (Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0);
     const shouldRefreshReel = dataSourceLabel.indexOf('TMDB') !== -1 && (
       isRewardPackOpen ||
       activeReelCycleKey == null ||
@@ -6256,7 +6535,7 @@ button, a, select { font: inherit; }
     updatePackMeta();
     const draftedPack = await buildDraftPack(getPackPool(packThemeForOpen), {
       themeKey: packThemeForOpen,
-      forceRewardBehavior: ownedGoldBoost
+      forceRewardBehavior: ownedGoldBoost || forceRewardOpen
     });
 
     if (hasOwnedPack && openOptions.consumeOwnedPack && Array.isArray(draftedPack) && draftedPack.length) {
