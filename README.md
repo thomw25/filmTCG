@@ -56,3 +56,6 @@ index.html?backend=https://your-personal-server.example.com
 - `server.js` serves both the frontend and the API.
 - The live pool endpoint builds a broader set by aggregating several TMDB discover queries, then assigns rarity by rank so rare pulls stay meaningful even with a huge catalog.
 - If TMDB is unavailable, the app still runs with the small sample pool in `index.html`.
+
+redeploy trigger
+
