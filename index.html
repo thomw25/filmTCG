@@ -2511,6 +2511,10 @@ button, a, select { font: inherit; }
   width: min(100%, 420px);
 }
 
+.shop-open-shell.is-revealed {
+  width: min(100%, 460px);
+}
+
 .shop-open-pack-wrap {
   width: min(300px, calc(100vw - 64px));
   display: grid;
@@ -2526,6 +2530,42 @@ button, a, select { font: inherit; }
   color: #e8f1ff;
   font-size: 0.88rem;
   text-align: center;
+}
+
+.shop-open-reveal {
+  width: 100%;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+
+.shop-open-progress {
+  font-size: 0.84rem;
+  color: rgba(232,241,255,.9);
+  text-align: center;
+}
+
+.shop-open-card-wrap {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.shop-open-card-wrap .peel-card-wrap {
+  width: min(300px, calc(100vw - 122px));
+  height: calc(min(300px, calc(100vw - 122px)) * 1.4333);
+}
+
+.shop-open-card-wrap .stack-arrow {
+  position: static;
+  transform: none;
+}
+
+.shop-open-close-btn {
+  width: min(300px, calc(100vw - 72px));
+  margin-top: 4px;
 }
 
 .empty-state {
@@ -2955,6 +2995,16 @@ button, a, select { font: inherit; }
   .shop-open-pack-wrap .pack {
     height: calc(min(286px, calc(100vw - 44px)) * 1.4333);
   }
+  .shop-open-card-wrap {
+    gap: 6px;
+  }
+  .shop-open-card-wrap .peel-card-wrap {
+    width: min(286px, calc(100vw - 116px));
+    height: calc(min(286px, calc(100vw - 116px)) * 1.4333);
+  }
+  .shop-open-close-btn {
+    width: min(286px, calc(100vw - 56px));
+  }
 }
 
 @media (max-width: 480px) {
@@ -3040,7 +3090,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-4</div>
+  <div class="sub">Build: packs-people-tier-6</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3168,6 +3218,7 @@ button, a, select { font: inherit; }
   <div class="shop-open-shell">
     <div id="shopOpenPackWrap" class="shop-open-pack-wrap"></div>
     <div id="shopOpenStatus" class="shop-open-status status-line is-live">Opening pack...</div>
+    <div id="shopOpenReveal" class="shop-open-reveal"></div>
   </div>
 </div>
 
@@ -3383,7 +3434,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-26';
+  const BUILD_ID = 'logic-sync-28';
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -3609,10 +3660,14 @@ button, a, select { font: inherit; }
   const modalBody = document.getElementById('modalBody');
   const modalClose = document.getElementById('modalClose');
   const shopOpenOverlay = document.getElementById('shopOpenOverlay');
+  const shopOpenShell = shopOpenOverlay ? shopOpenOverlay.querySelector('.shop-open-shell') : null;
   const shopOpenPackWrap = document.getElementById('shopOpenPackWrap');
   const shopOpenStatus = document.getElementById('shopOpenStatus');
+  const shopOpenReveal = document.getElementById('shopOpenReveal');
   const appToast = document.getElementById('appToast');
   let toastTimer = null;
+  let shopOverlayPack = [];
+  let shopOverlayIndex = 0;
 
   function normalizeBackendBase(value) {
     return typeof value === 'string' ? value.trim().replace(/\/+$/, '') : '';
@@ -3820,9 +3875,6 @@ button, a, select { font: inherit; }
       const storedRewardThemes = Array.isArray(stored.featuredRewardThemes)
         ? stored.featuredRewardThemes.filter(Boolean).slice(0, 2)
         : (stored.featuredRewardTheme ? [stored.featuredRewardTheme] : []);
-      const storedSealedPacks = Array.isArray(stored.sealedPacks)
-        ? stored.sealedPacks.map(normalizeSealedPackEntry).filter(Boolean).slice(0, 240)
-        : [];
       return {
         standardPacksOpened: Number(stored.standardPacksOpened) || 0,
         rewardChoicesAvailable: Number(stored.rewardChoicesAvailable != null ? stored.rewardChoicesAvailable : stored.goldPacksAvailable) || 0,
@@ -3830,7 +3882,7 @@ button, a, select { font: inherit; }
         featuredRewardTheme: stored.featuredRewardTheme || storedRewardThemes[0] || null,
         allPacksCinemaStreak: Number(stored.allPacksCinemaStreak) || 0,
         tickets: Math.max(0, Number(stored.tickets != null ? stored.tickets : STARTING_TICKETS) || 0),
-        sealedPacks: storedSealedPacks,
+        sealedPacks: [],
         recentPullTitles: Array.isArray(stored.recentPullTitles) ? stored.recentPullTitles.filter(Boolean).slice(0, RECENT_PULL_MEMORY) : [],
         recentPullKeys: Array.isArray(stored.recentPullKeys) ? stored.recentPullKeys.filter(Boolean).slice(0, RECENT_PULL_MEMORY) : []
       };
@@ -3861,9 +3913,7 @@ button, a, select { font: inherit; }
       : [];
     progress.featuredRewardTheme = progress.featuredRewardThemes[0] || null;
     progress.tickets = Math.max(0, Number(progress.tickets) || 0);
-    progress.sealedPacks = Array.isArray(progress.sealedPacks)
-      ? progress.sealedPacks.map(normalizeSealedPackEntry).filter(Boolean).slice(0, 240)
-      : [];
+    progress.sealedPacks = [];
     localStorage.setItem('filmtcg.progress', JSON.stringify(progress));
   }
 
@@ -4942,7 +4992,7 @@ button, a, select { font: inherit; }
   }
 
   function getOwnedPacks() {
-    return Array.isArray(progress && progress.sealedPacks) ? progress.sealedPacks : [];
+    return [];
   }
 
   function ownedPackLabel(item) {
@@ -4978,6 +5028,14 @@ button, a, select { font: inherit; }
   function openShopPackOverlay(themeKey, label) {
     if (!shopOpenOverlay || !shopOpenPackWrap || !shopOpenStatus) return null;
     const resolvedTheme = normalizeOwnedPackTheme(themeKey || 'all');
+    if (shopOpenShell) shopOpenShell.classList.remove('is-revealed');
+    if (shopOpenReveal) shopOpenReveal.innerHTML = '';
+    shopOverlayPack = [];
+    shopOverlayIndex = 0;
+    shopOpenPackWrap.style.display = '';
+    shopOpenStatus.style.display = '';
+    shopOpenStatus.classList.remove('is-loading');
+    shopOpenStatus.classList.remove('is-fading');
     shopOpenPackWrap.innerHTML = buildPackFaceMarkup(resolvedTheme, {
       id: 'shopOverlayPackFace'
     });
@@ -4998,28 +5056,71 @@ button, a, select { font: inherit; }
     if (!shopOpenOverlay) return;
     shopOpenOverlay.classList.remove('open');
     shopOpenOverlay.setAttribute('aria-hidden', 'true');
+    if (shopOpenShell) shopOpenShell.classList.remove('is-revealed');
     if (shopOpenPackWrap) shopOpenPackWrap.innerHTML = '';
+    if (shopOpenReveal) shopOpenReveal.innerHTML = '';
+    shopOverlayPack = [];
+    shopOverlayIndex = 0;
     document.body.classList.remove('overlay-open');
   }
 
-  function buildOwnedPackQuickMarkup() {
-    const owned = getOwnedPacks();
-    if (!owned.length) return '';
-    const selected = selectedOwnedPack();
-    if (selected && !selectedOwnedPackId) {
-      selectedOwnedPackId = String(selected.id || '');
+  function renderShopOverlayCards() {
+    if (!shopOpenReveal) return;
+    if (!Array.isArray(shopOverlayPack) || !shopOverlayPack.length) {
+      closeShopPackOverlay();
+      return;
     }
-    const options = owned.map(function (item) {
-      const isSelected = selectedOwnedPackId && item.id === selectedOwnedPackId;
-      return '<option value="' + escapeHtml(String(item.id || '')) + '"' + (isSelected ? ' selected' : '') + '>'
-        + escapeHtml(ownedPackLabel(item))
-        + '</option>';
-    }).join('');
-    return '<div class="owned-pack-row">'
-      + '<span class="owned-pack-label">Owned Packs: ' + String(owned.length) + '</span>'
-      + '<select id="ownedPackSelect" class="owned-pack-select">' + options + '</select>'
-      + '<button id="openOwnedPackButton" type="button" class="owned-pack-open-btn">Open Owned Pack</button>'
-      + '</div>';
+    const current = shopOverlayPack[shopOverlayIndex];
+    shopOpenReveal.innerHTML = '<div class="shop-open-progress">Card '
+      + String(shopOverlayIndex + 1)
+      + ' of '
+      + String(shopOverlayPack.length)
+      + '</div>'
+      + '<div class="shop-open-card-wrap">'
+      + '<button id="shopOverlayPrev" type="button" class="arrow stack-arrow is-left" aria-label="Previous card">&#8592;</button>'
+      + '<div class="peel-card-wrap rarity-' + escapeHtml(String((current.rarity || 'Base')).toLowerCase()) + '">' + buildCardMarkup(current) + '</div>'
+      + '<button id="shopOverlayNext" type="button" class="arrow stack-arrow is-right" aria-label="Next card">&#8594;</button>'
+      + '</div>'
+      + '<button id="shopOverlayClose" type="button" class="back-btn shop-open-close-btn">Close</button>';
+    addImageFallbacks(shopOpenReveal);
+    attachBookmarkButtons(shopOpenReveal, function () { return current; });
+    const peelWrap = shopOpenReveal.querySelector('.peel-card-wrap');
+    attachPackCardInteractions(peelWrap, current);
+    const prevButton = document.getElementById('shopOverlayPrev');
+    const nextButton = document.getElementById('shopOverlayNext');
+    const closeButton = document.getElementById('shopOverlayClose');
+    if (prevButton) {
+      prevButton.addEventListener('click', function () {
+        if (!shopOverlayPack.length) return;
+        shopOverlayIndex = (shopOverlayIndex - 1 + shopOverlayPack.length) % shopOverlayPack.length;
+        renderShopOverlayCards();
+      });
+    }
+    if (nextButton) {
+      nextButton.addEventListener('click', function () {
+        if (!shopOverlayPack.length) return;
+        shopOverlayIndex = (shopOverlayIndex + 1) % shopOverlayPack.length;
+        renderShopOverlayCards();
+      });
+    }
+    if (closeButton) {
+      closeButton.addEventListener('click', closeShopPackOverlay);
+    }
+  }
+
+  function revealShopOverlayCards(cards) {
+    if (!shopOpenOverlay || !shopOpenPackWrap || !shopOpenStatus || !shopOpenReveal) return;
+    const sourceCards = Array.isArray(cards) ? cards.slice() : [];
+    if (!sourceCards.length) {
+      closeShopPackOverlay();
+      return;
+    }
+    if (shopOpenShell) shopOpenShell.classList.add('is-revealed');
+    shopOpenPackWrap.style.display = 'none';
+    shopOpenStatus.style.display = 'none';
+    shopOverlayPack = sortPackForReveal(sourceCards);
+    shopOverlayIndex = 0;
+    renderShopOverlayCards();
   }
 
   function duplicateTradeSummary() {
@@ -5086,44 +5187,30 @@ button, a, select { font: inherit; }
     showToast('Traded ' + String(traded.length) + ' dupes for ' + String(gained) + ' Tickets.');
   }
 
-  async function openOwnedPackFromShop(packId) {
-    const owned = getOwnedPacks();
-    if (!owned.length) {
-      showToast('No owned packs ready.');
-      return;
-    }
-    const preferredId = String(packId || selectedOwnedPackId || '');
-    const ownedPack = owned.find(function (item) {
-      return item && String(item.id || '') === preferredId;
-    }) || owned[0];
-    if (!ownedPack) {
-      showToast('No owned packs ready.');
-      return;
-    }
-    selectedOwnedPackId = String(ownedPack.id || '');
-    const overlayUi = openShopPackOverlay(ownedPack.theme, ownedPackLabel(ownedPack));
+  async function openThemedPackInShop(themeKey, label, openOptions) {
+    const config = openOptions || {};
+    const overlayUi = openShopPackOverlay(themeKey, label);
     try {
-      const didOpen = await openOwnedPackFromInventory({
+      const openedPack = await openPack({
+        themeKey: normalizeOwnedPackTheme(themeKey || 'all'),
+        forceRewardOpen: Boolean(config.forceRewardOpen),
         revealCarousel: false,
         openingElement: overlayUi && overlayUi.packElement ? overlayUi.packElement : null,
         statusElement: overlayUi && overlayUi.statusElement ? overlayUi.statusElement : null
       });
-      if (didOpen) {
-        showToast('Pack opened. Cards added to your collection.');
+      if (Array.isArray(openedPack) && openedPack.length) {
+        revealShopOverlayCards(openedPack);
+        return true;
       }
-    } finally {
-      setTimeout(function () {
-        closeShopPackOverlay();
-      }, 140);
-      if (shopPage && shopPage.classList.contains('active')) {
-        renderShop();
-      }
+      closeShopPackOverlay();
+      return false;
+    } catch (error) {
+      closeShopPackOverlay();
+      return false;
     }
   }
 
-  async function buyShopPack(packId, options) {
-    const buyOptions = options || {};
-    const shouldOpenNow = Boolean(buyOptions.openNow);
+  async function buyShopPack(packId) {
     const packDef = SHOP_PACKS.find(function (item) {
       return item && item.id === packId;
     });
@@ -5134,31 +5221,22 @@ button, a, select { font: inherit; }
       showToast('Not enough Tickets for that pack yet.');
       return;
     }
-    const owned = getOwnedPacks();
-    const nextPack = createSealedPack(packDef.theme, 'shop');
+
     progress.tickets = balance - price;
-    owned.push(nextPack);
-    progress.sealedPacks = owned;
-    if (shouldOpenNow) {
-      selectedOwnedPackId = String(nextPack.id || '');
-    } else if (!selectedOwnedPackId) {
-      selectedOwnedPackId = String(nextPack.id || '');
-    }
     saveProgress();
     updatePackMeta();
-    if (shouldOpenNow) {
-      showToast('Bought ' + packDef.label + '. Opening now...');
-      await openOwnedPackFromShop(String(nextPack.id || ''));
-      return;
-    }
-
-    if (shopPage && shopPage.classList.contains('active')) {
+    renderShop();
+    showToast('Bought ' + packDef.label + '. Opening now...');
+    const opened = await openThemedPackInShop(packDef.theme, packDef.label, {
+      forceRewardOpen: false
+    });
+    if (!opened) {
+      progress.tickets = balance;
+      saveProgress();
+      updatePackMeta();
       renderShop();
+      showToast('Open failed. Tickets refunded.');
     }
-    if (pullPage && pullPage.classList.contains('active')) {
-      backToPacks();
-    }
-    showToast('Bought ' + packDef.label + '.');
   }
 
   async function openRewardPackFromShop(themeKey) {
@@ -5171,21 +5249,18 @@ button, a, select { font: inherit; }
     const resolvedTheme = normalizeOwnedPackTheme(themeKey || rewardThemes[0] || 'horror');
     activeRewardSelection = 'featured';
     progress.featuredRewardTheme = resolvedTheme;
-    currentPackTheme = resolvedTheme;
-    needsPoolRestoreAfterReward = selectedPackMode === 'all-packs' || selectedPackMode !== currentPackTheme;
-    showPage('pull');
-    updatePackMeta();
-    backToPacks();
-    await openPack({
-      themeKey: resolvedTheme,
+    const opened = await openThemedPackInShop(resolvedTheme, 'Reward ' + ((PACK_THEMES[resolvedTheme] && PACK_THEMES[resolvedTheme].label) || 'Pack'), {
       forceRewardOpen: true
     });
+    if (!opened) {
+      activeRewardSelection = null;
+      showToast('Reward pack failed to open. Try again.');
+    }
   }
 
   function renderShop() {
     if (!shopPanel) return;
     const tickets = Math.max(0, Number(progress.tickets) || 0);
-    const owned = getOwnedPacks();
     const rewardsReady = Math.max(0, Number(progress.rewardChoicesAvailable) || 0);
     const tradeSummary = duplicateTradeSummary();
     const cardsMarkup = SHOP_PACKS.map(function (packDef) {
@@ -5195,13 +5270,9 @@ button, a, select { font: inherit; }
         + '<div class="shop-item-title">' + escapeHtml(packDef.label) + '</div>'
         + '<div class="shop-item-meta">' + escapeHtml(packDef.blurb || '') + '</div>'
         + '<div class="shop-action-row">'
-        + '<button class="shop-buy-btn" type="button" data-buy-pack="' + escapeHtml(packDef.id) + '"' + (canAfford ? '' : ' disabled') + '>Buy · ' + String(packDef.price) + ' Tickets</button>'
-        + '<button class="shop-buy-open-btn" type="button" data-buy-open-pack="' + escapeHtml(packDef.id) + '"' + (canAfford ? '' : ' disabled') + '>Buy + Open</button>'
+        + '<button class="shop-buy-open-btn" type="button" data-buy-open-pack="' + escapeHtml(packDef.id) + '"' + (canAfford ? '' : ' disabled') + '>Buy + Open · ' + String(packDef.price) + ' Tickets</button>'
         + '</div>'
         + '</div>';
-    }).join('');
-    const inventoryPreview = owned.slice(0, 12).map(function (item) {
-      return '<div class="shop-inventory-item"><span>' + escapeHtml(ownedPackLabel(item)) + '</span><button class="shop-open-owned-btn" type="button" data-open-owned="' + escapeHtml(String(item.id || '')) + '">Open Now</button></div>';
     }).join('');
     const rewardThemes = rewardsReady > 0 ? ensureFeaturedRewardThemes(false) : [];
     const rewardLeftKey = rewardThemes[0] || 'horror';
@@ -5227,8 +5298,7 @@ button, a, select { font: inherit; }
     shopPanel.innerHTML = '<div class="collection-topbar">'
       + '<div class="collection-stats">'
       + '<div class="collection-stat"><div class="collection-stat-label">Tickets</div><div class="collection-stat-value">' + formatTickets(tickets) + '</div></div>'
-      + '<div class="collection-stat"><div class="collection-stat-label">Owned Packs</div><div class="collection-stat-value">' + String(owned.length) + '</div></div>'
-      + '<div class="collection-stat"><div class="collection-stat-label">Tip</div><div class="collection-stat-value">Buy + Open Here</div></div>'
+      + '<div class="collection-stat"><div class="collection-stat-label">Tip</div><div class="collection-stat-value">Every purchase opens instantly</div></div>'
       + '</div>'
       + '</div>'
       + rewardMarkup
@@ -5236,18 +5306,11 @@ button, a, select { font: inherit; }
       + '<div class="shop-trade-copy">Trade in duplicates for Tickets. Keeps one copy of each card. ' + escapeHtml(tradeBreakdown) + '</div>'
       + '<button id="tradeDuplicatesButton" class="shop-trade-btn" type="button"' + (tradeSummary.ticketValue > 0 ? '' : ' disabled') + '>Trade Duplicates · +' + String(tradeSummary.ticketValue) + ' Tickets</button>'
       + '</div>'
-      + '<div class="shop-grid">' + cardsMarkup + '</div>'
-      + '<div class="collection-topbar"><div class="collection-stats"><div class="collection-stat"><div class="collection-stat-label">Inventory</div><div class="collection-stat-value">' + String(owned.length ? 'Ready' : 'Empty') + '</div></div></div></div>'
-      + '<div class="shop-inventory-list">' + (inventoryPreview || '<div class="shop-inventory-item">No sealed packs yet.</div>') + '</div>';
+      + '<div class="shop-grid">' + cardsMarkup + '</div>';
 
-    shopPanel.querySelectorAll('[data-buy-pack]').forEach(function (button) {
-      button.addEventListener('click', function () {
-        buyShopPack(button.getAttribute('data-buy-pack'));
-      });
-    });
     shopPanel.querySelectorAll('[data-buy-open-pack]').forEach(function (button) {
       button.addEventListener('click', function () {
-        buyShopPack(button.getAttribute('data-buy-open-pack'), { openNow: true });
+        buyShopPack(button.getAttribute('data-buy-open-pack'));
       });
     });
     shopPanel.querySelectorAll('[data-open-reward]').forEach(function (button) {
@@ -5259,11 +5322,6 @@ button, a, select { font: inherit; }
     if (tradeButton) {
       tradeButton.addEventListener('click', tradeInDuplicates);
     }
-    shopPanel.querySelectorAll('[data-open-owned]').forEach(function (button) {
-      button.addEventListener('click', function () {
-        openOwnedPackFromShop(String(button.getAttribute('data-open-owned') || ''));
-      });
-    });
   }
 
   function slugifyLetterboxd(title) {
@@ -6191,7 +6249,6 @@ button, a, select { font: inherit; }
         disabled: isPoolLoading,
         buttonLike: !isPoolLoading
       })
-      + buildOwnedPackQuickMarkup()
       + '<div class="status-line' + (isPoolLoading ? ' is-loading' : '') + '">' + escapeHtml(artworkStatus) + '</div>';
   }
 
@@ -6206,18 +6263,6 @@ button, a, select { font: inherit; }
         openPack();
       }
     });
-    const ownedPackSelect = document.getElementById('ownedPackSelect');
-    if (ownedPackSelect) {
-      ownedPackSelect.addEventListener('change', function (event) {
-        selectedOwnedPackId = String(event.target.value || '');
-      });
-    }
-    const openOwnedPackButton = document.getElementById('openOwnedPackButton');
-    if (openOwnedPackButton) {
-      openOwnedPackButton.addEventListener('click', function () {
-        openOwnedPackFromInventory();
-      });
-    }
   }
 
   async function restorePoolAfterReward() {
@@ -6726,6 +6771,7 @@ button, a, select { font: inherit; }
     }
 
     let openedSuccessfully = false;
+    let openedPackCards = null;
 
     try {
       const requestedTheme = packThemeForOpen === 'all' ? '' : packThemeForOpen;
@@ -6800,7 +6846,7 @@ button, a, select { font: inherit; }
 
       await new Promise(function (resolve) { setTimeout(resolve, 860); });
 
-      await finalizePackOpen(draftedPack, {
+      openedPackCards = await finalizePackOpen(draftedPack, {
         revealCarousel: revealCarousel
       });
       openedSuccessfully = true;
@@ -6822,7 +6868,7 @@ button, a, select { font: inherit; }
       }
       isOpeningPack = false;
     }
-    return openedSuccessfully;
+    return openedSuccessfully ? openedPackCards : null;
   }
 
   async function finalizePackOpen(draftedPack, options) {
@@ -6836,7 +6882,7 @@ button, a, select { font: inherit; }
       if (revealCarousel) {
         backToPacks();
       }
-      return;
+      return [];
     }
 
     let resolvedPack = Array.isArray(draftedPack) && draftedPack.length ? draftedPack.slice() : await buildDraftPack(pool);
@@ -6891,10 +6937,11 @@ button, a, select { font: inherit; }
     if (shopPage && shopPage.classList.contains('active')) {
       renderShop();
     }
-    if (!revealCarousel) return;
+    if (!revealCarousel) return resolvedPack;
     pack = sortPackForReveal(resolvedPack);
     index = 0;
     renderCarousel();
+    return resolvedPack;
   }
 
   function renderCarousel() {
