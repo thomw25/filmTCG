@@ -6661,6 +6661,8 @@ button, a, select { font: inherit; }
     const fallbackShapeAsset = normalizeAssetSrc(buildPackShapeData(themeKey));
     const titleAsset = normalizeAssetSrc(resolvePackTitleAsset(themeKey));
     const hasCustomArt = Boolean(compositeAsset || customShapeAsset || titleAsset);
+    const hasInlineShape = /^data:/i.test(customShapeAsset);
+    const hasInlineTitle = /^data:/i.test(titleAsset);
     const style = '--pack-a:' + theme.colors[0]
       + '; --pack-b:' + theme.colors[1]
       + '; --pack-c:' + theme.colors[2]
@@ -6688,7 +6690,8 @@ button, a, select { font: inherit; }
       ? ' is-gold'
       : (themeKey !== 'all' ? ' is-featured' : '');
     const customArtClass = hasCustomArt ? ' has-custom-art' : '';
-    const classes = 'pack' + packTextureClass + customArtClass + (config.extraClasses ? ' ' + config.extraClasses : '');
+    const inlineArtClass = (hasInlineShape ? ' has-loaded-shape' : '') + (hasInlineTitle ? ' has-loaded-title' : '');
+    const classes = 'pack' + packTextureClass + customArtClass + inlineArtClass + (config.extraClasses ? ' ' + config.extraClasses : '');
     let attrs = ' class="' + escapeHtml(classes) + '"';
     if (config.id) attrs += ' id="' + escapeHtml(config.id) + '"';
     if (config.disabled) attrs += ' aria-disabled="true"';
