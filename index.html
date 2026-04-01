@@ -4096,7 +4096,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-90';
+  const BUILD_ID = 'logic-sync-91';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -4249,11 +4249,15 @@ button, a, select { font: inherit; }
   const DAILY_HUNT_THEME_TAGS = ['horror', 'animation', 'noir', 'romcom', 'docs'];
   const LETTERBOXD_AMBIGUOUS_TITLE_KEYS = new Set([
     'the holy mountain',
-    'holy mountain'
+    'holy mountain',
+    'my best friend'
   ]);
   const LETTERBOXD_FILM_SLUG_OVERRIDES = {
     'the holy mountain::1926': 'the-holy-mountain-1926',
-    'the holy mountain::1973': 'the-holy-mountain-1973'
+    'the holy mountain::1973': 'the-holy-mountain',
+    'my best friend::2006': 'my-best-friend',
+    'my best friend::2016': 'my-best-friend-2016',
+    'my best friend::2018': 'my-best-friend-2018'
   };
   const DAILY_HUNT_PACK_TAGS = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs'];
   const DAILY_HUNT_TICKET_REWARD = 120;
