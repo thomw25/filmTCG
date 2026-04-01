@@ -4242,7 +4242,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-53';
+  const BUILD_ID = 'logic-sync-54';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -5594,9 +5594,10 @@ button, a, select { font: inherit; }
     return JSON.parse(bodyText);
   }
 
-  async function fetchDynamicCardPool(forceRefresh) {
+  async function fetchDynamicCardPool(forceRefresh, options) {
+    const config = options || {};
     const params = '/api/card-pool?limit=' + CARD_POOL_LIMIT + (forceRefresh ? '&refresh=1' : '');
-    const data = await fetchBackendJson(params);
+    const data = await fetchBackendJson(params, { timeoutMs: config.timeoutMs });
     if (!data || !Array.isArray(data.movies) || data.movies.length < 50) return false;
     replaceMoviePool(data.movies, data.sourceLabel || 'TMDB');
     activeReelThemeKey = 'all-packs';
@@ -8397,48 +8398,10 @@ button, a, select { font: inherit; }
     collectionTab.addEventListener('click', function () { showPage('collection'); });
   }
 
-  async function init() {
-    resolvePackTheme(false);
-    artworkStatus = 'Loading live film pool...';
-    updatePackMeta();
-    backToPacks();
-    bindPrimaryTabs();
-
-    let shouldForceFreshPool = false;
-    try {
-      const storedBuildId = String(localStorage.getItem('filmtcg.buildId') || '');
-      if (storedBuildId !== BUILD_ID) {
-        localStorage.setItem('filmtcg.buildId', BUILD_ID);
-        personKnownForCache.clear();
-        personBioCache.clear();
-      }
-    } catch (error) {
-    }
-
-    try {
-      const loadedLivePool = await fetchDynamicCardPool(shouldForceFreshPool);
-      if (!loadedLivePool) {
-        replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');
-        artworkStatus = 'Live pool was unavailable. Using the sample set.';
-      }
-    } catch (error) {
-      replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');
-      artworkStatus = 'Backend unavailable. Using the sample set.';
-    }
-
-    if (!movies.length || getPackPool(selectedPackMode === 'all-packs' ? 'all' : selectedPackMode).length < 1) {
-      replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');
-      artworkStatus = 'Live pool was unusable. Falling back to the sample set.';
-    }
-
-    ensureDailyHuntsState(false);
-    rehydrateCollectionPeopleKnownFor().catch(function () { return false; });
-    renderShop();
-
-    isPoolLoading = false;
-    resolvePackTheme(false);
-    updatePackMeta();
-    backToPacks();
+  let didBindDeferredUiControls = false;
+  function bindDeferredUiControls() {
+    if (didBindDeferredUiControls) return;
+    didBindDeferredUiControls = true;
 
     const packThemeEl = document.getElementById('packTheme');
     const sortEl = document.getElementById('collectionSort');
@@ -8505,6 +8468,64 @@ button, a, select { font: inherit; }
       saveCollectionView();
       renderCollection();
     });
+  }
+
+  let didFinalizeStartupUi = false;
+  function finalizeStartupUi() {
+    if (didFinalizeStartupUi) return;
+    didFinalizeStartupUi = true;
+    ensureDailyHuntsState(false);
+    rehydrateCollectionPeopleKnownFor().catch(function () { return false; });
+    renderShop();
+    isPoolLoading = false;
+    resolvePackTheme(false);
+    updatePackMeta();
+    backToPacks();
+    bindDeferredUiControls();
+  }
+
+  async function init() {
+    resolvePackTheme(false);
+    artworkStatus = 'Loading live film pool...';
+    updatePackMeta();
+    backToPacks();
+    bindPrimaryTabs();
+    const initUnlockTimer = setTimeout(function () {
+      if (didFinalizeStartupUi) return;
+      replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');
+      artworkStatus = 'Live pool is taking longer than usual. Using the sample set for now.';
+      finalizeStartupUi();
+    }, 5200);
+
+    let shouldForceFreshPool = false;
+    try {
+      const storedBuildId = String(localStorage.getItem('filmtcg.buildId') || '');
+      if (storedBuildId !== BUILD_ID) {
+        localStorage.setItem('filmtcg.buildId', BUILD_ID);
+        personKnownForCache.clear();
+        personBioCache.clear();
+      }
+    } catch (error) {
+    }
+
+    try {
+      const loadedLivePool = await fetchDynamicCardPool(shouldForceFreshPool, { timeoutMs: 4200 });
+      if (!loadedLivePool) {
+        replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');
+        artworkStatus = 'Live pool was unavailable. Using the sample set.';
+      }
+    } catch (error) {
+      replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');
+      artworkStatus = 'Backend unavailable. Using the sample set.';
+    }
+
+    if (!movies.length || getPackPool(selectedPackMode === 'all-packs' ? 'all' : selectedPackMode).length < 1) {
+      replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');
+      artworkStatus = 'Live pool was unusable. Falling back to the sample set.';
+    }
+
+    clearTimeout(initUnlockTimer);
+    finalizeStartupUi();
   }
 
   init();
