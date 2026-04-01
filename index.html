@@ -589,6 +589,10 @@ button, a, select { font: inherit; }
   opacity: 0.12;
 }
 
+.shop-pack-preview .pack.shop-actors-pack {
+  --pack-title-art-y: -7px;
+}
+
 .shop-item:hover .shop-pack-preview .pack,
 .shop-pack-preview:hover .pack,
 .shop-pack-preview .pack:hover,
@@ -4092,7 +4096,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-88';
+  const BUILD_ID = 'logic-sync-89';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6164,9 +6168,12 @@ button, a, select { font: inherit; }
   function shopItemMarkup(packDef, tickets) {
     const canAfford = tickets >= Number(packDef.price);
     const isGoldPack = packDef && packDef.theme === 'gold';
+    const previewOptions = packDef && packDef.theme === 'actors'
+      ? { extraClasses: 'shop-actors-pack' }
+      : null;
     let previewMarkup = '';
     try {
-      previewMarkup = buildPackFaceMarkup(packDef.theme);
+      previewMarkup = buildPackFaceMarkup(packDef.theme, previewOptions);
     } catch (error) {
       console.warn('[filmTCG] shop preview fallback for', packDef && packDef.id, error);
       previewMarkup = buildShopFallbackPreview(packDef);
