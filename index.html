@@ -420,7 +420,7 @@ button, a, select { font: inherit; }
   --pack-tier-font-size: 0.68rem;
   --pack-count-gap: 7px;
   --pack-count-size: 0.64rem;
-  --pack-cta-bottom: 22px;
+  --pack-cta-bottom: 28px;
   --pack-cta-size: 0.5rem;
 }
 
@@ -556,7 +556,7 @@ button, a, select { font: inherit; }
   --pack-tier-font-size: 0.66rem;
   --pack-count-gap: 7px;
   --pack-count-size: 0.62rem;
-  --pack-cta-bottom: 22px;
+  --pack-cta-bottom: 28px;
   --pack-cta-size: 0.5rem;
 }
 
@@ -1047,7 +1047,7 @@ button, a, select { font: inherit; }
 .shop-pack-preview .pack::after,
 .shop-reward-option .pack::after,
 .shop-open-pack-wrap .pack::after {
-  bottom: 22px;
+  bottom: 28px !important;
 }
 
 .pack.is-loading::after {
@@ -2957,7 +2957,7 @@ button, a, select { font: inherit; }
 .shop-open-pack-wrap .pack {
   width: 100%;
   height: calc(min(300px, calc(100vw - 64px)) * 1.4333);
-  --pack-cta-bottom: 22px;
+  --pack-cta-bottom: 28px;
 }
 
 .shop-open-status {
@@ -4092,7 +4092,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-87';
+  const BUILD_ID = 'logic-sync-88';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -4175,13 +4175,14 @@ button, a, select { font: inherit; }
     'robert downey jr': 'Epic',
     'morgan freeman': 'Epic',
     'robert duvall': 'Select',
+    'bill murray': 'Epic',
     'sean penn': 'Epic',
     'timothee chalamet': 'Epic',
     'timothée chalamet': 'Epic',
     'tom hardy': 'Select',
     'terrence malick': 'Epic',
     'toni scott': 'Select',
-    'robert de niro': 'Epic',
+    'robert de niro': 'Legendary',
     'cameron diaz': 'Epic',
     'anna karina': 'Legendary',
     'giulietta masina': 'Legendary',
@@ -4216,18 +4217,18 @@ button, a, select { font: inherit; }
     'thelma schoonmaker': 'Epic'
   };
   const PERSON_ROLE_WEIGHTS = {
-    actor: 20,
-    director: 56
+    actor: 18,
+    director: 74
   };
   const PERSON_ROLE_THEME_BONUS = {
-    horror: { actor: 5, director: 4 },
-    animation: { actor: 5, director: 4 },
-    eighties: { actor: 5, director: 4 },
-    noir: { actor: 5, director: 5 },
-    romcom: { actor: 7, director: 3 },
-    docs: { actor: 3, director: 7 },
+    horror: { actor: 4, director: 5 },
+    animation: { actor: 4, director: 5 },
+    eighties: { actor: 4, director: 5 },
+    noir: { actor: 4, director: 6 },
+    romcom: { actor: 6, director: 4 },
+    docs: { actor: 2, director: 9 },
     actors: { actor: 46, director: 0 },
-    all: { actor: 4, director: 6 }
+    all: { actor: 2, director: 12 }
   };
   const RECENT_PULL_MEMORY = 180;
   const RECENT_PULL_HARD_EXCLUDE = 120;
@@ -4242,6 +4243,14 @@ button, a, select { font: inherit; }
   const MOBILE_PACK_REFRESH_SAMPLE = 620;
   const DAILY_HUNT_COUNT = 3;
   const DAILY_HUNT_THEME_TAGS = ['horror', 'animation', 'noir', 'romcom', 'docs'];
+  const LETTERBOXD_AMBIGUOUS_TITLE_KEYS = new Set([
+    'the holy mountain',
+    'holy mountain'
+  ]);
+  const LETTERBOXD_FILM_SLUG_OVERRIDES = {
+    'the holy mountain::1926': 'the-holy-mountain-1926',
+    'the holy mountain::1973': 'the-holy-mountain-1973'
+  };
   const DAILY_HUNT_PACK_TAGS = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs'];
   const DAILY_HUNT_TICKET_REWARD = 120;
   const DUPLICATE_TRADE_VALUES = { Base: 2, Select: 5, Epic: 14, Legendary: 40 };
@@ -6245,8 +6254,40 @@ button, a, select { font: inherit; }
       .replace(/-+/g, '-');
   }
 
+  function hasDuplicateFilmTitleInPool(title) {
+    const normalizedTitle = normalizeFilmIdentityText(title);
+    if (!normalizedTitle) return false;
+    let count = 0;
+    for (let i = 0; i < movies.length; i += 1) {
+      const movie = movies[i];
+      if (!movie || movie.cardType === 'person') continue;
+      if (normalizeFilmIdentityText(movie.title) !== normalizedTitle) continue;
+      count += 1;
+      if (count > 1) return true;
+    }
+    return false;
+  }
+
+  function letterboxdFilmSlug(movie) {
+    const title = movie && movie.title ? movie.title : '';
+    const baseSlug = slugifyLetterboxd(title);
+    if (!baseSlug) return '';
+    const year = movieYearNumber(movie);
+    const normalizedTitle = normalizeFilmIdentityText(title);
+    const yearKey = normalizedTitle + '::' + String(year || '');
+    if (LETTERBOXD_FILM_SLUG_OVERRIDES[yearKey]) {
+      return LETTERBOXD_FILM_SLUG_OVERRIDES[yearKey];
+    }
+    const shouldUseYearSuffix = Boolean(year) && (
+      LETTERBOXD_AMBIGUOUS_TITLE_KEYS.has(normalizedTitle)
+      || hasDuplicateFilmTitleInPool(title)
+    );
+    return shouldUseYearSuffix ? (baseSlug + '-' + String(year)) : baseSlug;
+  }
+
   function letterboxdUrl(movie) {
-    const slug = slugifyLetterboxd(movie && movie.title ? movie.title : '');
+    const slug = letterboxdFilmSlug(movie);
+    if (!slug) return 'https://letterboxd.com/';
     return 'https://letterboxd.com/film/' + slug + '/';
   }
 
@@ -6522,6 +6563,8 @@ button, a, select { font: inherit; }
       || signals.actorPrestigeProxy
       || (signals.isActor && signals.knownForPeakRank >= 2 && signals.knownForDepth >= 4)
       || (signals.isActor && signals.knownForPeakRank >= 2 && signals.knownForDepth >= 2 && signals.popularity >= 16)
+      || (signals.isActor && signals.referenceRank >= 2 && signals.popularity >= 16)
+      || (signals.isActor && signals.knownForDepth >= 3 && signals.popularity >= 12)
       || (signals.isActor && signals.knownForPeakRank >= 2 && signals.popularity >= 22)
       || (signals.isActor && signals.popularity >= 24 && signals.recognition >= 2)
       || (signals.isActor && signals.popularity >= 30)
@@ -6540,6 +6583,8 @@ button, a, select { font: inherit; }
       || (!signals.isDirector && signals.iconicStarProxy && signals.knownForPeakRank >= 3 && signals.knownForDepth >= 3 && signals.popularity >= 34)
       || (signals.isDirector && signals.recognition >= 3 && signals.respect >= 3)
       || (signals.isActor && signals.iconicStarProxy && signals.knownForPeakRank >= 3 && signals.knownForDepth >= 3 && signals.popularity >= 34)
+      || (signals.isActor && signals.knownForPeakRank >= 4 && signals.knownForDepth >= 2 && signals.popularity >= 20)
+      || (signals.isActor && signals.knownForPeakRank >= 3 && signals.knownForDepth >= 4 && signals.popularity >= 24)
       || (signals.isActor && signals.popularity >= 46 && signals.knownForPeakRank >= 3)
       || (signals.isActor && signals.popularity >= 58 && signals.referenceRank >= 2)
       || (signals.isActor && signals.popularity >= 66 && signals.knownForPeakRank >= 2)
@@ -6618,17 +6663,18 @@ button, a, select { font: inherit; }
       const sourceMovieYear = Number(candidate && candidate.sourceMovieYear) || 0;
 
       if (candidate.roleKey === 'actor') {
-        if (popularity >= 16) weight *= 0.82;
-        if (popularity >= 24) weight *= 0.62;
-        if (popularity >= 32) weight *= 0.46;
-        if (popularity >= 46) weight *= 0.3;
-        if (popularity >= 60) weight *= 0.18;
-        if (popularity >= 3 && popularity <= 14) weight *= 1.28;
-        if (knownForDepth >= 2 && popularity <= 20) weight *= 1.16;
-        if (knownForDepth >= 3 && popularity <= 28) weight *= 1.12;
+        if (popularity >= 14) weight *= 0.78;
+        if (popularity >= 22) weight *= 0.56;
+        if (popularity >= 30) weight *= 0.38;
+        if (popularity >= 42) weight *= 0.24;
+        if (popularity >= 56) weight *= 0.14;
+        if (popularity >= 3 && popularity <= 12) weight *= 1.34;
+        if (knownForDepth >= 2 && popularity <= 20) weight *= 1.18;
+        if (knownForDepth >= 3 && popularity <= 28) weight *= 1.14;
         if (Number.isFinite(castOrder)) {
           if (castOrder >= 5 && castOrder <= 18) weight *= 1.34;
-          else if (castOrder >= 19 && castOrder <= 42) weight *= 1.16;
+          else if (castOrder >= 19 && castOrder <= 42) weight *= 1.22;
+          else if (castOrder >= 43 && castOrder <= 70) weight *= 1.1;
           else if (castOrder >= 0 && castOrder <= 3) weight *= 0.88;
         }
         if (sourceMovieYear && sourceMovieYear <= 2000) weight *= 1.24;
@@ -6644,10 +6690,10 @@ button, a, select { font: inherit; }
           4: 0.22
         })[estimatedRank] || 1;
         weight *= actorPackBias;
-        if (popularity >= 20) weight *= 0.74;
-        if (popularity >= 30) weight *= 0.58;
-        if (popularity >= 40) weight *= 0.42;
-        if (popularity >= 52) weight *= 0.3;
+        if (popularity >= 18) weight *= 0.68;
+        if (popularity >= 28) weight *= 0.52;
+        if (popularity >= 38) weight *= 0.38;
+        if (popularity >= 50) weight *= 0.24;
         if (knownForDepth >= 2 && estimatedRank <= 2) weight *= 1.24;
         if (sourceMovieYear && sourceMovieYear <= 2000) weight *= 1.22;
       }
@@ -6703,7 +6749,7 @@ button, a, select { font: inherit; }
       deduped.push(movie);
     });
 
-    return shuffledCopy(deduped).slice(0, 12);
+    return shuffledCopy(deduped).slice(0, 14);
   }
 
   async function maybeBuildPersonInsert(sourceMovies, themeKey, isGoldRewardPack, existingPersonKeys, existingPersonCards) {
@@ -6770,7 +6816,7 @@ button, a, select { font: inherit; }
       const castOrder = Number(picked && picked.castOrder);
       const sourceMovieYear = Number(picked && picked.sourceMovieYear) || 0;
       const popularityBandBonus = popularity >= 4 && popularity <= 24 ? 18 : 0;
-      const mainstreamPenalty = popularity >= 28 ? ((popularity - 28) * 2.4) : 0;
+      const mainstreamPenalty = popularity >= 22 ? ((popularity - 22) * 3.2) : 0;
       const characterBonus = Number.isFinite(castOrder)
         ? (castOrder >= 5 && castOrder <= 20 ? 24 : (castOrder >= 21 && castOrder <= 42 ? 12 : 0))
         : 0;
@@ -8292,7 +8338,7 @@ button, a, select { font: inherit; }
       + '<div class="chips"><div class="chip">' + escapeHtml(movie.rarity) + '</div><div class="chip">' + escapeHtml(movie.genre) + '</div>' + (movie.year ? '<div class="chip">' + escapeHtml(movie.year) + '</div>' : '') + (movie.directorName ? '<div class="chip is-director">Dir. ' + escapeHtml(movie.directorName) + '</div>' : '') + '</div>'
       + '<div class="modal-sub">' + escapeHtml(movie.desc) + '</div>'
       + (quote ? '<div class="quote">“' + escapeHtml(quote) + '”</div>' : '')
-      + '<div class="modal-actions"><button class="modal-button" type="button" id="modalShowcaseButton">' + (isInShowcase(movie) ? 'Remove From Top 4' : 'Add To Top 4') + '</button><a class="modal-button" href="' + escapeHtml(letterboxdUrl(movie)) + '" target="_blank" rel="noopener noreferrer">Open on Letterboxd</a></div></div></div>';
+      + '<div class="modal-actions"><button class="modal-button" type="button" id="modalShowcaseButton">' + (isInShowcase(movie) ? 'Remove From Top 4' : 'Add To Top 4') + '</button><a class="modal-button" href="' + escapeHtml(resolveCardLink(movie)) + '" target="_blank" rel="noopener noreferrer">Open on Letterboxd</a></div></div></div>';
     addImageFallbacks(modalBody);
     bindModalShowcaseButton(movie);
     cardModal.classList.add('open');
