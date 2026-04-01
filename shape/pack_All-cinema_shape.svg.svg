@@ -1,0 +1,17 @@
+<svg width="356" height="518" viewBox="0 0 356 518" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M296.939 68C299.101 68.0003 300.778 69.8909 300.519 72.0381L298.482 88.917V433.652L300.361 445.76C300.7 447.946 299.009 449.919 296.797 449.919H59.4768C57.3141 449.919 55.6378 448.028 55.8967 445.881L57.9338 429.002V84.2656L56.0549 72.1592C55.7159 69.9733 57.4064 68.0001 59.6184 68H296.939Z" fill="url(#paint0_linear_1_251)"/>
+<line x1="58.7554" y1="88.7369" x2="298.582" y2="88.7369" stroke="#605ABF" stroke-width="1.08192"/>
+<line x1="58.7554" y1="416.92" x2="298.582" y2="416.92" stroke="#605ABF" stroke-width="1.08192"/>
+<line x1="58.7554" y1="93.4252" x2="298.582" y2="93.4252" stroke="#605ABF" stroke-width="1.08192"/>
+<line x1="58.7554" y1="421.609" x2="298.582" y2="421.609" stroke="#605ABF" stroke-width="1.08192"/>
+<line x1="58.7554" y1="98.1136" x2="298.582" y2="98.1136" stroke="#605ABF" stroke-width="1.08192"/>
+<line x1="58.7554" y1="426.297" x2="298.582" y2="426.297" stroke="#605ABF" stroke-width="1.08192"/>
+<line x1="58.7554" y1="102.802" x2="298.582" y2="102.802" stroke="#605ABF" stroke-width="1.08192"/>
+<line x1="58.7554" y1="430.985" x2="298.582" y2="430.985" stroke="#605ABF" stroke-width="1.08192"/>
+<defs>
+<linearGradient id="paint0_linear_1_251" x1="177.847" y1="78.098" x2="177.847" y2="449.919" gradientUnits="userSpaceOnUse">
+<stop stop-color="#BBD0FF"/>
+<stop offset="1" stop-color="#8F86E9"/>
+</linearGradient>
+</defs>
+</svg>
