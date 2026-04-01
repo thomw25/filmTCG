@@ -4016,7 +4016,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-64';
+  const BUILD_ID = 'logic-sync-66';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -4166,6 +4166,7 @@ button, a, select { font: inherit; }
   const MOBILE_PACK_REFRESH_SAMPLE = 620;
   const DAILY_HUNT_COUNT = 3;
   const DAILY_HUNT_THEME_TAGS = ['horror', 'animation', 'noir', 'romcom', 'docs'];
+  const DAILY_HUNT_PACK_TAGS = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs'];
   const DAILY_HUNT_TICKET_REWARD = 120;
   const DUPLICATE_TRADE_VALUES = { Base: 2, Select: 5, Epic: 14, Legendary: 40 };
   const STARTING_TICKETS = 240;
@@ -4722,6 +4723,7 @@ button, a, select { font: inherit; }
   function buildDailyHuntsForDay(dayKey) {
     const rng = createSeededRng(hashStringSeed('filmtcg-hunts:' + String(dayKey || '')));
     const themeTag = DAILY_HUNT_THEME_TAGS[Math.floor(rng() * DAILY_HUNT_THEME_TAGS.length)] || 'horror';
+    const packThemeTag = DAILY_HUNT_PACK_TAGS[Math.floor(rng() * DAILY_HUNT_PACK_TAGS.length)] || 'horror';
 
     const openTarget = randomIntWithRng(rng, 3, 5);
     const selectTarget = randomIntWithRng(rng, 3, 5);
@@ -4729,8 +4731,10 @@ button, a, select { font: inherit; }
     const actorTarget = randomIntWithRng(rng, 1, 2);
     const directorTarget = randomIntWithRng(rng, 1, 2);
     const epicTarget = 1;
+    const legendaryTarget = 1;
     const uniqueTarget = randomIntWithRng(rng, 4, 7);
     const themeTarget = randomIntWithRng(rng, 3, 5);
+    const themedPackOpenTarget = randomIntWithRng(rng, 2, 3);
 
     const templates = [
       {
@@ -4792,9 +4796,34 @@ button, a, select { font: inherit; }
       }
     ];
 
+    const stretchTemplates = [
+      {
+        id: 'open_theme_packs:' + packThemeTag,
+        type: 'open_theme_packs',
+        target: themedPackOpenTarget,
+        meta: { theme: packThemeTag },
+        label: 'Open ' + String(themedPackOpenTarget) + ' ' + dailyThemeLabel(packThemeTag) + ' packs',
+        detail: 'Reward picks and shop buys both count.'
+      },
+      {
+        id: 'legendary_cards',
+        type: 'legendary_cards',
+        target: legendaryTarget,
+        label: 'Pull ' + String(legendaryTarget) + ' Legendary card',
+        detail: 'A proper daily chase.'
+      }
+    ];
+
     const primary = templates[0];
-    const options = seededShuffle(templates.slice(1), rng);
-    const chosen = [primary].concat(options.slice(0, Math.max(0, DAILY_HUNT_COUNT - 1)));
+    const stretch = stretchTemplates[Math.floor(rng() * stretchTemplates.length)] || stretchTemplates[0];
+    const options = seededShuffle(templates.slice(1).filter(function (hunt) {
+      if (hunt.type === stretch.type) return false;
+      if (stretch.type === 'open_theme_packs' && hunt.type === 'theme_cards') {
+        return String(hunt && hunt.meta && hunt.meta.tag || '') !== String(stretch && stretch.meta && stretch.meta.theme || '');
+      }
+      return true;
+    }), rng);
+    const chosen = [primary, stretch].concat(options.slice(0, Math.max(0, DAILY_HUNT_COUNT - 2)));
     return chosen.map(function (hunt) {
       return {
         id: hunt.id,
@@ -4838,31 +4867,42 @@ button, a, select { font: inherit; }
     });
   }
 
-  function applyDailyHuntsFromPack(cards, collectionKeysBefore) {
+  function applyDailyHuntsFromPack(cards, collectionKeysBefore, options) {
     const state = ensureDailyHuntsState(false);
     const hunts = Array.isArray(state.hunts) ? state.hunts : [];
     if (!hunts.length) return;
+    const config = options || {};
+    const openedThemeKey = String(config.themeKey || '').toLowerCase();
 
     const collectionKeys = new Set(Array.from(collectionKeysBefore || []).filter(Boolean));
     const stats = {
       openPacks: 1,
       selectPlus: 0,
       epicPlus: 0,
+      legendaryCards: 0,
       personCards: 0,
       actorCards: 0,
       directorCards: 0,
       newUnique: 0,
-      themeCounts: {}
+      themeCounts: {},
+      packThemeOpens: {}
     };
 
     DAILY_HUNT_THEME_TAGS.forEach(function (tag) {
       stats.themeCounts[tag] = 0;
     });
+    DAILY_HUNT_PACK_TAGS.forEach(function (tag) {
+      stats.packThemeOpens[tag] = 0;
+    });
+    if (openedThemeKey && Object.prototype.hasOwnProperty.call(stats.packThemeOpens, openedThemeKey)) {
+      stats.packThemeOpens[openedThemeKey] = 1;
+    }
 
     (Array.isArray(cards) ? cards : []).forEach(function (card) {
       const rank = rarityRank(card && card.rarity);
       if (rank >= 2) stats.selectPlus += 1;
       if (rank >= 3) stats.epicPlus += 1;
+      if (rank >= 4) stats.legendaryCards += 1;
 
       if (card && card.cardType === 'person') {
         stats.personCards += 1;
@@ -4891,6 +4931,7 @@ button, a, select { font: inherit; }
       if (hunt.type === 'open_packs') delta = stats.openPacks;
       else if (hunt.type === 'select_plus') delta = stats.selectPlus;
       else if (hunt.type === 'epic_plus') delta = stats.epicPlus;
+      else if (hunt.type === 'legendary_cards') delta = stats.legendaryCards;
       else if (hunt.type === 'person_cards') delta = stats.personCards;
       else if (hunt.type === 'actor_cards') delta = stats.actorCards;
       else if (hunt.type === 'director_cards') delta = stats.directorCards;
@@ -4898,6 +4939,9 @@ button, a, select { font: inherit; }
       else if (hunt.type === 'theme_cards') {
         const tag = String(hunt && hunt.meta && hunt.meta.tag || '');
         delta = Number(stats.themeCounts[tag]) || 0;
+      } else if (hunt.type === 'open_theme_packs') {
+        const theme = String(hunt && hunt.meta && hunt.meta.theme || '');
+        delta = Number(stats.packThemeOpens[theme]) || 0;
       }
       const next = Math.min(target, previous + Math.max(0, delta));
       if (next !== previous) {
@@ -7396,7 +7440,9 @@ button, a, select { font: inherit; }
       }
       await new Promise(function (resolve) { setTimeout(resolve, 860); });
       keepViewport();
-      await finalizePackOpen(draftedPack);
+      await finalizePackOpen(draftedPack, {
+        themeKey: currentPackTheme
+      });
       keepViewport();
     } finally {
       isOpeningPack = false;
@@ -7900,7 +7946,8 @@ button, a, select { font: inherit; }
       await new Promise(function (resolve) { setTimeout(resolve, 860); });
 
       openedPackCards = await finalizePackOpen(draftedPack, {
-        revealCarousel: revealCarousel
+        revealCarousel: revealCarousel,
+        themeKey: packThemeForOpen
       });
       openedSuccessfully = true;
     } catch (error) {
@@ -7952,7 +7999,9 @@ button, a, select { font: inherit; }
       return card && card.cardType === 'person';
     });
     const collectionKeysBefore = new Set(collection.map(cardKey).filter(Boolean));
-    applyDailyHuntsFromPack(resolvedPack, collectionKeysBefore);
+    applyDailyHuntsFromPack(resolvedPack, collectionKeysBefore, {
+      themeKey: finalizeOptions.themeKey || currentPackTheme
+    });
     const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
     resolvedPack.forEach(function (card) {
       collection.unshift(card);
@@ -8343,6 +8392,18 @@ button, a, select { font: inherit; }
     bindDeferredUiControls();
   }
 
+  function refreshUiAfterLivePoolReady() {
+    resolvePackTheme(false);
+    updatePackMeta();
+    if (shopPage && shopPage.classList.contains('active')) {
+      renderShop();
+    }
+    if (collectionPage && collectionPage.classList.contains('active')) {
+      renderCollection();
+    }
+    backToPacks();
+  }
+
   async function init() {
     resolvePackTheme(false);
     artworkStatus = 'Loading live film pool...';
@@ -8368,14 +8429,27 @@ button, a, select { font: inherit; }
     }
 
     try {
-      const loadedLivePool = await fetchDynamicCardPool(shouldForceFreshPool, { timeoutMs: 4200 });
+      const loadedLivePool = await fetchDynamicCardPool(shouldForceFreshPool, {
+        timeoutMs: IS_MOBILE_RUNTIME ? 7000 : 9000
+      });
       if (!loadedLivePool) {
         replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');
         artworkStatus = 'Live pool was unavailable. Using the sample set.';
+      } else if (didFinalizeStartupUi) {
+        artworkStatus = 'Live pool loaded. Back on the full shelf.';
+        refreshUiAfterLivePoolReady();
       }
     } catch (error) {
-      replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');
-      artworkStatus = 'Backend unavailable. Using the sample set.';
+      const message = String(error && error.message || error || '');
+      const timedOut = /timeout/i.test(message);
+      if (!didFinalizeStartupUi) {
+        replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');
+        artworkStatus = timedOut
+          ? 'Live pool is taking longer than usual. Using the sample set for now.'
+          : 'Backend unavailable. Using the sample set.';
+      } else if (timedOut) {
+        artworkStatus = 'Live pool is still waking up. Using the sample set for now.';
+      }
     }
 
     if (!movies.length || getPackPool(selectedPackMode === 'all-packs' ? 'all' : selectedPackMode).length < 1) {
