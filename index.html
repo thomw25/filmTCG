@@ -897,13 +897,15 @@ button, a, select { font: inherit; }
   inset: 5% 8.5% 6% 8.5%;
   border-radius: 17px;
   background:
-    linear-gradient(104deg, rgba(255,255,255,0) 18%, rgba(255,255,255,.035) 29%, rgba(255,255,255,.16) 39%, rgba(255,255,255,.29) 47%, rgba(255,255,255,.12) 56%, rgba(255,255,255,0) 67%),
+    linear-gradient(104deg, rgba(255,255,255,0) 8%, rgba(255,255,255,.028) 19%, rgba(255,255,255,.11) 31%, rgba(255,255,255,.23) 44%, rgba(255,255,255,.31) 54%, rgba(255,255,255,.18) 66%, rgba(255,255,255,.07) 76%, rgba(255,255,255,0) 87%),
     linear-gradient(180deg, rgba(255,255,255,.115), rgba(255,255,255,.032) 17%, rgba(255,255,255,0) 35%, rgba(56,53,118,.11) 100%);
-  background-size: 228% 182%, 100% 100%;
+  background-size: 206% 182%, 100% 100%;
   background-position: 132% -14%, 50% 50%;
   mix-blend-mode: screen;
   opacity: 0.92;
   filter: blur(.45px);
+  transform: scale(1.1);
+  transform-origin: center center;
   clip-path: var(--pack-surface-clip, inset(0 round 17px));
 }
 
@@ -2985,9 +2987,9 @@ button, a, select { font: inherit; }
 }
 
 @keyframes packFoilShift {
-  0% { background-position: 132% -14%, 50% 50%; }
-  52% { background-position: 52% 2%, 50% 50%; }
-  100% { background-position: -26% 18%, 50% 50%; }
+  0% { background-position: 138% -16%, 50% 50%; }
+  52% { background-position: 46% 3%, 50% 50%; }
+  100% { background-position: -36% 20%, 50% 50%; }
 }
 
 @keyframes packGlintSweep {
