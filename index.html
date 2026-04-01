@@ -4096,7 +4096,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-96';
+  const BUILD_ID = 'logic-sync-97';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -4115,8 +4115,8 @@ button, a, select { font: inherit; }
   };
   const RARITY_COLORS = { Base: '#94a3b8', Select: '#60a5fa', Epic: '#c084fc', Legendary: '#fbbf24' };
   const PULL_ODDS = [
-    { rarity: 'Base', weight: 85.1 },
-    { rarity: 'Select', weight: 13.9 },
+    { rarity: 'Base', weight: 88.5 },
+    { rarity: 'Select', weight: 10.5 },
     { rarity: 'Epic', weight: 0.9 },
     { rarity: 'Legendary', weight: 0.1 }
   ];
@@ -5332,29 +5332,6 @@ button, a, select { font: inherit; }
 
     if (!normalized.packs.length && normalized.cardType === 'film') normalized.packs = derivePacks(normalized);
     if (!normalized.packs.length && normalized.cardType === 'person') normalized.packs = ['all'];
-    if (normalized.cardType === 'film' && rarityRank(normalized.rarity) < 2) {
-      const names = Array.isArray(normalized.genreNames) ? normalized.genreNames.map(function (name) {
-        return String(name || '').toLowerCase();
-      }) : [];
-      const genreSet = new Set(names.concat(String(normalized.genre || '').toLowerCase()).filter(Boolean));
-      const year = movieYearNumber(normalized);
-      const popularity = Number(normalized.popularity) || 0;
-      const voteCount = Number(normalized.voteCount) || 0;
-      const voteAverage = Number(normalized.voteAverage) || 0;
-      const recognizableCatalogFloor = year >= 1960 && year <= 2022 && voteCount >= 250 && popularity >= 8;
-      const horrorCatalogFloor = year >= 1970 && year <= 2015 && voteCount >= 280 && popularity >= 8 && (
-        genreSet.has('horror') || genreSet.has('thriller') || genreSet.has('mystery') || genreSet.has('fantasy') || genreSet.has('science fiction')
-      );
-      const crowdMemoryFloor = year >= 1970 && year <= 2022 && voteCount >= 450 && popularity >= 10 && (
-        genreSet.has('comedy') || genreSet.has('romance') || genreSet.has('family') || genreSet.has('adventure')
-      );
-      const prestigeFloor = year >= 1980 && year <= 2022 && voteCount >= 800 && popularity >= 8 && voteAverage >= 7.0 && (
-        genreSet.has('drama') || genreSet.has('history') || genreSet.has('war')
-      );
-      if (recognizableCatalogFloor || horrorCatalogFloor || crowdMemoryFloor || prestigeFloor) {
-        normalized.rarity = 'Select';
-      }
-    }
     if (normalized.cardType === 'person') {
       const explicitPersonFloor = PERSON_RARITY_FLOORS[personKey(normalized.title)];
       if (explicitPersonFloor && rarityRank(explicitPersonFloor) > rarityRank(normalized.rarity)) {
@@ -7839,12 +7816,17 @@ button, a, select { font: inherit; }
     const draftedCards = Array.isArray(config.draftedCards) ? config.draftedCards : [];
     const isRewardPack = Boolean(config.isRewardPack);
     const remainingSlots = Math.max(0, Number(config.remainingSlots) || 0);
+    const totalFilmSlots = Math.max(1, Number(config.totalFilmSlots) || PACK_SIZE);
     const rarityCounts = draftedCards.reduce(function (counts, card) {
       if (!card || card.cardType === 'person') return counts;
       const rarity = normalizeRarityLabel(card.rarity);
       counts[rarity] = (counts[rarity] || 0) + 1;
       return counts;
     }, { Base: 0, Select: 0, Epic: 0, Legendary: 0 });
+    const filmCardsDrafted = (rarityCounts.Base || 0) + (rarityCounts.Select || 0) + (rarityCounts.Epic || 0) + (rarityCounts.Legendary || 0);
+    const colorCount = (rarityCounts.Select || 0) + (rarityCounts.Epic || 0) + (rarityCounts.Legendary || 0);
+    const softBaseTarget = Math.max(1, Math.round(totalFilmSlots * 0.4));
+    const baseDeficit = Math.max(0, softBaseTarget - (rarityCounts.Base || 0));
     const highTierCount = (rarityCounts.Epic || 0) + (rarityCounts.Legendary || 0);
     const lowTierCount = (rarityCounts.Base || 0) + (rarityCounts.Select || 0);
     const nonRewardPack = !isRewardPack;
@@ -7907,11 +7889,33 @@ button, a, select { font: inherit; }
       if (forceLowOnly && rarityRank(entry.rarity) > 2) return false;
       return true;
     });
-    const diversifiedOdds = (avoidRarity && availableOdds.some(function (entry) { return entry.rarity !== avoidRarity; }))
-      ? availableOdds.filter(function (entry) { return entry.rarity !== avoidRarity; })
-      : availableOdds;
-    const oddsSource = diversifiedOdds.length ? diversifiedOdds : availableOdds;
-    const pickedRarity = availableOdds.length ? weightedChoice(availableOdds).rarity : 'Base';
+    const adjustedOdds = availableOdds.map(function (entry) {
+      let weight = Number(entry.weight) || 0;
+      if (nonRewardPack) {
+        if (entry.rarity === 'Base') {
+          weight *= 1 + (baseDeficit * 0.85) + (Math.max(0, colorCount - 1) * 0.5);
+          if (remainingSlots > 0 && remainingSlots <= baseDeficit) {
+            weight *= 1.75;
+          }
+        } else if (entry.rarity === 'Select') {
+          if (colorCount >= 2) weight *= 0.72;
+          if (colorCount >= 3) weight *= 0.58;
+        } else {
+          if (colorCount >= 1) weight *= 0.62;
+          if (colorCount >= 2) weight *= 0.38;
+          if (filmCardsDrafted >= 2) weight *= 0.78;
+        }
+      }
+      return {
+        rarity: entry.rarity,
+        weight: Math.max(0.01, weight)
+      };
+    });
+    const diversifiedOdds = (avoidRarity && adjustedOdds.some(function (entry) { return entry.rarity !== avoidRarity; }))
+      ? adjustedOdds.filter(function (entry) { return entry.rarity !== avoidRarity; })
+      : adjustedOdds;
+    const oddsSource = diversifiedOdds.length ? diversifiedOdds : adjustedOdds;
+    const pickedRarity = adjustedOdds.length ? weightedChoice(adjustedOdds).rarity : 'Base';
     const targetRarity = oddsSource.length ? weightedChoice(oddsSource).rarity : pickedRarity;
     let pickedMovie = null;
     const selectionModes = ['fresh', 'notRecent', 'notOwned', 'any'];
@@ -7990,7 +7994,8 @@ button, a, select { font: inherit; }
       const movie = chooseMovieForPack(sourcePool, seenTitles, isBoostedRewardPack && i === 0, ownedTitles, {
         draftedCards: drafted,
         isRewardPack: isBoostedRewardPack,
-        remainingSlots: filmSlots - i
+        remainingSlots: filmSlots - i,
+        totalFilmSlots: filmSlots
       });
       drafted.push(movie);
       const movieKey = filmIdentityKey(movie);
@@ -7999,7 +8004,13 @@ button, a, select { font: inherit; }
 
     const fillFallbacks = function () {
       while (drafted.length < PACK_SIZE) {
-        const fallbackMovie = chooseMovieForPack(sourcePool, seenTitles, false, ownedTitles);
+        const remainingFilmSlots = Math.max(1, PACK_SIZE - drafted.length);
+        const fallbackMovie = chooseMovieForPack(sourcePool, seenTitles, false, ownedTitles, {
+          draftedCards: drafted,
+          isRewardPack: isBoostedRewardPack,
+          remainingSlots: remainingFilmSlots,
+          totalFilmSlots: filmSlots
+        });
         drafted.push(fallbackMovie);
         const fallbackKey = filmIdentityKey(fallbackMovie);
         if (sourcePool.length > PACK_SIZE && fallbackKey) seenTitles.add(fallbackKey);
