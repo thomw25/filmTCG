@@ -885,6 +885,16 @@ button, a, select { font: inherit; }
   object-fit: contain;
 }
 
+.pack-title-art-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+  -webkit-clip-path: var(--pack-title-art-clip, var(--pack-surface-clip, inset(0 round 17px)));
+  clip-path: var(--pack-title-art-clip, var(--pack-surface-clip, inset(0 round 17px)));
+}
+
 .pack-skin-art {
   inset: 0;
   transform: scale(var(--pack-static-shape-scale, var(--pack-art-scale, 1.04)));
@@ -894,10 +904,10 @@ button, a, select { font: inherit; }
 }
 
 .pack-title-art {
+  inset: 0;
   transform: translate(var(--pack-title-art-x, 0), var(--pack-title-art-y, 0)) scale(var(--pack-title-art-scale, var(--pack-art-scale, 1.44)));
   transform-origin: center center;
-  z-index: 2;
-  clip-path: var(--pack-title-art-clip, var(--pack-surface-clip, inset(0 round 17px)));
+  z-index: 0;
 }
 
 .pack.has-title-art .pack-title {
@@ -3913,7 +3923,7 @@ button, a, select { font: inherit; }
   };
   const PACK_ART_ASSETS = {
     all: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
-    horror: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.67, titleOffsetY: '-32px', surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
+    horror: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.72, titleOffsetY: '-30px', surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
     animation: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
     eighties: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
     noir: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
@@ -6944,7 +6954,7 @@ button, a, select { font: inherit; }
           ? '<img class="pack-skin-art" src="' + escapeHtml(customShapeAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-loaded-shape\');}" onerror="var p=this.closest(\'.pack\');if(p){p.classList.remove(\'has-loaded-shape\');}this.remove();"' + cardImageAttrs('high') + '>'
           : '')
         + (titleAsset
-          ? '<img class="pack-title-art" src="' + escapeHtml(titleAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-title-art\');}" onerror="var p=this.closest(\'.pack\');if(p){p.classList.remove(\'has-title-art\');}this.remove();"' + cardImageAttrs('high') + '>'
+          ? '<div class="pack-title-art-wrap"><img class="pack-title-art" src="' + escapeHtml(titleAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-title-art\');}" onerror="var p=this.closest(\'.pack\');if(p){p.classList.remove(\'has-title-art\');}var w=this.parentNode;if(w){w.remove();}else{this.remove();}"' + cardImageAttrs('high') + '></div>'
           : '')
       + '</div>'
       + '<div class="pack-foil"></div>'
