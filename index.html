@@ -819,7 +819,7 @@ button, a, select { font: inherit; }
   transform-style: preserve-3d;
   animation: packPulse 2.5s ease-in-out infinite;
   color: var(--pack-ink, #f8fafc);
-  transition: transform 220ms ease, filter 220ms ease, opacity 220ms ease;
+  transition: transform 360ms cubic-bezier(.22,1,.36,1), filter 360ms cubic-bezier(.22,1,.36,1), opacity 220ms ease;
 }
 
 .pack.has-loaded-shape,
@@ -844,8 +844,8 @@ button, a, select { font: inherit; }
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover,
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible {
   animation: none;
-  transform: translateY(-6px) scale(1.016);
-  filter: saturate(1.06) brightness(1.024);
+  transform: translateY(-3px) scale(1.008);
+  filter: saturate(1.035) brightness(1.016);
   outline: none;
 }
 
@@ -982,6 +982,7 @@ button, a, select { font: inherit; }
   inset: 6% 9.5% 7% 9.5%;
   background:
     linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.055) 11%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 70%, rgba(49,45,105,.12) 100%),
+    linear-gradient(180deg, rgba(56,51,122,.12) 7.8%, rgba(56,51,122,.035) 10.8%, rgba(56,51,122,0) 14.5%, rgba(56,51,122,0) 84.8%, rgba(56,51,122,.03) 88.9%, rgba(56,51,122,.11) 92.5%, rgba(56,51,122,.02) 95.8%, rgba(56,51,122,0) 100%),
     radial-gradient(circle at 50% 11%, rgba(255,255,255,.13) 0%, transparent 30%),
     linear-gradient(90deg, rgba(32,28,82,.12) 0%, rgba(32,28,82,0) 12%, rgba(32,28,82,0) 88%, rgba(32,28,82,.09) 100%),
     repeating-linear-gradient(135deg, rgba(255,255,255,.02) 0 2px, rgba(0,0,0,.013) 2px 4px),
@@ -990,6 +991,11 @@ button, a, select { font: inherit; }
   mix-blend-mode: soft-light;
   opacity: 0.24;
   border-radius: 16px;
+  box-shadow:
+    inset 12px 0 16px -16px rgba(37,33,87,.18),
+    inset -12px 0 16px -16px rgba(37,33,87,.14),
+    inset 0 22px 14px -18px rgba(54,49,116,.08),
+    inset 0 -22px 14px -18px rgba(54,49,116,.08);
   clip-path: var(--pack-surface-clip, inset(0 round 16px));
 }
 
@@ -1271,25 +1277,28 @@ button, a, select { font: inherit; }
 .pack.opening .pack-sub,
 .pack.opening .pack-tier,
 .pack.opening .pack-card-count,
-.pack.opening .pack-foil,
 .pack.opening .pack-top-seal,
 .pack.opening .pack-spine,
-.pack.opening .pack-glow,
-.pack.opening .pack-glint,
-.pack.opening .pack-grain,
 .pack.opening .pack-twinkle,
 .pack.is-shuffling .pack-title,
 .pack.is-shuffling .pack-sub,
 .pack.is-shuffling .pack-tier,
 .pack.is-shuffling .pack-card-count,
-.pack.is-shuffling .pack-foil,
 .pack.is-shuffling .pack-top-seal,
 .pack.is-shuffling .pack-spine,
-.pack.is-shuffling .pack-glow,
-.pack.is-shuffling .pack-glint,
-.pack.is-shuffling .pack-grain,
 .pack.is-shuffling .pack-twinkle {
   animation: packBodyFade 700ms ease-out forwards;
+}
+
+.pack.opening .pack-foil,
+.pack.opening .pack-glow,
+.pack.opening .pack-glint,
+.pack.opening .pack-grain,
+.pack.is-shuffling .pack-foil,
+.pack.is-shuffling .pack-glow,
+.pack.is-shuffling .pack-glint,
+.pack.is-shuffling .pack-grain {
+  animation: packSurfaceFade 170ms ease-out forwards;
 }
 
 .pack.has-loaded-shape:not(.opening):not(.is-shuffling) .pack-foil,
@@ -3045,6 +3054,17 @@ button, a, select { font: inherit; }
 @keyframes packGlintSweep {
   0%, 100% { opacity: 0.1; }
   50% { opacity: 0.16; }
+}
+
+@keyframes packSurfaceFade {
+  0% {
+    opacity: 1;
+    filter: blur(.34px);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(.18px);
+  }
 }
 
 @keyframes packBodyFade {
