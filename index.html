@@ -851,7 +851,8 @@ button, a, select { font: inherit; }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-foil,
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-foil {
-  opacity: 0.98;
+  animation-play-state: paused;
+  opacity: 1;
 }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-glint,
@@ -930,7 +931,7 @@ button, a, select { font: inherit; }
   background-size: 178% 176%, 100% 100%;
   background-position: 176% -22%, 50% 50%;
   mix-blend-mode: screen;
-  opacity: 0.94;
+  opacity: 0.18;
   filter: blur(.34px);
   transform: scale(1.16, 1.04);
   transform-origin: center center;
@@ -962,6 +963,18 @@ button, a, select { font: inherit; }
   opacity: 0.18;
   filter: blur(18px);
   clip-path: inset(0 round 999px);
+}
+
+.pack.has-loaded-shape.is-loading .pack-glint,
+.pack.has-loaded-title.is-loading .pack-glint {
+  animation: none;
+  opacity: 0.06;
+}
+
+.pack.has-loaded-shape.is-loading .pack-glow,
+.pack.has-loaded-title.is-loading .pack-glow {
+  animation: none;
+  opacity: 0.18;
 }
 
 .pack.has-loaded-shape .pack-grain,
@@ -1279,9 +1292,9 @@ button, a, select { font: inherit; }
   animation: packBodyFade 700ms ease-out forwards;
 }
 
-.pack.has-loaded-shape:not(.is-loading):not(.opening):not(.is-shuffling) .pack-foil,
-.pack.has-loaded-title:not(.is-loading):not(.opening):not(.is-shuffling) .pack-foil {
-  animation: packFoilShift 7.4s cubic-bezier(.42,0,.18,1) infinite;
+.pack.has-loaded-shape:not(.opening):not(.is-shuffling) .pack-foil,
+.pack.has-loaded-title:not(.opening):not(.is-shuffling) .pack-foil {
+  animation: packFoilShift 7.4s cubic-bezier(.42,0,.18,1) infinite, packFoilPresence 7.4s ease-in-out infinite;
 }
 
 .pack.has-loaded-shape:not(.is-loading):not(.opening):not(.is-shuffling) .pack-glint,
@@ -3019,6 +3032,14 @@ button, a, select { font: inherit; }
   0%, 12% { background-position: 176% -22%, 50% 50%; }
   54% { background-position: 46% 2%, 50% 50%; }
   88%, 100% { background-position: -94% 26%, 50% 50%; }
+}
+
+@keyframes packFoilPresence {
+  0%, 10% { opacity: 0; }
+  22% { opacity: 0.4; }
+  52% { opacity: 0.94; }
+  78% { opacity: 0.44; }
+  90%, 100% { opacity: 0; }
 }
 
 @keyframes packGlintSweep {
