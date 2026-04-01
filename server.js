@@ -1037,7 +1037,7 @@ async function getMoviePeople(movieIds) {
   const candidates = shuffledCopy(Array.from(byPerson.values())).map(function (candidate) {
     const popularity = Number(candidate && candidate.popularity) || 0;
     const castOrder = Number(candidate && candidate.castOrder);
-    const actorBoost = candidate && candidate.roleKey === 'actor' ? 420 : 280;
+    const actorBoost = candidate && candidate.roleKey === 'actor' ? 390 : 320;
     const billingBonus = candidate && candidate.roleKey === 'actor'
       ? (Number.isFinite(castOrder)
         ? (castOrder >= 5 && castOrder <= 18
