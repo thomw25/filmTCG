@@ -548,43 +548,22 @@ button, a, select { font: inherit; }
 .shop-reward-option .pack .pack-foil,
 .shop-reward-option .pack .pack-glow,
 .shop-reward-option .pack .pack-glint {
-  display: none;
-}
-
-.shop-pack-preview .pack.has-loaded-shape .pack-foil,
-.shop-pack-preview .pack.has-loaded-shape .pack-glow,
-.shop-pack-preview .pack.has-loaded-shape .pack-glint,
-.shop-pack-preview .pack.has-loaded-title .pack-foil,
-.shop-pack-preview .pack.has-loaded-title .pack-glow,
-.shop-pack-preview .pack.has-loaded-title .pack-glint,
-.shop-reward-option .pack.has-loaded-shape .pack-foil,
-.shop-reward-option .pack.has-loaded-shape .pack-glow,
-.shop-reward-option .pack.has-loaded-shape .pack-glint,
-.shop-reward-option .pack.has-loaded-title .pack-foil,
-.shop-reward-option .pack.has-loaded-title .pack-glow,
-.shop-reward-option .pack.has-loaded-title .pack-glint {
   display: block;
 }
 
-.shop-pack-preview .pack.has-loaded-shape .pack-foil,
-.shop-pack-preview .pack.has-loaded-title .pack-foil,
-.shop-reward-option .pack.has-loaded-shape .pack-foil,
-.shop-reward-option .pack.has-loaded-title .pack-foil {
-  opacity: 0.62;
+.shop-pack-preview .pack .pack-foil,
+.shop-reward-option .pack .pack-foil {
+  opacity: 0.52;
 }
 
-.shop-pack-preview .pack.has-loaded-shape .pack-glint,
-.shop-pack-preview .pack.has-loaded-title .pack-glint,
-.shop-reward-option .pack.has-loaded-shape .pack-glint,
-.shop-reward-option .pack.has-loaded-title .pack-glint {
-  opacity: 0.1;
+.shop-pack-preview .pack .pack-glint,
+.shop-reward-option .pack .pack-glint {
+  opacity: 0.08;
 }
 
-.shop-pack-preview .pack.has-loaded-shape .pack-glow,
-.shop-pack-preview .pack.has-loaded-title .pack-glow,
-.shop-reward-option .pack.has-loaded-shape .pack-glow,
-.shop-reward-option .pack.has-loaded-title .pack-glow {
-  opacity: 0.18;
+.shop-pack-preview .pack .pack-glow,
+.shop-reward-option .pack .pack-glow {
+  opacity: 0.16;
 }
 
 .shop-pack-preview .pack .pack-grain,
@@ -601,31 +580,22 @@ button, a, select { font: inherit; }
   filter: saturate(1.06) brightness(1.024);
 }
 
-.shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-foil,
-.shop-item:hover .shop-pack-preview .pack.has-loaded-title .pack-foil,
-.shop-pack-preview:hover .pack.has-loaded-shape .pack-foil,
-.shop-pack-preview:hover .pack.has-loaded-title .pack-foil,
-.shop-reward-option:hover .pack.has-loaded-shape .pack-foil,
-.shop-reward-option:hover .pack.has-loaded-title .pack-foil {
-  opacity: 0.8;
+.shop-item:hover .shop-pack-preview .pack .pack-foil,
+.shop-pack-preview:hover .pack .pack-foil,
+.shop-reward-option:hover .pack .pack-foil {
+  opacity: 0.68;
 }
 
-.shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-glint,
-.shop-item:hover .shop-pack-preview .pack.has-loaded-title .pack-glint,
-.shop-pack-preview:hover .pack.has-loaded-shape .pack-glint,
-.shop-pack-preview:hover .pack.has-loaded-title .pack-glint,
-.shop-reward-option:hover .pack.has-loaded-shape .pack-glint,
-.shop-reward-option:hover .pack.has-loaded-title .pack-glint {
-  opacity: 0.14;
+.shop-item:hover .shop-pack-preview .pack .pack-glint,
+.shop-pack-preview:hover .pack .pack-glint,
+.shop-reward-option:hover .pack .pack-glint {
+  opacity: 0.12;
 }
 
-.shop-item:hover .shop-pack-preview .pack.has-loaded-shape .pack-glow,
-.shop-item:hover .shop-pack-preview .pack.has-loaded-title .pack-glow,
-.shop-pack-preview:hover .pack.has-loaded-shape .pack-glow,
-.shop-pack-preview:hover .pack.has-loaded-title .pack-glow,
-.shop-reward-option:hover .pack.has-loaded-shape .pack-glow,
-.shop-reward-option:hover .pack.has-loaded-title .pack-glow {
-  opacity: 0.22;
+.shop-item:hover .shop-pack-preview .pack .pack-glow,
+.shop-pack-preview:hover .pack .pack-glow,
+.shop-reward-option:hover .pack .pack-glow {
+  opacity: 0.2;
 }
 
 .shop-trade-row {
@@ -817,7 +787,7 @@ button, a, select { font: inherit; }
   padding: 26px 22px 34px;
   isolation: isolate;
   transform-style: preserve-3d;
-  animation: packPulse 2.5s ease-in-out infinite;
+  animation: packArtFloat 6.6s ease-in-out infinite;
   color: var(--pack-ink, #f8fafc);
   transition: transform 360ms cubic-bezier(.22,1,.36,1), filter 360ms cubic-bezier(.22,1,.36,1), opacity 220ms ease;
 }
@@ -830,11 +800,6 @@ button, a, select { font: inherit; }
   overflow: visible;
   -webkit-clip-path: none;
   clip-path: none;
-}
-
-.pack.has-loaded-shape:not(.is-loading):not(.opening):not(.is-shuffling),
-.pack.has-loaded-title:not(.is-loading):not(.opening):not(.is-shuffling) {
-  animation: packArtFloat 6.6s ease-in-out infinite;
 }
 
 .pack[role="button"]:not([aria-disabled="true"]) {
@@ -4010,7 +3975,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-56';
+  const BUILD_ID = 'logic-sync-57';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6791,9 +6756,7 @@ button, a, select { font: inherit; }
   }
 
   function resolvePackShapeAsset(themeKey) {
-    const staticAsset = PACK_ART_STATIC[themeKey] && PACK_ART_STATIC[themeKey].shape;
-    const fileAsset = PACK_ART_FILE_ASSETS[themeKey] && PACK_ART_FILE_ASSETS[themeKey].shape;
-    return staticAsset || fileAsset || '';
+    return '';
   }
 
   function resolvePackCompositeAsset(themeKey) {
@@ -6801,9 +6764,7 @@ button, a, select { font: inherit; }
   }
 
   function resolvePackTitleAsset(themeKey) {
-    return (PACK_ART_STATIC[themeKey] && PACK_ART_STATIC[themeKey].title)
-      || (PACK_ART_FILE_ASSETS[themeKey] && PACK_ART_FILE_ASSETS[themeKey].title)
-      || '';
+    return '';
   }
 
   function buildPackFaceMarkup(themeKey, options) {
