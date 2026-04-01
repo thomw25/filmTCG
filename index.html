@@ -4096,7 +4096,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-91';
+  const BUILD_ID = 'logic-sync-93';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -4250,7 +4250,8 @@ button, a, select { font: inherit; }
   const LETTERBOXD_AMBIGUOUS_TITLE_KEYS = new Set([
     'the holy mountain',
     'holy mountain',
-    'my best friend'
+    'my best friend',
+    'the hole'
   ]);
   const LETTERBOXD_FILM_SLUG_OVERRIDES = {
     'the holy mountain::1926': 'the-holy-mountain-1926',
@@ -5762,6 +5763,10 @@ button, a, select { font: inherit; }
     if (card && card.cardType === 'person') {
       return personLetterboxdUrl(card);
     }
+    const tmdbId = Number(card && card.tmdbId) || 0;
+    if (tmdbId > 0) {
+      return 'https://letterboxd.com/tmdb/' + String(tmdbId);
+    }
     return card.linkUrl || letterboxdUrl(card);
   }
 
@@ -6279,12 +6284,41 @@ button, a, select { font: inherit; }
     return false;
   }
 
+  function letterboxdTheHoleVariantSlug(movie, normalizedTitle, year) {
+    if (normalizedTitle !== 'the hole') return '';
+    const directorKey = normalizeFilmIdentityText(movie && movie.directorName ? movie.directorName : '');
+    const languageKey = String(movie && movie.originalLanguage || '').toLowerCase();
+
+    if (year === 1998) {
+      if (directorKey.indexOf('brian challis') !== -1) return 'the-hole-1998';
+      if (
+        directorKey.indexOf('tsai ming liang') !== -1
+        || languageKey === 'zh'
+        || languageKey === 'cn'
+      ) {
+        return 'the-hole';
+      }
+      return 'the-hole';
+    }
+
+    if (year === 2001) {
+      if (directorKey.indexOf('koto nagata') !== -1 || languageKey === 'ja') {
+        return 'the-hole-2001-1';
+      }
+      return 'the-hole-2001';
+    }
+
+    return '';
+  }
+
   function letterboxdFilmSlug(movie) {
     const title = movie && movie.title ? movie.title : '';
     const baseSlug = slugifyLetterboxd(title);
     if (!baseSlug) return '';
     const year = movieYearNumber(movie);
     const normalizedTitle = normalizeFilmIdentityText(title);
+    const holeVariantSlug = letterboxdTheHoleVariantSlug(movie, normalizedTitle, year);
+    if (holeVariantSlug) return holeVariantSlug;
     const yearKey = normalizedTitle + '::' + String(year || '');
     if (LETTERBOXD_FILM_SLUG_OVERRIDES[yearKey]) {
       return LETTERBOXD_FILM_SLUG_OVERRIDES[yearKey];
