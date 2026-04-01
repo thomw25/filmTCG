@@ -4096,7 +4096,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-95';
+  const BUILD_ID = 'logic-sync-96';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -7661,9 +7661,23 @@ button, a, select { font: inherit; }
       await new Promise(function (resolve) { setTimeout(resolve, 860); });
       keepViewport();
       await finalizePackOpen(draftedPack, {
-        themeKey: currentPackTheme
+        themeKey: currentPackTheme,
+        isRewardPack: true
       });
       keepViewport();
+    } catch (error) {
+      console.error('[filmTCG] chooseRewardPack failed', error);
+      activeRewardSelection = null;
+      progress.featuredRewardTheme = null;
+      needsPoolRestoreAfterReward = false;
+      const restored = restoreRewardPoolSnapshot();
+      if (!restored) {
+        resolvePackTheme(true);
+      }
+      artworkStatus = 'Reward pack stalled before opening. Pick again.';
+      updatePackMeta();
+      backToPacks();
+      showToast('Reward pack stalled. Pick again.');
     } finally {
       isOpeningPack = false;
       keepViewport();
@@ -7965,7 +7979,7 @@ button, a, select { font: inherit; }
     const drafted = [];
     const seenTitles = new Set();
     const ownedTitles = buildOwnedFilmTitleSet();
-    const isRewardPack = forceRewardBehavior || (Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0);
+    const isRewardPack = forceRewardBehavior;
     const isBoostedRewardPack = isRewardPack;
     const shouldTryPersonInsert = dataSourceLabel.indexOf('TMDB') !== -1;
     const actorPackPersonSlots = packThemeKey === 'actors' && shouldTryPersonInsert ? 4 : 0;
@@ -8065,6 +8079,9 @@ button, a, select { font: inherit; }
     const forcedThemeKey = openOptions.themeKey ? normalizeOwnedPackTheme(openOptions.themeKey) : '';
     const forceRewardOpen = Boolean(openOptions.forceRewardOpen);
     const ignoreRewardChoiceGate = Boolean(openOptions.ignoreRewardChoiceGate);
+    if (activeRewardSelection && !forceRewardOpen && !hasOwnedPack) {
+      activeRewardSelection = null;
+    }
     const hasRewardChoiceReady = Math.max(0, Number(progress.rewardChoicesAvailable) || 0) > 0;
     if (!ignoreRewardChoiceGate && !hasOwnedPack && !forceRewardOpen && hasRewardChoiceReady && !activeRewardSelection) {
       renderRewardChoicePrompt();
@@ -8101,7 +8118,7 @@ button, a, select { font: inherit; }
           : (selectedPackMode !== 'all-packs'
           ? String(currentPackTheme || selectedPackMode || 'theme')
           : 'all-packs'));
-      const isRewardPackOpen = forceRewardOpen || (Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0);
+      const isRewardPackOpen = forceRewardOpen;
       const shouldRefreshReel = dataSourceLabel.indexOf('TMDB') !== -1 && (
         isRewardPackOpen ||
         activeReelCycleKey == null ||
@@ -8175,7 +8192,8 @@ button, a, select { font: inherit; }
 
       openedPackCards = await finalizePackOpen(draftedPack, {
         revealCarousel: revealCarousel,
-        themeKey: packThemeForOpen
+        themeKey: packThemeForOpen,
+        isRewardPack: forceRewardOpen
       });
       openedSuccessfully = true;
     } catch (error) {
@@ -8233,7 +8251,7 @@ button, a, select { font: inherit; }
     applyDailyHuntsFromPack(resolvedPack, collectionKeysBefore, {
       themeKey: finalizeOptions.themeKey || currentPackTheme
     });
-    const isRewardPack = Boolean(activeRewardSelection) && progress.rewardChoicesAvailable > 0;
+    const isRewardPack = Boolean(finalizeOptions.isRewardPack);
     resolvedPack.forEach(function (card) {
       collection.unshift(card);
       const cardKey = filmIdentityKey(card);
