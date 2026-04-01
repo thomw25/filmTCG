@@ -411,31 +411,17 @@ button, a, select { font: inherit; }
   transition: transform 220ms ease, filter 220ms ease;
   will-change: transform, filter;
   transform-origin: center bottom;
-}
-
-.shop-pack-preview .pack .pack-copy {
-  width: min(82%, 166px);
-  margin-top: -2px;
-}
-
-.shop-pack-preview .pack .pack-title {
-  font-size: 1.46rem;
-}
-
-.shop-pack-preview .pack .pack-tier {
-  margin-top: 9px;
-  font-size: 0.68rem;
-  padding: 6px 10px;
-}
-
-.shop-pack-preview .pack .pack-card-count {
-  margin-top: 7px;
-  font-size: 0.64rem;
-}
-
-.shop-pack-preview .pack::after {
-  bottom: 42px;
-  font-size: 0.5rem;
+  --pack-copy-width: min(78%, 164px);
+  --pack-copy-offset: 0px;
+  --pack-title-scale: 0.74;
+  --pack-tier-gap: 10px;
+  --pack-tier-pad-y: 6px;
+  --pack-tier-pad-x: 10px;
+  --pack-tier-font-size: 0.68rem;
+  --pack-count-gap: 7px;
+  --pack-count-size: 0.64rem;
+  --pack-cta-bottom: 42px;
+  --pack-cta-size: 0.5rem;
 }
 
 .shop-item-title {
@@ -561,31 +547,17 @@ button, a, select { font: inherit; }
   transition: transform 220ms ease, filter 220ms ease;
   will-change: transform, filter;
   transform-origin: center bottom;
-}
-
-.shop-reward-option .pack .pack-copy {
-  width: min(82%, 166px);
-  margin-top: -2px;
-}
-
-.shop-reward-option .pack .pack-title {
-  font-size: 1.42rem;
-}
-
-.shop-reward-option .pack .pack-tier {
-  margin-top: 9px;
-  font-size: 0.66rem;
-  padding: 6px 10px;
-}
-
-.shop-reward-option .pack .pack-card-count {
-  margin-top: 7px;
-  font-size: 0.62rem;
-}
-
-.shop-reward-option .pack::after {
-  bottom: 42px;
-  font-size: 0.5rem;
+  --pack-copy-width: min(78%, 164px);
+  --pack-copy-offset: 0px;
+  --pack-title-scale: 0.72;
+  --pack-tier-gap: 10px;
+  --pack-tier-pad-y: 6px;
+  --pack-tier-pad-x: 10px;
+  --pack-tier-font-size: 0.66rem;
+  --pack-count-gap: 7px;
+  --pack-count-size: 0.62rem;
+  --pack-cta-bottom: 42px;
+  --pack-cta-size: 0.5rem;
 }
 
 .shop-pack-preview .pack .pack-foil,
@@ -922,12 +894,13 @@ button, a, select { font: inherit; }
 }
 
 .pack-title-art {
-  transform: scale(var(--pack-title-art-scale, var(--pack-art-scale, 1.44)));
+  transform: translate(var(--pack-title-art-x, 0), var(--pack-title-art-y, 0)) scale(var(--pack-title-art-scale, var(--pack-art-scale, 1.44)));
   transform-origin: center center;
   z-index: 2;
+  clip-path: var(--pack-title-art-clip, var(--pack-surface-clip, inset(0 round 17px)));
 }
 
-.pack.has-loaded-title .pack-title {
+.pack.has-title-art .pack-title {
   visibility: hidden;
 }
 
@@ -1045,13 +1018,13 @@ button, a, select { font: inherit; }
 .pack::after {
   content: "CLICK TO OPEN";
   position: absolute;
-  bottom: 50px;
-  font-size: 0.58rem;
+  bottom: var(--pack-cta-bottom, 50px);
+  font-size: var(--pack-cta-size, 0.58rem);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--pack-cta-ink, rgba(255,255,255,.7));
-  opacity: 0.46;
+  opacity: var(--pack-cta-opacity, 0.46);
   z-index: 2;
 }
 
@@ -1219,17 +1192,17 @@ button, a, select { font: inherit; }
   display: grid;
   justify-items: center;
   align-content: center;
-  width: min(82%, 210px);
-  margin-top: -8px;
+  width: var(--pack-copy-width, min(80%, 208px));
+  transform: translateY(var(--pack-copy-offset, -2px));
 }
 
 .pack-title {
-  font-size: var(--pack-title-size, 2rem);
+  font-size: calc(var(--pack-title-size, 2rem) * var(--pack-title-scale, 1));
   letter-spacing: var(--pack-title-spacing, -0.04em);
   position: relative;
   z-index: 1;
   font-family: var(--pack-title-font, inherit);
-  line-height: .94;
+  line-height: var(--pack-title-line-height, .95);
   text-wrap: balance;
   max-width: 100%;
 }
@@ -1246,12 +1219,12 @@ button, a, select { font: inherit; }
 .pack-tier {
   position: relative;
   z-index: 1;
-  margin-top: 16px;
-  padding: 7px 12px;
+  margin-top: var(--pack-tier-gap, 14px);
+  padding: var(--pack-tier-pad-y, 7px) var(--pack-tier-pad-x, 12px);
   border-radius: 999px;
-  font-size: 0.68rem;
+  font-size: var(--pack-tier-font-size, 0.68rem);
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--pack-tier-letter-spacing, 0.12em);
   text-transform: uppercase;
   color: var(--pack-tier-ink, rgba(255,255,255,.82));
   border: 1px solid var(--pack-tier-border, rgba(255,255,255,.16));
@@ -1262,13 +1235,13 @@ button, a, select { font: inherit; }
 .pack-card-count {
   position: relative;
   z-index: 1;
-  margin-top: 10px;
-  font-size: 0.62rem;
+  margin-top: var(--pack-count-gap, 9px);
+  font-size: var(--pack-count-size, 0.62rem);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--pack-count-letter-spacing, 0.12em);
   text-transform: uppercase;
   color: var(--pack-tier-ink, rgba(255,255,255,.82));
-  opacity: 0.56;
+  opacity: var(--pack-count-opacity, 0.56);
 }
 
 .pack.opening .pack-tear-line,
@@ -1425,6 +1398,18 @@ button, a, select { font: inherit; }
   height: 372px;
   padding: 24px 18px 30px;
   animation: none;
+  --pack-copy-width: min(78%, 186px);
+  --pack-copy-offset: 2px;
+  --pack-title-scale: 0.92;
+  --pack-tier-gap: 12px;
+  --pack-tier-pad-y: 7px;
+  --pack-tier-pad-x: 11px;
+  --pack-tier-font-size: 0.67rem;
+  --pack-count-gap: 8px;
+  --pack-count-size: 0.58rem;
+  --pack-count-opacity: 0.62;
+  --pack-cta-bottom: 46px;
+  --pack-cta-size: 0.56rem;
 }
 
 .reward-pack-option .pack.is-loading {
@@ -3353,15 +3338,21 @@ button, a, select { font: inherit; }
   }
   .reward-pack-option .pack {
     padding: 18px 14px 21px;
-  }
-  .reward-pack-option .pack .pack-copy {
-    width: min(82%, 158px);
-    margin-top: -2px;
-  }
-  .reward-pack-option .pack .pack-title {
-    font-size: 1.56rem;
-    line-height: 1.03;
-    letter-spacing: -0.05em;
+    --pack-copy-width: min(82%, 156px);
+    --pack-copy-offset: 1px;
+    --pack-title-scale: 0.83;
+    --pack-title-line-height: 1.01;
+    --pack-tier-gap: 10px;
+    --pack-tier-pad-y: 6px;
+    --pack-tier-pad-x: 10px;
+    --pack-tier-font-size: 0.64rem;
+    --pack-tier-letter-spacing: 0.1em;
+    --pack-count-gap: 8px;
+    --pack-count-size: 0.54rem;
+    --pack-count-letter-spacing: 0.08em;
+    --pack-count-opacity: 0.66;
+    --pack-cta-bottom: 16px;
+    --pack-cta-size: 0.62rem;
   }
   .reward-pack-option .pack .pack-sub {
     font-size: 0.68rem;
@@ -3369,23 +3360,7 @@ button, a, select { font: inherit; }
     max-width: 144px;
     margin-top: 4px;
   }
-  .reward-pack-option .pack .pack-tier {
-    margin-top: 11px;
-    padding: 6px 10px;
-    font-size: 0.64rem;
-    line-height: 1.3;
-    letter-spacing: 0.1em;
-  }
-  .reward-pack-option .pack .pack-card-count {
-    margin-top: 8px;
-    font-size: 0.54rem;
-    line-height: 1.2;
-    letter-spacing: 0.08em;
-    opacity: 0.66;
-  }
   .reward-pack-option .pack::after {
-    bottom: 16px;
-    font-size: 0.62rem;
     letter-spacing: 0.09em;
   }
   .reward-pack-option.is-left {
@@ -3938,7 +3913,7 @@ button, a, select { font: inherit; }
   };
   const PACK_ART_ASSETS = {
     all: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
-    horror: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
+    horror: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.58, titleOffsetY: '-26px', surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
     animation: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
     eighties: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
     noir: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
@@ -3988,7 +3963,11 @@ button, a, select { font: inherit; }
       `)
     }
   };
-  const PACK_ART_FILE_ASSETS = {};
+  const PACK_ART_FILE_ASSETS = {
+    horror: {
+      title: '/design/pack-v2/title/pack_horror_title.svg.svg'
+    }
+  };
   const PACK_SHAPE_TONES = {
     all: { top: '#BBD0FF', bottom: '#8F86E9', lineTop: '#605ABF', lineBottom: '#605ABF' },
     horror: { top: '#F33951', bottom: '#884044', lineTop: '#A13846', lineBottom: '#DA2248' },
@@ -4016,7 +3995,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-66';
+  const BUILD_ID = 'logic-sync-68';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6043,8 +6022,31 @@ button, a, select { font: inherit; }
 
   function buildShopFallbackPreview(packDef) {
     const theme = PACK_THEMES[packDef && packDef.theme] || PACK_THEMES.all;
+    const style = '--pack-a:' + escapeHtml(theme.colors[0])
+      + '; --pack-b:' + escapeHtml(theme.colors[1])
+      + '; --pack-c:' + escapeHtml(theme.colors[2])
+      + '; --pack-title-font:' + escapeHtml(theme.titleFont || 'inherit')
+      + '; --pack-title-size:' + escapeHtml(theme.titleSize || '2rem')
+      + '; --pack-title-spacing:' + escapeHtml(theme.titleSpacing || '-0.04em')
+      + '; --pack-title-line-height:' + escapeHtml(theme.titleLineHeight || '.95')
+      + '; --pack-ink:' + escapeHtml(theme.ink || '#f8fafc')
+      + '; --pack-tier-ink:' + escapeHtml(theme.tierInk || 'rgba(255,255,255,.84)')
+      + '; --pack-tier-bg:' + escapeHtml(theme.tierBg || 'rgba(8,10,15,.32)')
+      + '; --pack-tier-border:' + escapeHtml(theme.tierBorder || 'rgba(255,255,255,.16)')
+      + '; --pack-copy-width:' + escapeHtml(theme.copyWidth || 'min(80%, 208px)')
+      + '; --pack-copy-offset:' + escapeHtml(theme.copyOffset || '-2px')
+      + '; --pack-tier-gap:' + escapeHtml(theme.tierGap || '14px')
+      + '; --pack-tier-pad-y:' + escapeHtml(theme.tierPadY || '7px')
+      + '; --pack-tier-pad-x:' + escapeHtml(theme.tierPadX || '12px')
+      + '; --pack-tier-font-size:' + escapeHtml(theme.tierFontSize || '0.68rem')
+      + '; --pack-count-gap:' + escapeHtml(theme.countGap || '9px')
+      + '; --pack-count-size:' + escapeHtml(theme.countSize || '0.62rem')
+      + '; --pack-count-opacity:' + escapeHtml(theme.countOpacity || '0.56')
+      + '; --pack-cta-ink:' + escapeHtml(theme.ctaInk || 'rgba(255,255,255,.84)')
+      + '; --pack-cta-bottom:' + escapeHtml(theme.ctaBottom || '50px')
+      + '; --pack-cta-size:' + escapeHtml(theme.ctaSize || '0.58rem');
     return '<div class="pack shop-pack-fallback" aria-label="' + escapeHtml(theme.label) + '"'
-      + ' style="--pack-a:' + escapeHtml(theme.colors[0]) + '; --pack-b:' + escapeHtml(theme.colors[1]) + '; --pack-c:' + escapeHtml(theme.colors[2]) + ';">'
+      + ' style="' + style + ';">'
       + '<div class="pack-copy">'
       + '<div class="pack-title">' + escapeHtml(theme.title) + '</div>'
       + '<div class="pack-tier">' + escapeHtml(theme.tier) + '</div>'
@@ -6851,6 +6853,8 @@ button, a, select { font: inherit; }
   }
 
   function resolvePackTitleAsset(themeKey) {
+    const fileAssets = PACK_ART_FILE_ASSETS[themeKey];
+    if (fileAssets && fileAssets.title) return fileAssets.title;
     return '';
   }
 
@@ -6877,23 +6881,41 @@ button, a, select { font: inherit; }
       + '; --pack-title-font:' + (theme.titleFont || 'inherit')
       + '; --pack-title-size:' + (theme.titleSize || '2rem')
       + '; --pack-title-spacing:' + (theme.titleSpacing || '-0.04em')
+      + '; --pack-title-line-height:' + (theme.titleLineHeight || '.95')
       + '; --pack-ink:' + (theme.ink || '#f8fafc')
       + '; --pack-sub-ink:' + (theme.subInk || 'rgba(248,250,252,.84)')
       + '; --pack-tier-ink:' + (theme.tierInk || 'rgba(255,255,255,.84)')
       + '; --pack-tier-bg:' + (theme.tierBg || 'rgba(8,10,15,.32)')
       + '; --pack-tier-border:' + (theme.tierBorder || 'rgba(255,255,255,.16)')
+      + '; --pack-copy-width:' + (theme.copyWidth || 'min(80%, 208px)')
+      + '; --pack-copy-offset:' + (theme.copyOffset || '-2px')
+      + '; --pack-tier-gap:' + (theme.tierGap || '14px')
+      + '; --pack-tier-pad-y:' + (theme.tierPadY || '7px')
+      + '; --pack-tier-pad-x:' + (theme.tierPadX || '12px')
+      + '; --pack-tier-font-size:' + (theme.tierFontSize || '0.68rem')
+      + '; --pack-tier-letter-spacing:' + (theme.tierLetterSpacing || '0.12em')
+      + '; --pack-count-gap:' + (theme.countGap || '9px')
+      + '; --pack-count-size:' + (theme.countSize || '0.62rem')
+      + '; --pack-count-letter-spacing:' + (theme.countLetterSpacing || '0.12em')
+      + '; --pack-count-opacity:' + (theme.countOpacity || '0.56')
       + '; --pack-cta-ink:' + (theme.ctaInk || 'rgba(255,255,255,.84)')
+      + '; --pack-cta-bottom:' + (theme.ctaBottom || '50px')
+      + '; --pack-cta-size:' + (theme.ctaSize || '0.58rem')
+      + '; --pack-cta-opacity:' + (theme.ctaOpacity || '0.46')
       + '; --pack-art-scale:' + (artConfig && artConfig.scale ? String(artConfig.scale) : '1.04')
       + '; --pack-fallback-shape-scale:' + (artConfig && artConfig.staticShapeScale ? String(artConfig.staticShapeScale) : (artConfig && artConfig.scale ? String(artConfig.scale) : '1.48'))
       + '; --pack-static-shape-scale:' + (artConfig && artConfig.staticShapeScale ? String(artConfig.staticShapeScale) : (artConfig && artConfig.scale ? String(artConfig.scale) : '1.04'))
       + '; --pack-title-art-scale:' + (artConfig && artConfig.titleScale ? String(artConfig.titleScale) : (artConfig && artConfig.scale ? String(artConfig.scale) : '1.04'))
+      + '; --pack-title-art-x:' + (artConfig && artConfig.titleOffsetX ? artConfig.titleOffsetX : '0px')
+      + '; --pack-title-art-y:' + (artConfig && artConfig.titleOffsetY ? artConfig.titleOffsetY : '0px')
+      + '; --pack-title-art-clip:' + (artConfig && artConfig.titleClip ? artConfig.titleClip : (artConfig && artConfig.surfaceClip ? artConfig.surfaceClip : 'inset(0 round 17px)'))
       + '; --pack-surface-clip:' + (artConfig && artConfig.surfaceClip ? artConfig.surfaceClip : 'inset(0 round 17px)');
     const config = options || {};
     const packTextureClass = themeKey === 'gold'
       ? ' is-gold'
       : (themeKey !== 'all' ? ' is-featured' : '');
     const customArtClass = hasCustomArt ? ' has-custom-art' : '';
-    const inlineArtClass = (fallbackShapeAsset ? ' has-loaded-shape' : '') + (hasInlineTitle ? ' has-loaded-title' : '');
+    const inlineArtClass = (fallbackShapeAsset ? ' has-loaded-shape' : '') + (hasInlineTitle ? ' has-title-art' : '');
     const classes = 'pack' + packTextureClass + customArtClass + inlineArtClass + (config.extraClasses ? ' ' + config.extraClasses : '');
     let attrs = ' class="' + escapeHtml(classes) + '"';
     if (config.id) attrs += ' id="' + escapeHtml(config.id) + '"';
@@ -6908,7 +6930,7 @@ button, a, select { font: inherit; }
           ? '<img class="pack-skin-art" src="' + escapeHtml(customShapeAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-loaded-shape\');}" onerror="var p=this.closest(\'.pack\');if(p){p.classList.remove(\'has-loaded-shape\');}this.remove();"' + cardImageAttrs('high') + '>'
           : '')
         + (titleAsset
-          ? '<img class="pack-title-art" src="' + escapeHtml(titleAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-loaded-title\');}" onerror="var p=this.closest(\'.pack\');if(p){p.classList.remove(\'has-loaded-title\');}this.remove();"' + cardImageAttrs('high') + '>'
+          ? '<img class="pack-title-art" src="' + escapeHtml(titleAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-title-art\');}" onerror="var p=this.closest(\'.pack\');if(p){p.classList.remove(\'has-title-art\');}this.remove();"' + cardImageAttrs('high') + '>'
           : '')
       + '</div>'
       + '<div class="pack-foil"></div>'
