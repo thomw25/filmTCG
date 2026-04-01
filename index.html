@@ -819,6 +819,7 @@ button, a, select { font: inherit; }
   transform-style: preserve-3d;
   animation: packPulse 2.5s ease-in-out infinite;
   color: var(--pack-ink, #f8fafc);
+  transition: transform 220ms ease, filter 220ms ease, opacity 220ms ease;
 }
 
 .pack.has-loaded-shape,
@@ -834,6 +835,33 @@ button, a, select { font: inherit; }
 .pack.has-loaded-shape:not(.is-loading):not(.opening):not(.is-shuffling),
 .pack.has-loaded-title:not(.is-loading):not(.opening):not(.is-shuffling) {
   animation: packArtFloat 6.6s ease-in-out infinite;
+}
+
+.pack[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover,
+#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible {
+  animation: none;
+  transform: translateY(-6px) scale(1.016);
+  filter: saturate(1.06) brightness(1.024);
+  outline: none;
+}
+
+#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-foil,
+#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-foil {
+  opacity: 0.98;
+}
+
+#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-glint,
+#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-glint {
+  opacity: 0.12;
+}
+
+#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-glow,
+#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-glow {
+  opacity: 0.22;
 }
 
 .pack-art-wrap {
@@ -904,7 +932,7 @@ button, a, select { font: inherit; }
   mix-blend-mode: screen;
   opacity: 0.94;
   filter: blur(.34px);
-  transform: scale(1.16);
+  transform: scale(1.16, 1.04);
   transform-origin: center center;
   clip-path: var(--pack-surface-clip, inset(0 round 17px));
 }
@@ -978,9 +1006,10 @@ button, a, select { font: inherit; }
 
 .pack.is-loading {
   cursor: wait;
-  animation: packHover 1.45s ease-in-out infinite;
-  opacity: 0.96;
-  filter: saturate(1.08);
+  animation: none;
+  opacity: 0.98;
+  transform: translateY(-2px) scale(1.01);
+  filter: saturate(1.04) brightness(1.01);
 }
 
 .pack::after {
@@ -2945,8 +2974,8 @@ button, a, select { font: inherit; }
 }
 
 @keyframes packBurst {
-  0% { transform: scale(1) translateY(0); filter: saturate(1); }
-  22% { transform: scale(0.95) translateY(5px); filter: saturate(1.02); }
+  0% { transform: scale(1.01) translateY(-2px); filter: saturate(1.04) brightness(1.01); }
+  22% { transform: scale(0.96) translateY(3px); filter: saturate(1.02); }
   54% { transform: scale(1.07) translateY(-10px); filter: saturate(1.15); }
   78% { transform: scale(1.01) translateY(-2px); }
   100% { transform: scale(1) translateY(0); filter: saturate(1.12); }
