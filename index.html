@@ -887,7 +887,10 @@ button, a, select { font: inherit; }
 
 .pack-title-art-wrap {
   position: absolute;
-  inset: 0;
+  left: var(--pack-title-wrap-left, 0);
+  right: var(--pack-title-wrap-right, 0);
+  top: var(--pack-title-wrap-top, 0);
+  height: var(--pack-title-wrap-height, 100%);
   z-index: 2;
   pointer-events: none;
   overflow: hidden;
@@ -904,7 +907,11 @@ button, a, select { font: inherit; }
 }
 
 .pack-title-art {
-  inset: 0;
+  width: var(--pack-title-art-width, 100%);
+  height: var(--pack-title-art-height, 100%);
+  max-width: none;
+  left: var(--pack-title-art-left, 0);
+  top: var(--pack-title-art-top, 0);
   transform: translate(var(--pack-title-art-x, 0), var(--pack-title-art-y, 0)) scale(var(--pack-title-art-scale, var(--pack-art-scale, 1.44)));
   transform-origin: center center;
   z-index: 0;
@@ -1229,6 +1236,11 @@ button, a, select { font: inherit; }
 .pack-tier {
   position: relative;
   z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  width: fit-content;
   margin-top: var(--pack-tier-gap, 14px);
   padding: var(--pack-tier-pad-y, 7px) var(--pack-tier-pad-x, 12px);
   border-radius: 999px;
@@ -3777,7 +3789,7 @@ button, a, select { font: inherit; }
       titleFont: '"Pirata One", serif',
       titleSpacing: '0.02em',
       colors: ['#884044', '#B33B49', '#F33951'],
-      tier: 'Select Pack',
+      tier: 'Genre Pack',
       ink: '#fff7ed',
       subInk: 'rgba(255,237,213,.9)',
       tierInk: '#fff7ed',
@@ -3796,7 +3808,7 @@ button, a, select { font: inherit; }
       titleFont: '"Mouse Memoirs", sans-serif',
       titleSpacing: '0.025em',
       colors: ['#373EE6', '#4F78EA', '#67B8EA'],
-      tier: 'Select Pack',
+      tier: 'Genre Pack',
       ink: '#eff6ff',
       subInk: 'rgba(239,246,255,.86)',
       tierInk: '#eff6ff',
@@ -3815,7 +3827,7 @@ button, a, select { font: inherit; }
       titleFont: '"Orbitron", sans-serif',
       titleSpacing: '0.08em',
       colors: ['#61A398', '#6FC5CF', '#71E1FB'],
-      tier: 'Select Pack',
+      tier: 'Genre Pack',
       ink: '#fff7fb',
       subInk: 'rgba(255,241,248,.9)',
       tierInk: '#fff7fb',
@@ -3834,7 +3846,7 @@ button, a, select { font: inherit; }
       titleFont: '"Special Elite", monospace',
       titleSpacing: '0.03em',
       colors: ['#272C46', '#4B638C', '#7CAAD3'],
-      tier: 'Epic Pack',
+      tier: 'Genre Pack',
       ink: '#f8fafc',
       subInk: 'rgba(226,232,240,.84)',
       tierInk: '#f8fafc',
@@ -3853,7 +3865,7 @@ button, a, select { font: inherit; }
       titleFont: '"Spicy Rice", serif',
       titleSpacing: '0.03em',
       colors: ['#FF2495', '#C13AA9', '#9230B1'],
-      tier: 'Select Pack',
+      tier: 'Genre Pack',
       ink: '#fff7fb',
       subInk: 'rgba(255,241,248,.9)',
       tierInk: '#fff7fb',
@@ -3873,7 +3885,7 @@ button, a, select { font: inherit; }
       titleSpacing: '0.02em',
       titleSize: '1.74rem',
       colors: ['#00A796', '#18D4A8', '#00FEA4'],
-      tier: 'Select Pack',
+      tier: 'Genre Pack',
       ink: '#ecfeff',
       subInk: 'rgba(236,254,255,.86)',
       tierInk: '#ecfeff',
@@ -3892,7 +3904,7 @@ button, a, select { font: inherit; }
       titleFont: '"Fahkwang", sans-serif',
       titleSpacing: '0.03em',
       colors: ['#ECC688', '#E9CF9C', '#ECC688'],
-      tier: 'Select Pack',
+      tier: 'Genre Pack',
       ink: '#775b2c',
       subInk: 'rgba(120,91,45,.84)',
       tierInk: 'rgba(117,89,42,.92)',
@@ -3923,7 +3935,19 @@ button, a, select { font: inherit; }
   };
   const PACK_ART_ASSETS = {
     all: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
-    horror: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.72, titleOffsetY: '-30px', surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
+    horror: {
+      scale: 1.03,
+      staticShapeScale: 1.48,
+      titleScale: 1,
+      titleOffsetY: '0px',
+      titleWrapTop: '13.2%',
+      titleWrapHeight: '30.5%',
+      titleArtWidth: '148.333%',
+      titleArtHeight: 'auto',
+      titleArtLeft: '-24.167%',
+      titleArtTop: '-141.905%',
+      surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)'
+    },
     animation: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
     eighties: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
     noir: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
@@ -4018,7 +4042,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-68';
+  const BUILD_ID = 'logic-sync-69';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6932,6 +6956,14 @@ button, a, select { font: inherit; }
       + '; --pack-title-art-scale:' + (artConfig && artConfig.titleScale ? String(artConfig.titleScale) : (artConfig && artConfig.scale ? String(artConfig.scale) : '1.04'))
       + '; --pack-title-art-x:' + (artConfig && artConfig.titleOffsetX ? artConfig.titleOffsetX : '0px')
       + '; --pack-title-art-y:' + (artConfig && artConfig.titleOffsetY ? artConfig.titleOffsetY : '0px')
+      + '; --pack-title-wrap-left:' + (artConfig && artConfig.titleWrapLeft ? artConfig.titleWrapLeft : '0')
+      + '; --pack-title-wrap-right:' + (artConfig && artConfig.titleWrapRight ? artConfig.titleWrapRight : '0')
+      + '; --pack-title-wrap-top:' + (artConfig && artConfig.titleWrapTop ? artConfig.titleWrapTop : '0')
+      + '; --pack-title-wrap-height:' + (artConfig && artConfig.titleWrapHeight ? artConfig.titleWrapHeight : '100%')
+      + '; --pack-title-art-width:' + (artConfig && artConfig.titleArtWidth ? artConfig.titleArtWidth : '100%')
+      + '; --pack-title-art-height:' + (artConfig && artConfig.titleArtHeight ? artConfig.titleArtHeight : '100%')
+      + '; --pack-title-art-left:' + (artConfig && artConfig.titleArtLeft ? artConfig.titleArtLeft : '0')
+      + '; --pack-title-art-top:' + (artConfig && artConfig.titleArtTop ? artConfig.titleArtTop : '0')
       + '; --pack-title-art-clip:' + (artConfig && artConfig.titleClip ? artConfig.titleClip : (artConfig && artConfig.surfaceClip ? artConfig.surfaceClip : 'inset(0 round 17px)'))
       + '; --pack-surface-clip:' + (artConfig && artConfig.surfaceClip ? artConfig.surfaceClip : 'inset(0 round 17px)');
     const config = options || {};
