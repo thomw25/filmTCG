@@ -1044,6 +1044,12 @@ button, a, select { font: inherit; }
   z-index: 2;
 }
 
+.shop-pack-preview .pack::after,
+.shop-reward-option .pack::after,
+.shop-open-pack-wrap .pack::after {
+  bottom: 18px;
+}
+
 .pack.is-loading::after {
   content: "LOADING REEL";
 }
@@ -3955,7 +3961,7 @@ button, a, select { font: inherit; }
       scale: 1.03,
       staticShapeScale: 1.48,
       titleScale: 1.44,
-      titleOffsetY: '-12px',
+      titleOffsetY: '-14px',
       titleWrapTop: '0',
       titleWrapHeight: '100%',
       titleArtWidth: '100%',
@@ -3970,7 +3976,7 @@ button, a, select { font: inherit; }
       scale: 1.03,
       staticShapeScale: 1.48,
       titleScale: 1.45,
-      titleOffsetY: '-13px',
+      titleOffsetY: '-15px',
       titleWrapTop: '0',
       titleWrapHeight: '100%',
       titleArtWidth: '100%',
@@ -3985,7 +3991,7 @@ button, a, select { font: inherit; }
       scale: 1.03,
       staticShapeScale: 1.48,
       titleScale: 1.42,
-      titleOffsetY: '-10px',
+      titleOffsetY: '-12px',
       titleWrapTop: '0',
       titleWrapHeight: '100%',
       titleArtWidth: '100%',
@@ -4086,7 +4092,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-84';
+  const BUILD_ID = 'logic-sync-86';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
