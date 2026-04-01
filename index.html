@@ -4096,7 +4096,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-89';
+  const BUILD_ID = 'logic-sync-90';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6169,7 +6169,7 @@ button, a, select { font: inherit; }
     const canAfford = tickets >= Number(packDef.price);
     const isGoldPack = packDef && packDef.theme === 'gold';
     const previewOptions = packDef && packDef.theme === 'actors'
-      ? { extraClasses: 'shop-actors-pack' }
+      ? { extraClasses: 'shop-actors-pack', titleArtY: '-2px' }
       : null;
     let previewMarkup = '';
     try {
@@ -7011,6 +7011,7 @@ button, a, select { font: inherit; }
 
   function buildPackFaceMarkup(themeKey, options) {
     const theme = PACK_THEMES[themeKey] || PACK_THEMES.all;
+    const config = options || {};
     const artConfig = PACK_ART_ASSETS[themeKey] || null;
     const compositeAsset = normalizeAssetSrc(resolvePackCompositeAsset(themeKey));
     const customShapeAsset = normalizeAssetSrc(resolvePackShapeAsset(themeKey));
@@ -7068,8 +7069,8 @@ button, a, select { font: inherit; }
       + '; --pack-title-art-left:' + (artConfig && artConfig.titleArtLeft ? artConfig.titleArtLeft : '0')
       + '; --pack-title-art-top:' + (artConfig && artConfig.titleArtTop ? artConfig.titleArtTop : '0')
       + '; --pack-title-art-clip:' + (artConfig && artConfig.titleClip ? artConfig.titleClip : (artConfig && artConfig.surfaceClip ? artConfig.surfaceClip : 'inset(0 round 17px)'))
-      + '; --pack-surface-clip:' + (artConfig && artConfig.surfaceClip ? artConfig.surfaceClip : 'inset(0 round 17px)');
-    const config = options || {};
+      + '; --pack-surface-clip:' + (artConfig && artConfig.surfaceClip ? artConfig.surfaceClip : 'inset(0 round 17px)')
+      + (config.titleArtY ? '; --pack-title-art-y:' + String(config.titleArtY) : '');
     const packTextureClass = themeKey === 'gold'
       ? ' is-gold'
       : (themeKey !== 'all' ? ' is-featured' : '');
