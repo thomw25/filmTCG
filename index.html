@@ -4096,7 +4096,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-93';
+  const BUILD_ID = 'logic-sync-95';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -8123,20 +8123,28 @@ button, a, select { font: inherit; }
         }
       }
 
-      const refreshPromise = shouldRefreshReel
-        ? refreshPoolForPackOpen(false, requestedTheme).catch(function () { return false; })
-        : Promise.resolve(false);
+      let initialRefreshOk = true;
+      if (shouldRefreshReel) {
+        initialRefreshOk = await refreshPoolForPackOpen(false, requestedTheme).catch(function () { return false; });
+      }
 
-      await Promise.all([
-        refreshPromise,
-        new Promise(function (resolve) { setTimeout(resolve, 120); })
-      ]);
-      const openPool = getPackPool(packThemeForOpen);
+      await new Promise(function (resolve) { setTimeout(resolve, 120); });
+      let openPool = getPackPool(packThemeForOpen);
+      let forcedRefreshOk = true;
       if (dataSourceLabel.indexOf('TMDB') !== -1) {
         const freshCandidatesAvailable = countFreshFilmCandidates(openPool);
         if (freshCandidatesAvailable < filmSlotsForCurrentTheme(packThemeForOpen)) {
-          await refreshPoolForPackOpen(true, requestedTheme).catch(function () { return false; });
+          forcedRefreshOk = await refreshPoolForPackOpen(true, requestedTheme).catch(function () { return false; });
+          openPool = getPackPool(packThemeForOpen);
         }
+      }
+      const staleThemeAfterFailedRefresh = !requestedTheme
+        && selectedPackMode === 'all-packs'
+        && dataSourceLabel.indexOf('TMDB') !== -1
+        && activeReelThemeKey !== requestedReelThemeKey
+        && (!initialRefreshOk || !forcedRefreshOk);
+      if (staleThemeAfterFailedRefresh) {
+        throw new Error('Could not refresh back to the All Cinema deck.');
       }
       if (openPool.length < PACK_SIZE && !hasOwnedPack) resolvePackTheme(false);
       updatePackMeta();
@@ -8173,7 +8181,10 @@ button, a, select { font: inherit; }
     } catch (error) {
       console.error('[filmTCG] openPack failed', error);
       const errorMessage = String(error && error.message || error || '').toLowerCase();
-      if (isQuotaExceededError(error)) {
+      if (errorMessage.indexOf('all cinema deck') !== -1) {
+        artworkStatus = 'Still switching back to the full All Cinema deck. Tap to retry.';
+        showToast('Deck is still syncing back to All Cinema. Try again.');
+      } else if (isQuotaExceededError(error)) {
         artworkStatus = 'Device storage ran out while saving this pull. Try again.';
         showToast('Storage is full on this device. Trimmed save data and retry.');
       } else if (errorMessage.indexOf('timeout') !== -1 || (error && error.name === 'AbortError')) {
