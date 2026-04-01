@@ -894,17 +894,17 @@ button, a, select { font: inherit; }
 .pack.has-loaded-shape .pack-foil,
 .pack.has-loaded-title .pack-foil {
   display: block;
-  inset: 5% 8.5% 6% 8.5%;
-  border-radius: 17px;
+  inset: 0.4% 0.8% 1.1% 0.8%;
+  border-radius: 0;
   background:
-    linear-gradient(104deg, rgba(255,255,255,0) 8%, rgba(255,255,255,.028) 19%, rgba(255,255,255,.11) 31%, rgba(255,255,255,.23) 44%, rgba(255,255,255,.31) 54%, rgba(255,255,255,.18) 66%, rgba(255,255,255,.07) 76%, rgba(255,255,255,0) 87%),
+    linear-gradient(104deg, rgba(255,255,255,0) 4%, rgba(255,255,255,.022) 18%, rgba(255,255,255,.09) 31%, rgba(255,255,255,.18) 43%, rgba(255,255,255,.29) 53%, rgba(255,255,255,.2) 64%, rgba(255,255,255,.08) 76%, rgba(255,255,255,0) 90%),
     linear-gradient(180deg, rgba(255,255,255,.115), rgba(255,255,255,.032) 17%, rgba(255,255,255,0) 35%, rgba(56,53,118,.11) 100%);
-  background-size: 206% 182%, 100% 100%;
-  background-position: 132% -14%, 50% 50%;
+  background-size: 184% 180%, 100% 100%;
+  background-position: 158% -18%, 50% 50%;
   mix-blend-mode: screen;
-  opacity: 0.92;
-  filter: blur(.45px);
-  transform: scale(1.1);
+  opacity: 0.94;
+  filter: blur(.42px);
+  transform: scale(1.02);
   transform-origin: center center;
   clip-path: var(--pack-surface-clip, inset(0 round 17px));
 }
@@ -916,7 +916,7 @@ button, a, select { font: inherit; }
   background:
     radial-gradient(ellipse at 25% 18%, rgba(255,255,255,.11) 0%, rgba(255,255,255,.045) 15%, rgba(255,255,255,0) 34%),
     linear-gradient(92deg, rgba(255,255,255,.055) 0%, rgba(255,255,255,0) 16%, rgba(255,255,255,0) 76%, rgba(255,255,255,.05) 92%, rgba(255,255,255,0) 100%);
-  opacity: 0.12;
+  opacity: 0.09;
   transform: none;
   filter: blur(.6px);
   mix-blend-mode: screen;
@@ -1252,7 +1252,7 @@ button, a, select { font: inherit; }
 
 .pack.has-loaded-shape:not(.is-loading):not(.opening):not(.is-shuffling) .pack-foil,
 .pack.has-loaded-title:not(.is-loading):not(.opening):not(.is-shuffling) .pack-foil {
-  animation: packFoilShift 6.6s linear infinite;
+  animation: packFoilShift 7.4s cubic-bezier(.42,0,.18,1) infinite;
 }
 
 .pack.has-loaded-shape:not(.is-loading):not(.opening):not(.is-shuffling) .pack-glint,
@@ -2987,9 +2987,9 @@ button, a, select { font: inherit; }
 }
 
 @keyframes packFoilShift {
-  0% { background-position: 138% -16%, 50% 50%; }
-  52% { background-position: 46% 3%, 50% 50%; }
-  100% { background-position: -36% 20%, 50% 50%; }
+  0%, 10% { background-position: 158% -18%, 50% 50%; }
+  56% { background-position: 44% 3%, 50% 50%; }
+  90%, 100% { background-position: -72% 22%, 50% 50%; }
 }
 
 @keyframes packGlintSweep {
