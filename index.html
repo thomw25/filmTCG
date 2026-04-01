@@ -845,7 +845,7 @@ button, a, select { font: inherit; }
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transform: scale(var(--pack-art-scale, 1.06));
+  transform: scale(var(--pack-fallback-shape-scale, var(--pack-art-scale, 1.48)));
   transform-origin: center center;
   z-index: 0;
   filter: saturate(1.01) contrast(1.01) drop-shadow(0 16px 22px rgba(0,0,0,.18));
@@ -855,7 +855,7 @@ button, a, select { font: inherit; }
   transition: opacity 180ms ease;
 }
 
-.pack.has-loaded-shape .pack-shape-art.is-fallback {
+.pack.has-custom-art.has-loaded-shape .pack-shape-art.is-fallback {
   opacity: 0;
 }
 
@@ -3975,7 +3975,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-58';
+  const BUILD_ID = 'logic-sync-59';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6796,6 +6796,7 @@ button, a, select { font: inherit; }
       + '; --pack-tier-border:' + (theme.tierBorder || 'rgba(255,255,255,.16)')
       + '; --pack-cta-ink:' + (theme.ctaInk || 'rgba(255,255,255,.84)')
       + '; --pack-art-scale:' + (artConfig && artConfig.scale ? String(artConfig.scale) : '1.04')
+      + '; --pack-fallback-shape-scale:' + (artConfig && artConfig.staticShapeScale ? String(artConfig.staticShapeScale) : (artConfig && artConfig.scale ? String(artConfig.scale) : '1.48'))
       + '; --pack-static-shape-scale:' + (artConfig && artConfig.staticShapeScale ? String(artConfig.staticShapeScale) : (artConfig && artConfig.scale ? String(artConfig.scale) : '1.04'))
       + '; --pack-title-art-scale:' + (artConfig && artConfig.titleScale ? String(artConfig.titleScale) : (artConfig && artConfig.scale ? String(artConfig.scale) : '1.04'))
       + '; --pack-surface-clip:' + (artConfig && artConfig.surfaceClip ? artConfig.surfaceClip : 'inset(0 round 17px)');
@@ -6804,7 +6805,7 @@ button, a, select { font: inherit; }
       ? ' is-gold'
       : (themeKey !== 'all' ? ' is-featured' : '');
     const customArtClass = hasCustomArt ? ' has-custom-art' : '';
-    const inlineArtClass = (hasInlineShape ? ' has-loaded-shape' : '') + (hasInlineTitle ? ' has-loaded-title' : '');
+    const inlineArtClass = (fallbackShapeAsset ? ' has-loaded-shape' : '') + (hasInlineTitle ? ' has-loaded-title' : '');
     const classes = 'pack' + packTextureClass + customArtClass + inlineArtClass + (config.extraClasses ? ' ' + config.extraClasses : '');
     let attrs = ' class="' + escapeHtml(classes) + '"';
     if (config.id) attrs += ' id="' + escapeHtml(config.id) + '"';
