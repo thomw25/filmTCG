@@ -613,6 +613,16 @@ button, a, select { font: inherit; }
   transform: translateY(-14px) !important;
 }
 
+.shop-pack-preview .pack.shop-animation-pack {
+  --pack-title-art-scale: 1.56;
+  --pack-title-art-y: 12px;
+}
+
+.shop-pack-preview .pack.shop-noir-pack {
+  --pack-title-art-scale: 1.58;
+  --pack-title-art-y: -4px;
+}
+
 .shop-item:hover .shop-pack-preview .pack,
 .shop-pack-preview:hover .pack,
 .shop-pack-preview .pack:hover,
@@ -1371,6 +1381,27 @@ button, a, select { font: inherit; }
   text-transform: uppercase;
   color: var(--pack-tier-ink, rgba(255,255,255,.82));
   opacity: var(--pack-count-opacity, 0.56);
+}
+
+.pack.pack-theme-animation .pack-tier {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-top: 0;
+  transform: translate(-50%, -96px);
+}
+
+.pack.pack-theme-animation .pack-card-count {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-top: 0;
+  transform: translate(-50%, 62px);
+}
+
+.pack.pack-theme-noir .pack-tier,
+.pack.pack-theme-noir .pack-card-count {
+  display: none !important;
 }
 
 .pack.opening .pack-tear-line,
@@ -3748,7 +3779,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-32</div>
+  <div class="sub">Build: packs-people-tier-33</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3966,9 +3997,6 @@ button, a, select { font: inherit; }
       blurb: 'you’re drawn to this, I know it',
       titleFont: '"Mouse Memoirs", sans-serif',
       titleSpacing: '0.025em',
-      tierOffsetY: '-6px',
-      countGap: '52px',
-      countOffsetY: '6px',
       colors: ['#373EE6', '#4F78EA', '#67B8EA'],
       tier: 'Genre Pack',
       ink: '#eff6ff',
@@ -4123,7 +4151,7 @@ button, a, select { font: inherit; }
       titleClip: 'inset(0)',
       surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)'
     },
-    animation: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.47, titleOffsetY: '18px', surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
+    animation: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.56, titleOffsetY: '12px', surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
     eighties: {
       scale: 1.03,
       staticShapeScale: 1.48,
@@ -4138,7 +4166,7 @@ button, a, select { font: inherit; }
       titleClip: 'inset(0)',
       surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)'
     },
-    noir: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.45, titleOffsetY: '-7px', surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
+    noir: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.58, titleOffsetY: '-4px', surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
     romcom: {
       scale: 1.03,
       staticShapeScale: 1.48,
@@ -4284,7 +4312,7 @@ button, a, select { font: inherit; }
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-114';
+  const BUILD_ID = 'logic-sync-115';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6421,24 +6449,33 @@ button, a, select { font: inherit; }
   function shopItemMarkup(packDef, tickets) {
     const canAfford = tickets >= Number(packDef.price);
     const isGoldPack = packDef && packDef.theme === 'gold';
-    const previewOptions = packDef && packDef.theme === 'actors'
-      ? {
+    let previewOptions = null;
+    if (packDef && packDef.theme === 'actors') {
+      previewOptions = {
         extraClasses: 'shop-actors-pack',
         titleArtY: '-7px',
         ctaBottom: '33px'
-      }
-      : (packDef && packDef.theme === 'docs'
-        ? {
-          extraClasses: 'shop-docs-pack',
-          titleArtScale: '1.9',
-          titleArtX: '2px',
-          titleArtY: '-44px',
-          copyOffset: '-14px',
-          ctaBottom: '14px',
-          tierGap: '22px',
-          countGap: '15px'
-        }
-        : null);
+      };
+    } else if (packDef && packDef.theme === 'docs') {
+      previewOptions = {
+        extraClasses: 'shop-docs-pack',
+        titleArtScale: '1.9',
+        titleArtX: '2px',
+        titleArtY: '-44px',
+        copyOffset: '-14px',
+        ctaBottom: '14px',
+        tierGap: '22px',
+        countGap: '15px'
+      };
+    } else if (packDef && packDef.theme === 'animation') {
+      previewOptions = {
+        extraClasses: 'shop-animation-pack'
+      };
+    } else if (packDef && packDef.theme === 'noir') {
+      previewOptions = {
+        extraClasses: 'shop-noir-pack'
+      };
+    }
     let previewMarkup = '';
     try {
       previewMarkup = buildPackFaceMarkup(packDef.theme, previewOptions);
@@ -7439,6 +7476,7 @@ button, a, select { font: inherit; }
       + packTextureClass
       + customArtClass
       + inlineArtClass
+      + ' pack-theme-' + themeKey
       + (collapseTitleSlot ? ' collapse-title-slot' : '')
       + (config.extraClasses ? ' ' + config.extraClasses : '');
     let attrs = ' class="' + escapeHtml(classes) + '"';
