@@ -4096,7 +4096,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-99';
+  const BUILD_ID = 'logic-sync-100';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -4241,7 +4241,7 @@ button, a, select { font: inherit; }
   const BACKEND_FETCH_TIMEOUT_MS = 12000;
   const IS_MOBILE_RUNTIME = detectMobileRuntime();
   const PACK_OPEN_REFRESH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 3600 : 7600;
-  const PERSON_INSERT_FETCH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 1800 : 4200;
+  const PERSON_INSERT_FETCH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 4600 : 7200;
   const PERSON_BIO_FETCH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 1000 : 2600;
   const MOBILE_POOL_LIMIT = 860;
   const MOBILE_PACK_REFRESH_SAMPLE = 620;
@@ -5161,7 +5161,10 @@ button, a, select { font: inherit; }
   }
 
   function filmSlotsForCurrentTheme(themeKey) {
-    const shouldTryPersonInsert = dataSourceLabel.indexOf('TMDB') !== -1;
+    const pool = getPackPool(String(themeKey || currentPackTheme || 'all').toLowerCase());
+    const shouldTryPersonInsert = (Array.isArray(pool) ? pool : []).some(function (movie) {
+      return movie && movie.cardType !== 'person' && Number(movie.tmdbId) > 0;
+    });
     const resolvedTheme = String(themeKey || currentPackTheme || '').toLowerCase();
     const actorPackPersonSlots = resolvedTheme === 'actors' && shouldTryPersonInsert ? 4 : 0;
     const personSlots = actorPackPersonSlots || (shouldTryPersonInsert ? 1 : 0);
@@ -5531,12 +5534,13 @@ button, a, select { font: inherit; }
     return data;
   }
 
-  async function fetchMoviePeople(movieIds) {
+  async function fetchMoviePeople(movieIds, timeoutMs) {
     const ids = (Array.isArray(movieIds) ? movieIds : []).map(function (id) {
       return Number(id) || 0;
     }).filter(Boolean);
     if (!ids.length) return [];
-    const data = await fetchBackendJson('/api/movie-people?movieIds=' + ids.join(','), { timeoutMs: PERSON_INSERT_FETCH_TIMEOUT_MS });
+    const resolvedTimeout = Math.max(1200, Number(timeoutMs) || PERSON_INSERT_FETCH_TIMEOUT_MS);
+    const data = await fetchBackendJson('/api/movie-people?movieIds=' + ids.join(','), { timeoutMs: resolvedTimeout });
     return data && Array.isArray(data.people) ? data.people : [];
   }
 
@@ -6788,7 +6792,19 @@ button, a, select { font: inherit; }
       sourceById[String(movie.tmdbId)] = movie;
     });
 
-    let candidates = await fetchMoviePeople(validMovies.map(function (movie) { return movie.tmdbId; }));
+    const sourceMovieIds = validMovies.map(function (movie) { return movie.tmdbId; });
+    const primaryTimeout = themeKey === 'actors'
+      ? Math.round(PERSON_INSERT_FETCH_TIMEOUT_MS * 1.25)
+      : PERSON_INSERT_FETCH_TIMEOUT_MS;
+    let candidates = await fetchMoviePeople(sourceMovieIds, primaryTimeout).catch(function () { return []; });
+    if (!candidates.length) {
+      const retryIds = sourceMovieIds.slice(0, Math.min(6, sourceMovieIds.length));
+      const retryTimeout = Math.max(primaryTimeout, IS_MOBILE_RUNTIME ? 5200 : 7600);
+      candidates = await fetchMoviePeople(retryIds, retryTimeout).catch(function () { return []; });
+    }
+    if (!Array.isArray(candidates) || !candidates.length) {
+      return null;
+    }
     candidates = (Array.isArray(candidates) ? candidates : []).map(function (candidate) {
       const sourceMovie = sourceById[String(candidate && candidate.sourceMovieId)] || null;
       return Object.assign({}, candidate, {
@@ -7986,7 +8002,9 @@ button, a, select { font: inherit; }
     const ownedTitles = buildOwnedFilmTitleSet();
     const isRewardPack = forceRewardBehavior;
     const isBoostedRewardPack = isRewardPack;
-    const shouldTryPersonInsert = dataSourceLabel.indexOf('TMDB') !== -1;
+    const shouldTryPersonInsert = sourcePool.some(function (movie) {
+      return movie && movie.cardType !== 'person' && Number(movie.tmdbId) > 0;
+    });
     const actorPackPersonSlots = packThemeKey === 'actors' && shouldTryPersonInsert ? 4 : 0;
     const personSlots = actorPackPersonSlots || (shouldTryPersonInsert ? 1 : 0);
     const filmSlots = Math.max(0, PACK_SIZE - personSlots);
@@ -8041,6 +8059,19 @@ button, a, select { font: inherit; }
     }
 
     return chain
+      .then(function () {
+        if (packThemeKey === 'actors' && !personInserts.length && shouldTryPersonInsert) {
+          return maybeBuildPersonInsert(drafted, packThemeKey, isBoostedRewardPack, existingPersonKeys, personInserts)
+            .catch(function () { return null; })
+            .then(function (personInsert) {
+              if (personInsert) {
+                existingPersonKeys.add(personKey(personInsert.title));
+                personInserts.push(personInsert);
+              }
+            });
+        }
+        return null;
+      })
       .then(function () {
         personInserts.forEach(function (personInsert) {
           drafted.push(personInsert);
