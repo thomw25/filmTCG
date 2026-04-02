@@ -813,34 +813,34 @@ button, a, select { font: inherit; }
   animation: packArtFloat 6.6s ease-in-out infinite;
   color: var(--pack-ink, #f8fafc);
   transition: transform 360ms cubic-bezier(.22,1,.36,1), translate 320ms cubic-bezier(.22,1,.36,1), filter 360ms cubic-bezier(.22,1,.36,1), opacity 220ms ease;
-  --pack-foil-duration: 13.6s;
-  --pack-foil-mid-opacity: 0.11;
-  --pack-foil-peak-opacity: 0.28;
-  --pack-foil-tail-opacity: 0.16;
-  --pack-wipe-duration: 14.4s;
-  --pack-wipe-opacity: 0.085;
-  --pack-wipe-blur: 0.5px;
+  --pack-foil-duration: 11.8s;
+  --pack-foil-mid-opacity: 0.15;
+  --pack-foil-peak-opacity: 0.36;
+  --pack-foil-tail-opacity: 0.2;
+  --pack-wipe-duration: 11.4s;
+  --pack-wipe-opacity: 0.12;
+  --pack-wipe-blur: 0.62px;
   --pack-wipe-tilt: 13deg;
 }
 
 .pack.is-featured {
-  --pack-foil-duration: 9.2s;
-  --pack-foil-mid-opacity: 0.2;
-  --pack-foil-peak-opacity: 0.46;
-  --pack-foil-tail-opacity: 0.24;
-  --pack-wipe-duration: 8.8s;
-  --pack-wipe-opacity: 0.16;
-  --pack-wipe-blur: 0.44px;
+  --pack-foil-duration: 7.6s;
+  --pack-foil-mid-opacity: 0.28;
+  --pack-foil-peak-opacity: 0.56;
+  --pack-foil-tail-opacity: 0.32;
+  --pack-wipe-duration: 7.2s;
+  --pack-wipe-opacity: 0.22;
+  --pack-wipe-blur: 0.5px;
 }
 
 .pack.is-gold {
-  --pack-foil-duration: 7.4s;
-  --pack-foil-mid-opacity: 0.26;
-  --pack-foil-peak-opacity: 0.58;
-  --pack-foil-tail-opacity: 0.3;
-  --pack-wipe-duration: 6.9s;
-  --pack-wipe-opacity: 0.22;
-  --pack-wipe-blur: 0.38px;
+  --pack-foil-duration: 6.2s;
+  --pack-foil-mid-opacity: 0.34;
+  --pack-foil-peak-opacity: 0.68;
+  --pack-foil-tail-opacity: 0.38;
+  --pack-wipe-duration: 5.8s;
+  --pack-wipe-opacity: 0.29;
+  --pack-wipe-blur: 0.46px;
 }
 
 .pack.has-loaded-shape,
@@ -871,7 +871,7 @@ button, a, select { font: inherit; }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-glint,
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-glint {
-  opacity: 0.12;
+  filter: brightness(1.1) saturate(1.06);
 }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-glow,
@@ -1155,23 +1155,23 @@ button, a, select { font: inherit; }
 }
 
 .pack-glint {
-  top: -16%;
-  left: -20%;
-  width: 48%;
-  height: 162%;
+  top: -18%;
+  left: -34%;
+  width: 68%;
+  height: 170%;
   background:
     linear-gradient(
       90deg,
       rgba(255,255,255,0) 0%,
-      rgba(255,255,255,.03) 24%,
-      rgba(255,255,255,.12) 40%,
+      rgba(255,255,255,.04) 20%,
+      rgba(255,255,255,.19) 39%,
       var(--pack-glint-tint, rgba(255,255,255,.28)) 50%,
-      rgba(255,255,255,.11) 60%,
-      rgba(255,255,255,.03) 76%,
+      rgba(255,255,255,.19) 61%,
+      rgba(255,255,255,.04) 80%,
       rgba(255,255,255,0) 100%
     );
   opacity: 0;
-  transform: translate3d(-190%, 0, 0) rotate(var(--pack-wipe-tilt, 13deg));
+  transform: translate3d(-230%, 0, 0) rotate(var(--pack-wipe-tilt, 13deg));
   transform-origin: center center;
   filter: blur(var(--pack-wipe-blur, .5px));
   mix-blend-mode: screen;
@@ -3120,26 +3120,26 @@ button, a, select { font: inherit; }
 }
 
 @keyframes packWipeSweep {
-  0%, 16% {
+  0%, 12% {
     opacity: 0;
-    transform: translate3d(-190%, 0, 0) rotate(var(--pack-wipe-tilt, 13deg));
+    transform: translate3d(-230%, 0, 0) rotate(var(--pack-wipe-tilt, 13deg));
   }
-  28% {
-    opacity: calc(var(--pack-wipe-opacity, 0.085) * 0.55);
+  32% {
+    opacity: calc(var(--pack-wipe-opacity, 0.12) * 0.68);
   }
-  48% {
-    opacity: var(--pack-wipe-opacity, 0.085);
+  52% {
+    opacity: var(--pack-wipe-opacity, 0.12);
   }
-  68% {
-    opacity: calc(var(--pack-wipe-opacity, 0.085) * 0.45);
+  70% {
+    opacity: calc(var(--pack-wipe-opacity, 0.12) * 0.78);
   }
-  80% {
+  84% {
     opacity: 0;
-    transform: translate3d(220%, 0, 0) rotate(var(--pack-wipe-tilt, 13deg));
+    transform: translate3d(235%, 0, 0) rotate(var(--pack-wipe-tilt, 13deg));
   }
-  80.01%, 100% {
+  84.01%, 100% {
     opacity: 0;
-    transform: translate3d(-190%, 0, 0) rotate(var(--pack-wipe-tilt, 13deg));
+    transform: translate3d(-230%, 0, 0) rotate(var(--pack-wipe-tilt, 13deg));
   }
 }
 
