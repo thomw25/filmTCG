@@ -975,6 +975,10 @@ button, a, select { font: inherit; }
   visibility: hidden;
 }
 
+.pack.has-title-art.collapse-title-slot .pack-title {
+  display: none;
+}
+
 .pack.has-loaded-shape .pack-foil,
 .pack.has-loaded-title .pack-foil {
   display: block;
@@ -1342,6 +1346,7 @@ button, a, select { font: inherit; }
   justify-self: var(--pack-tier-justify-self, center);
   width: fit-content;
   margin-top: var(--pack-tier-gap, 14px);
+  transform: translate(var(--pack-tier-offset-x, 0px), var(--pack-tier-offset-y, 0px));
   padding: var(--pack-tier-pad-y, 7px) var(--pack-tier-pad-x, 12px);
   border-radius: 999px;
   font-size: var(--pack-tier-font-size, 0.68rem);
@@ -1359,7 +1364,7 @@ button, a, select { font: inherit; }
   z-index: 1;
   justify-self: var(--pack-count-justify-self, center);
   margin-top: var(--pack-count-gap, 9px);
-  transform: translateX(var(--pack-count-offset-x, 0px));
+  transform: translate(var(--pack-count-offset-x, 0px), var(--pack-count-offset-y, 0px));
   font-size: var(--pack-count-size, 0.62rem);
   font-weight: 700;
   letter-spacing: var(--pack-count-letter-spacing, 0.12em);
@@ -3743,7 +3748,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-31</div>
+  <div class="sub">Build: packs-people-tier-32</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3961,6 +3966,9 @@ button, a, select { font: inherit; }
       blurb: 'you’re drawn to this, I know it',
       titleFont: '"Mouse Memoirs", sans-serif',
       titleSpacing: '0.025em',
+      tierOffsetY: '-6px',
+      countGap: '52px',
+      countOffsetY: '6px',
       colors: ['#373EE6', '#4F78EA', '#67B8EA'],
       tier: 'Genre Pack',
       ink: '#eff6ff',
@@ -3999,6 +4007,8 @@ button, a, select { font: inherit; }
       blurb: 'light a cigarette NOW',
       titleFont: '"Special Elite", monospace',
       titleSpacing: '0.03em',
+      hideTier: true,
+      hideCount: true,
       colors: ['#272C46', '#4B638C', '#7CAAD3'],
       tier: 'Genre Pack',
       ink: '#f8fafc',
@@ -4113,7 +4123,7 @@ button, a, select { font: inherit; }
       titleClip: 'inset(0)',
       surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)'
     },
-    animation: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
+    animation: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.47, titleOffsetY: '18px', surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
     eighties: {
       scale: 1.03,
       staticShapeScale: 1.48,
@@ -4128,7 +4138,7 @@ button, a, select { font: inherit; }
       titleClip: 'inset(0)',
       surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)'
     },
-    noir: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.48, surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
+    noir: { scale: 1.03, staticShapeScale: 1.48, titleScale: 1.45, titleOffsetY: '-7px', surfaceClip: 'polygon(7.6% 0.8%, 92.4% 0.8%, 91.7% 6.6%, 91.7% 94.2%, 92.7% 100%, 7.3% 100%, 8.3% 94.2%, 8.3% 6.6%)' },
     romcom: {
       scale: 1.03,
       staticShapeScale: 1.48,
@@ -4216,6 +4226,12 @@ button, a, select { font: inherit; }
     }
   };
   const PACK_ART_FILE_ASSETS = {
+    animation: {
+      title: './design/pack-v2/title/pack_animation_title.svg.svg?v=anim-2026-04-02-1'
+    },
+    noir: {
+      title: './design/pack-v2/title/pack_noir_title.svg.svg?v=noir-2026-04-02-1'
+    },
     docs: {
       title: './design/pack-v2/title/pack_doc_title.svg.svg?v=docs-2026-04-02-1'
     }
@@ -4268,7 +4284,7 @@ button, a, select { font: inherit; }
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-113';
+  const BUILD_ID = 'logic-sync-114';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6359,6 +6375,8 @@ button, a, select { font: inherit; }
 
   function buildShopFallbackPreview(packDef) {
     const theme = PACK_THEMES[packDef && packDef.theme] || PACK_THEMES.all;
+    const hideTier = Boolean(theme.hideTier);
+    const hideCount = Boolean(theme.hideCount);
     const style = '--pack-a:' + escapeHtml(theme.colors[0])
       + '; --pack-b:' + escapeHtml(theme.colors[1])
       + '; --pack-c:' + escapeHtml(theme.colors[2])
@@ -6378,10 +6396,13 @@ button, a, select { font: inherit; }
       + '; --pack-tier-pad-y:' + escapeHtml(theme.tierPadY || '7px')
       + '; --pack-tier-pad-x:' + escapeHtml(theme.tierPadX || '12px')
       + '; --pack-tier-justify-self:' + escapeHtml(theme.tierJustifySelf || 'center')
+      + '; --pack-tier-offset-x:' + escapeHtml(theme.tierOffsetX || '0px')
+      + '; --pack-tier-offset-y:' + escapeHtml(theme.tierOffsetY || '0px')
       + '; --pack-tier-font-size:' + escapeHtml(theme.tierFontSize || '0.68rem')
       + '; --pack-count-gap:' + escapeHtml(theme.countGap || '9px')
       + '; --pack-count-justify-self:' + escapeHtml(theme.countJustifySelf || 'center')
       + '; --pack-count-offset-x:' + escapeHtml(theme.countOffsetX || '0px')
+      + '; --pack-count-offset-y:' + escapeHtml(theme.countOffsetY || '0px')
       + '; --pack-count-size:' + escapeHtml(theme.countSize || '0.62rem')
       + '; --pack-count-opacity:' + escapeHtml(theme.countOpacity || '0.56')
       + '; --pack-cta-ink:' + escapeHtml(theme.ctaInk || 'rgba(255,255,255,.84)')
@@ -6391,8 +6412,8 @@ button, a, select { font: inherit; }
       + ' style="' + style + ';">'
       + '<div class="pack-copy">'
       + '<div class="pack-title">' + escapeHtml(theme.title) + '</div>'
-      + '<div class="pack-tier">' + escapeHtml(theme.tier) + '</div>'
-      + '<div class="pack-card-count">' + PACK_SIZE + ' cards</div>'
+      + (hideTier ? '' : '<div class="pack-tier">' + escapeHtml(theme.tier) + '</div>')
+      + (hideCount ? '' : '<div class="pack-card-count">' + PACK_SIZE + ' cards</div>')
       + '</div>'
       + '</div>';
   }
@@ -7330,6 +7351,9 @@ button, a, select { font: inherit; }
     const theme = PACK_THEMES[themeKey] || PACK_THEMES.all;
     const config = options || {};
     const artConfig = PACK_ART_ASSETS[themeKey] || null;
+    const hideTier = Boolean(theme.hideTier || config.hideTier);
+    const hideCount = Boolean(theme.hideCount || config.hideCount);
+    const collapseTitleSlot = Boolean(theme.collapseTitleSlot || config.collapseTitleSlot);
     const compositeAsset = normalizeAssetSrc(resolvePackCompositeAsset(themeKey));
     const customShapeAsset = normalizeAssetSrc(resolvePackShapeAsset(themeKey));
     const fallbackShapeAsset = normalizeAssetSrc(buildPackShapeData(themeKey));
@@ -7364,11 +7388,14 @@ button, a, select { font: inherit; }
       + '; --pack-tier-pad-y:' + (theme.tierPadY || '7px')
       + '; --pack-tier-pad-x:' + (theme.tierPadX || '12px')
       + '; --pack-tier-justify-self:' + (theme.tierJustifySelf || 'center')
+      + '; --pack-tier-offset-x:' + (theme.tierOffsetX || '0px')
+      + '; --pack-tier-offset-y:' + (theme.tierOffsetY || '0px')
       + '; --pack-tier-font-size:' + (theme.tierFontSize || '0.68rem')
       + '; --pack-tier-letter-spacing:' + (theme.tierLetterSpacing || '0.12em')
       + '; --pack-count-gap:' + (theme.countGap || '9px')
       + '; --pack-count-justify-self:' + (theme.countJustifySelf || 'center')
       + '; --pack-count-offset-x:' + (theme.countOffsetX || '0px')
+      + '; --pack-count-offset-y:' + (theme.countOffsetY || '0px')
       + '; --pack-count-size:' + (theme.countSize || '0.62rem')
       + '; --pack-count-letter-spacing:' + (theme.countLetterSpacing || '0.12em')
       + '; --pack-count-opacity:' + (theme.countOpacity || '0.56')
@@ -7397,15 +7424,23 @@ button, a, select { font: inherit; }
       + (config.titleArtScale ? '; --pack-title-art-scale:' + String(config.titleArtScale) : '')
       + (config.copyOffset ? '; --pack-copy-offset:' + String(config.copyOffset) : '')
       + (config.tierGap ? '; --pack-tier-gap:' + String(config.tierGap) : '')
+      + (config.tierOffsetX ? '; --pack-tier-offset-x:' + String(config.tierOffsetX) : '')
+      + (config.tierOffsetY ? '; --pack-tier-offset-y:' + String(config.tierOffsetY) : '')
       + (config.countGap ? '; --pack-count-gap:' + String(config.countGap) : '')
       + (config.countOffsetX ? '; --pack-count-offset-x:' + String(config.countOffsetX) : '')
+      + (config.countOffsetY ? '; --pack-count-offset-y:' + String(config.countOffsetY) : '')
       + (config.ctaBottom ? '; --pack-cta-bottom:' + String(config.ctaBottom) : '');
     const packTextureClass = themeKey === 'gold'
       ? ' is-gold'
       : (themeKey !== 'all' ? ' is-featured' : '');
     const customArtClass = hasCustomArt ? ' has-custom-art' : '';
     const inlineArtClass = (fallbackShapeAsset ? ' has-loaded-shape' : '') + (hasInlineTitle ? ' has-title-art' : '');
-    const classes = 'pack' + packTextureClass + customArtClass + inlineArtClass + (config.extraClasses ? ' ' + config.extraClasses : '');
+    const classes = 'pack'
+      + packTextureClass
+      + customArtClass
+      + inlineArtClass
+      + (collapseTitleSlot ? ' collapse-title-slot' : '')
+      + (config.extraClasses ? ' ' + config.extraClasses : '');
     let attrs = ' class="' + escapeHtml(classes) + '"';
     if (config.id) attrs += ' id="' + escapeHtml(config.id) + '"';
     if (config.disabled) attrs += ' aria-disabled="true"';
@@ -7432,8 +7467,8 @@ button, a, select { font: inherit; }
       + '<div class="pack-twinkle"></div>'
       + '<div class="pack-copy">'
         + '<div class="pack-title">' + escapeHtml(theme.title) + '</div>'
-        + '<div class="pack-tier">' + escapeHtml(theme.tier) + '</div>'
-        + '<div class="pack-card-count">' + PACK_SIZE + ' cards</div>'
+        + (hideTier ? '' : '<div class="pack-tier">' + escapeHtml(theme.tier) + '</div>')
+        + (hideCount ? '' : '<div class="pack-card-count">' + PACK_SIZE + ' cards</div>')
       + '</div>'
       + '</div>';
   }
