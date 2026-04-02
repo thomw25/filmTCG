@@ -598,8 +598,8 @@ button, a, select { font: inherit; }
 .shop-pack-preview .pack:hover,
 .shop-reward-option:hover .pack,
 .shop-reward-option .pack:hover {
-  transform: translateY(-6px) scale(1.016);
-  filter: saturate(1.06) brightness(1.024);
+  transform: translateY(-2px) scale(1.006);
+  filter: saturate(1.03) brightness(1.012);
 }
 
 .shop-item:hover .shop-pack-preview .pack .pack-foil,
@@ -810,13 +810,14 @@ button, a, select { font: inherit; }
   isolation: isolate;
   transform-style: preserve-3d;
   translate: 0 0;
-  animation: packArtFloat 6.6s ease-in-out infinite;
+  animation: none;
   color: var(--pack-ink, #f8fafc);
   transition: transform 360ms cubic-bezier(.22,1,.36,1), translate 320ms cubic-bezier(.22,1,.36,1), filter 360ms cubic-bezier(.22,1,.36,1), opacity 220ms ease;
   --pack-foil-duration: 11.8s;
   --pack-foil-mid-opacity: 0.15;
   --pack-foil-peak-opacity: 0.36;
   --pack-foil-tail-opacity: 0.2;
+  --pack-foil-static-opacity: 0.18;
   --pack-wipe-duration: 11.4s;
   --pack-wipe-opacity: 0.12;
   --pack-wipe-blur: 0.62px;
@@ -828,6 +829,7 @@ button, a, select { font: inherit; }
   --pack-foil-mid-opacity: 0.28;
   --pack-foil-peak-opacity: 0.56;
   --pack-foil-tail-opacity: 0.32;
+  --pack-foil-static-opacity: 0.24;
   --pack-wipe-duration: 7.2s;
   --pack-wipe-opacity: 0.22;
   --pack-wipe-blur: 0.5px;
@@ -838,6 +840,7 @@ button, a, select { font: inherit; }
   --pack-foil-mid-opacity: 0.34;
   --pack-foil-peak-opacity: 0.68;
   --pack-foil-tail-opacity: 0.38;
+  --pack-foil-static-opacity: 0.3;
   --pack-wipe-duration: 5.8s;
   --pack-wipe-opacity: 0.29;
   --pack-wipe-blur: 0.46px;
@@ -859,8 +862,8 @@ button, a, select { font: inherit; }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover,
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible {
-  translate: 0 -1px;
-  filter: saturate(1.03) brightness(1.014);
+  translate: 0 0;
+  filter: saturate(1.015) brightness(1.006);
   outline: none;
 }
 
@@ -1361,7 +1364,8 @@ button, a, select { font: inherit; }
 
 .pack.has-loaded-shape:not(.opening):not(.is-shuffling) .pack-foil,
 .pack.has-loaded-title:not(.opening):not(.is-shuffling) .pack-foil {
-  animation: packFoilShift var(--pack-foil-duration, 13.6s) linear infinite, packFoilPresence var(--pack-foil-duration, 13.6s) ease-in-out infinite;
+  animation: none;
+  opacity: var(--pack-foil-static-opacity, 0.18);
 }
 
 .pack.has-loaded-shape:not(.is-loading):not(.opening):not(.is-shuffling) .pack-glint,
@@ -1487,7 +1491,7 @@ button, a, select { font: inherit; }
 }
 
 .reward-pack-option .pack.is-loading {
-  animation: packHover 1.45s ease-in-out infinite;
+  animation: none;
 }
 
 .reward-pack-option .pack::after {
@@ -1497,7 +1501,7 @@ button, a, select { font: inherit; }
 }
 
 .reward-pack-option:hover {
-  transform: translateY(-6px);
+  transform: translateY(-2px);
 }
 
 .reward-pack-option.is-selected {
@@ -1536,7 +1540,7 @@ button, a, select { font: inherit; }
 }
 
 .reward-pack-option.is-selected.is-committing .pack {
-  animation: packHover 0.95s ease-in-out infinite;
+  animation: none;
 }
 
 .reward-pack-caption {
@@ -3476,13 +3480,13 @@ button, a, select { font: inherit; }
     --reward-commit-y: 6px;
   }
   .reward-pack-option:hover.is-left {
-    transform: translateY(2px) scale(1.02);
+    transform: translateY(6px) scale(1.005);
   }
   .reward-pack-option:hover.is-right {
-    transform: translateY(-2px) scale(1.02);
+    transform: translateY(-1px) scale(1.005);
   }
   .reward-pack-option.is-selected {
-    transform: translateY(2px) scale(1.08);
+    transform: translateY(2px) scale(1.04);
     z-index: 4;
   }
   .reward-pack-option.is-selected.is-committing {
