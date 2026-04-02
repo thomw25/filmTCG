@@ -591,6 +591,17 @@ button, a, select { font: inherit; }
 
 .shop-pack-preview .pack.shop-actors-pack {
   --pack-title-art-y: -7px;
+  --pack-tier-gap: 12px;
+  --pack-count-gap: 8px;
+}
+
+.shop-pack-preview .pack.shop-docs-pack {
+  --pack-title-art-scale: 2.18;
+  --pack-title-art-x: 20px;
+  --pack-title-art-y: -20px;
+  --pack-copy-offset: 8px;
+  --pack-tier-gap: 18px;
+  --pack-count-gap: 12px;
 }
 
 .shop-item:hover .shop-pack-preview .pack,
@@ -6379,8 +6390,10 @@ button, a, select { font: inherit; }
     const canAfford = tickets >= Number(packDef.price);
     const isGoldPack = packDef && packDef.theme === 'gold';
     const previewOptions = packDef && packDef.theme === 'actors'
-      ? { extraClasses: 'shop-actors-pack', titleArtY: '-13px' }
-      : null;
+      ? { extraClasses: 'shop-actors-pack' }
+      : (packDef && packDef.theme === 'docs'
+        ? { extraClasses: 'shop-docs-pack' }
+        : null);
     let previewMarkup = '';
     try {
       previewMarkup = buildPackFaceMarkup(packDef.theme, previewOptions);
@@ -7355,7 +7368,9 @@ button, a, select { font: inherit; }
       + '; --pack-title-art-top:' + (artConfig && artConfig.titleArtTop ? artConfig.titleArtTop : '0')
       + '; --pack-title-art-clip:' + (artConfig && artConfig.titleClip ? artConfig.titleClip : (artConfig && artConfig.surfaceClip ? artConfig.surfaceClip : 'inset(0 round 17px)'))
       + '; --pack-surface-clip:' + (artConfig && artConfig.surfaceClip ? artConfig.surfaceClip : 'inset(0 round 17px)')
-      + (config.titleArtY ? '; --pack-title-art-y:' + String(config.titleArtY) : '');
+      + (config.titleArtY ? '; --pack-title-art-y:' + String(config.titleArtY) : '')
+      + (config.titleArtX ? '; --pack-title-art-x:' + String(config.titleArtX) : '')
+      + (config.titleArtScale ? '; --pack-title-art-scale:' + String(config.titleArtScale) : '');
     const packTextureClass = themeKey === 'gold'
       ? ' is-gold'
       : (themeKey !== 'all' ? ' is-featured' : '');
