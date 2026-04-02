@@ -3782,7 +3782,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-35</div>
+  <div class="sub">Build: packs-people-tier-36</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -4258,13 +4258,23 @@ button, a, select { font: inherit; }
   };
   const PACK_ART_FILE_ASSETS = {
     animation: {
-      title: './design/pack-v2/title/pack_animation_title.svg.svg?v=anim-2026-04-02-3'
+      titleCandidates: [
+        '/design/pack-v2/title/pack_animation_title.svg?v=anim-2026-04-02-4',
+        '/design/pack-v2/title/pack_animation_title.svg.svg?v=anim-2026-04-02-4',
+        './design/pack-v2/title/pack_animation_title.svg?v=anim-2026-04-02-4',
+        './design/pack-v2/title/pack_animation_title.svg.svg?v=anim-2026-04-02-4'
+      ]
     },
     noir: {
-      title: './design/pack-v2/title/pack_noir_title.svg.svg?v=noir-2026-04-02-3'
+      titleCandidates: [
+        '/design/pack-v2/title/pack_noir_title.svg?v=noir-2026-04-02-4',
+        '/design/pack-v2/title/pack_noir_title.svg.svg?v=noir-2026-04-02-4',
+        './design/pack-v2/title/pack_noir_title.svg?v=noir-2026-04-02-4',
+        './design/pack-v2/title/pack_noir_title.svg.svg?v=noir-2026-04-02-4'
+      ]
     },
     docs: {
-      title: './design/pack-v2/title/pack_doc_title.svg.svg?v=docs-2026-04-02-1'
+      title: '/design/pack-v2/title/pack_doc_title.svg.svg?v=docs-2026-04-02-2'
     }
   };
   const PACK_TITLE_STATIC = {
@@ -4315,7 +4325,7 @@ button, a, select { font: inherit; }
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-117';
+  const BUILD_ID = 'logic-sync-118';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -7380,11 +7390,23 @@ button, a, select { font: inherit; }
     return '';
   }
 
-  function resolvePackTitleAsset(themeKey) {
+  function resolvePackTitleAssets(themeKey) {
+    const resolved = [];
     const fileAssets = PACK_ART_FILE_ASSETS[themeKey];
-    if (fileAssets && fileAssets.title) return fileAssets.title;
-    if (PACK_TITLE_STATIC[themeKey]) return PACK_TITLE_STATIC[themeKey];
-    return '';
+    if (fileAssets) {
+      if (Array.isArray(fileAssets.titleCandidates)) {
+        fileAssets.titleCandidates.forEach(function (candidate) {
+          const value = candidate == null ? '' : String(candidate).trim();
+          if (value) resolved.push(value);
+        });
+      }
+      if (fileAssets.title) {
+        const single = String(fileAssets.title).trim();
+        if (single) resolved.push(single);
+      }
+    }
+    if (PACK_TITLE_STATIC[themeKey]) resolved.push(PACK_TITLE_STATIC[themeKey]);
+    return resolved;
   }
 
   function buildPackFaceMarkup(themeKey, options) {
@@ -7397,7 +7419,12 @@ button, a, select { font: inherit; }
     const compositeAsset = normalizeAssetSrc(resolvePackCompositeAsset(themeKey));
     const customShapeAsset = normalizeAssetSrc(resolvePackShapeAsset(themeKey));
     const fallbackShapeAsset = normalizeAssetSrc(buildPackShapeData(themeKey));
-    const titleAsset = normalizeAssetSrc(resolvePackTitleAsset(themeKey));
+    const titleAssets = resolvePackTitleAssets(themeKey).map(normalizeAssetSrc).filter(Boolean);
+    const titleAsset = titleAssets[0] || '';
+    const titleFallbackAssets = titleAssets.slice(1);
+    const titleFallbackAttr = titleFallbackAssets.length
+      ? ' data-title-fallbacks="' + escapeHtml(titleFallbackAssets.join('||')) + '"'
+      : '';
     const hasCustomArt = Boolean(compositeAsset || customShapeAsset);
     const hasInlineShape = /^data:/i.test(customShapeAsset);
     const hasInlineTitle = /^data:/i.test(titleAsset);
@@ -7495,7 +7522,7 @@ button, a, select { font: inherit; }
           ? '<img class="pack-skin-art" src="' + escapeHtml(customShapeAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-loaded-shape\');}" onerror="var p=this.closest(\'.pack\');if(p){p.classList.remove(\'has-loaded-shape\');}this.remove();"' + cardImageAttrs('high') + '>'
           : '')
         + (titleAsset
-          ? '<div class="pack-title-art-wrap"><img class="pack-title-art" src="' + escapeHtml(titleAsset) + '" alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-title-art\');}" onerror="var p=this.closest(\'.pack\');if(p){p.classList.remove(\'has-title-art\');}var w=this.parentNode;if(w){w.remove();}else{this.remove();}"' + cardImageAttrs('high') + '></div>'
+          ? '<div class="pack-title-art-wrap"><img class="pack-title-art" src="' + escapeHtml(titleAsset) + '"' + titleFallbackAttr + ' alt="" aria-hidden="true" onload="var p=this.closest(\'.pack\');if(p){p.classList.add(\'has-title-art\');}" onerror="var p=this.closest(\'.pack\');var f=(this.getAttribute(\'data-title-fallbacks\')||\'\').split(\'||\').filter(Boolean);if(f.length){var n=f.shift();this.setAttribute(\'data-title-fallbacks\',f.join(\'||\'));this.src=n;return;}if(p){p.classList.remove(\'has-title-art\');}var w=this.parentNode;if(w){w.remove();}else{this.remove();}"' + cardImageAttrs('high') + '></div>'
           : '')
       + '</div>'
       + '<div class="pack-foil"></div>'
