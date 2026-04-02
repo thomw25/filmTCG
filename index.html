@@ -4096,7 +4096,7 @@ button, a, select { font: inherit; }
     'joanna hogg': true
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
-  const BUILD_ID = 'logic-sync-100';
+  const BUILD_ID = 'logic-sync-101';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -5135,14 +5135,25 @@ button, a, select { font: inherit; }
     return normalizedTitle ? ('title:' + normalizedTitle + ':' + String(year || '')) : '';
   }
 
-  function buildRecentPullSet() {
+  function buildRecentPullSet(limitOverride) {
+    const resolvedLimit = Math.max(0, Math.floor(Number(limitOverride)));
+    const hardLimit = Number.isFinite(resolvedLimit) && resolvedLimit > 0
+      ? resolvedLimit
+      : RECENT_PULL_HARD_EXCLUDE;
     const storedKeys = Array.isArray(progress.recentPullKeys) ? progress.recentPullKeys : [];
     if (storedKeys.length) {
-      return new Set(storedKeys.slice(0, RECENT_PULL_HARD_EXCLUDE));
+      return new Set(storedKeys.slice(0, hardLimit));
     }
-    return new Set((progress.recentPullTitles || []).slice(0, RECENT_PULL_HARD_EXCLUDE).map(function (title) {
+    return new Set((progress.recentPullTitles || []).slice(0, hardLimit).map(function (title) {
       return 'title:' + normalizeFilmIdentityText(title) + ':';
     }).filter(Boolean));
+  }
+
+  function recentExclusionWindowForPool(poolSize) {
+    const size = Math.max(0, Number(poolSize) || 0);
+    if (!size) return Math.min(RECENT_PULL_HARD_EXCLUDE, 42);
+    const scaled = Math.round(size * 0.05);
+    return Math.max(24, Math.min(RECENT_PULL_HARD_EXCLUDE, scaled));
   }
 
   function buildRecentPersonSet() {
@@ -5172,7 +5183,8 @@ button, a, select { font: inherit; }
   }
 
   function countFreshFilmCandidates(pool) {
-    const avoided = buildAvoidedTitleSet();
+    const poolSize = Array.isArray(pool) ? pool.length : 0;
+    const avoided = buildAvoidedTitleSet(poolSize);
     const owned = buildOwnedFilmTitleSet();
     const seen = new Set();
     return (Array.isArray(pool) ? pool : []).reduce(function (count, movie) {
@@ -7765,9 +7777,12 @@ button, a, select { font: inherit; }
     });
   }
 
-  function buildAvoidedTitleSet() {
-    const avoided = buildRecentPullSet();
-    activeReelSeenTitles.forEach(function (key) {
+  function buildAvoidedTitleSet(poolSize) {
+    const recentWindow = recentExclusionWindowForPool(poolSize);
+    const avoided = buildRecentPullSet(recentWindow);
+    const activeWindow = Math.max(12, Math.min(48, Math.round(recentWindow * 0.75)));
+    const activeKeys = Array.from(activeReelSeenTitles || []);
+    activeKeys.slice(-activeWindow).forEach(function (key) {
       avoided.add(key);
     });
     return avoided;
@@ -7826,7 +7841,7 @@ button, a, select { font: inherit; }
 
   function chooseMovieForPack(pool, excludedTitles, guaranteedHighRarity, ownedTitles, options) {
     const buckets = {};
-    const avoidedTitles = buildAvoidedTitleSet();
+    const avoidedTitles = buildAvoidedTitleSet(Array.isArray(pool) ? pool.length : 0);
     const preferredOwnedTitles = ownedTitles || buildOwnedFilmTitleSet();
     const config = options || {};
     const draftedCards = Array.isArray(config.draftedCards) ? config.draftedCards : [];
@@ -7869,10 +7884,10 @@ button, a, select { font: inherit; }
       buckets[movie.rarity].push(movie);
     });
 
-    function chooseAcrossRarities(targetRarity, mode) {
-      const orderedRarities = orderedRarityCandidates(targetRarity, buckets, forceLowOnly, avoidRarity);
-      for (let i = 0; i < orderedRarities.length; i += 1) {
-        const rarity = orderedRarities[i];
+    function chooseAcrossRarities(rarities, mode) {
+      const ordered = Array.isArray(rarities) ? rarities.filter(Boolean) : [];
+      for (let i = 0; i < ordered.length; i += 1) {
+        const rarity = ordered[i];
         const candidates = filterMovieCandidatesByMode(buckets[rarity] || [], excludedTitles, avoidedTitles, preferredOwnedTitles, mode);
         if (candidates.length) {
           return candidates[Math.floor(Math.random() * candidates.length)];
@@ -7936,9 +7951,17 @@ button, a, select { font: inherit; }
     const targetRarity = oddsSource.length ? weightedChoice(oddsSource).rarity : pickedRarity;
     let pickedMovie = null;
     const selectionModes = ['fresh', 'notRecent', 'notOwned', 'any'];
+    const orderedRarities = orderedRarityCandidates(targetRarity, buckets, forceLowOnly, avoidRarity);
 
     for (let modeIndex = 0; modeIndex < selectionModes.length && !pickedMovie; modeIndex += 1) {
-      pickedMovie = chooseAcrossRarities(targetRarity, selectionModes[modeIndex]);
+      pickedMovie = chooseAcrossRarities([targetRarity], selectionModes[modeIndex]);
+    }
+
+    if (!pickedMovie) {
+      const fallbackRarities = orderedRarities.filter(function (rarity) { return rarity !== targetRarity; });
+      for (let modeIndex = 0; modeIndex < selectionModes.length && !pickedMovie; modeIndex += 1) {
+        pickedMovie = chooseAcrossRarities(fallbackRarities, selectionModes[modeIndex]);
+      }
     }
 
     if (!pickedMovie) {
