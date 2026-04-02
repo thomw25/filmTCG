@@ -596,12 +596,12 @@ button, a, select { font: inherit; }
 }
 
 .shop-pack-preview .pack.shop-docs-pack {
-  --pack-title-art-scale: 2.18;
-  --pack-title-art-x: 20px;
-  --pack-title-art-y: -20px;
-  --pack-copy-offset: 8px;
-  --pack-tier-gap: 18px;
-  --pack-count-gap: 12px;
+  --pack-title-art-scale: 2.46;
+  --pack-title-art-x: 30px;
+  --pack-title-art-y: -33px;
+  --pack-copy-offset: 14px;
+  --pack-tier-gap: 22px;
+  --pack-count-gap: 15px;
 }
 
 .shop-item:hover .shop-pack-preview .pack,
@@ -3734,7 +3734,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-    <div class="sub">Build: packs-people-tier-20</div>
+    <div class="sub">Build: packs-people-tier-23</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -4031,14 +4031,14 @@ button, a, select { font: inherit; }
       titleSize: '3.28rem',
       titleLineHeight: '.79',
       copyWidth: 'min(92%, 246px)',
-      copyOffset: '4px',
+      copyOffset: '12px',
       copyAlign: 'start',
       copyTextAlign: 'left',
       tierJustifySelf: 'start',
       countJustifySelf: 'start',
       countOffsetX: '12px',
-      tierGap: '16px',
-      countGap: '11px',
+      tierGap: '21px',
+      countGap: '14px',
       colors: ['#00A796', '#18D4A8', '#00FEA4'],
       tier: 'Genre Pack',
       ink: '#ecfeff',
@@ -4137,9 +4137,9 @@ button, a, select { font: inherit; }
     docs: {
       scale: 1.03,
       staticShapeScale: 1.48,
-      titleScale: 1.84,
-      titleOffsetX: '15px',
-      titleOffsetY: '-15px',
+      titleScale: 2.34,
+      titleOffsetX: '26px',
+      titleOffsetY: '-29px',
       titleWrapTop: '0',
       titleWrapHeight: '100%',
       titleArtWidth: '100%',
@@ -4206,9 +4206,7 @@ button, a, select { font: inherit; }
       `)
     }
   };
-  const PACK_ART_FILE_ASSETS = {
-    docs: { title: '/design/pack-v2/title/pack_doc_title.svg.svg?v=docs-2026-04-02-1' }
-  };
+  const PACK_ART_FILE_ASSETS = {};
   const PACK_TITLE_STATIC = {
     horror: svgToDataUri(`
 <svg width="356" height="518" viewBox="0 0 356 518" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4257,7 +4255,7 @@ button, a, select { font: inherit; }
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-102';
+  const BUILD_ID = 'logic-sync-105';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6398,12 +6396,12 @@ button, a, select { font: inherit; }
       : (packDef && packDef.theme === 'docs'
         ? {
           extraClasses: 'shop-docs-pack',
-          titleArtScale: '2.26',
-          titleArtX: '22px',
-          titleArtY: '-23px',
-          copyOffset: '10px',
-          tierGap: '19px',
-          countGap: '13px'
+          titleArtScale: '2.46',
+          titleArtX: '30px',
+          titleArtY: '-33px',
+          copyOffset: '14px',
+          tierGap: '22px',
+          countGap: '15px'
         }
         : null);
     let previewMarkup = '';
@@ -7481,12 +7479,12 @@ button, a, select { font: inherit; }
     const bookmarkMarkup = includeBookmark ? buildBookmarkButtonMarkup(movie) : '';
 
     if (movie.cardType === 'person') {
-      const personClass = movie.personType === 'actor' ? 'person-actor' : (movie.personType === 'director' ? 'person-director' : 'person-crew');
+      const roleMeta = roleLabelForDisplay(movie) || 'Film Figure';
       const chips = buildCardChips(movie);
-      return '<div class="card person-card ' + personClass + ' ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
+      return '<div class="card ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
         + '<div class="card-frame"></div>'
-        + '<div class="card-header"><div class="card-title-meta person-title-meta"><div class="card-title person-card-title">' + escapeHtml(movie.title) + '</div><div class="person-role-badge">' + escapeHtml(roleLabelForDisplay(movie)) + '</div></div><div class="card-side-meta"><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div></div></div>'
-        + '<div class="card-img-wrap person-portrait-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait"' + cardImageAttrs('low') + ' data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
+        + '<div class="card-header"><div class="card-title-meta"><div class="card-title">' + escapeHtml(movie.title) + '</div></div><div class="card-side-meta"><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div><div class="card-year">' + escapeHtml(roleMeta) + '</div></div></div>'
+        + '<div class="card-img-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait"' + cardImageAttrs('low') + ' data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(roleMeta) + '"></div>'
         + '<div class="card-body">' + (chips.length ? ('<div class="chips">' + chips.join('') + '</div>') : '') + '<div class="desc">' + escapeHtml(movie.desc) + '</div></div>'
         + '</div>';
     }
