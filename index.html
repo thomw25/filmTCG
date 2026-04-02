@@ -1339,6 +1339,7 @@ button, a, select { font: inherit; }
   z-index: 1;
   justify-self: var(--pack-count-justify-self, center);
   margin-top: var(--pack-count-gap, 9px);
+  transform: translateX(var(--pack-count-offset-x, 0px));
   font-size: var(--pack-count-size, 0.62rem);
   font-weight: 700;
   letter-spacing: var(--pack-count-letter-spacing, 0.12em);
@@ -2106,6 +2107,18 @@ button, a, select { font: inherit; }
   color: rgba(255,255,255,.88);
   background: rgba(8,10,16,.42);
   border: 1px solid rgba(255,255,255,.14);
+}
+
+.person-title-meta {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-height: 0;
+}
+
+.person-card-title {
+  -webkit-line-clamp: 1;
+  max-height: 1.26em;
 }
 
 .person-portrait-wrap {
@@ -4012,6 +4025,7 @@ button, a, select { font: inherit; }
       copyTextAlign: 'left',
       tierJustifySelf: 'start',
       countJustifySelf: 'start',
+      countOffsetX: '12px',
       tierGap: '14px',
       countGap: '10px',
       colors: ['#00A796', '#18D4A8', '#00FEA4'],
@@ -4112,9 +4126,9 @@ button, a, select { font: inherit; }
     docs: {
       scale: 1.03,
       staticShapeScale: 1.48,
-      titleScale: 1.46,
-      titleOffsetX: '-4px',
-      titleOffsetY: '-9px',
+      titleScale: 1.62,
+      titleOffsetX: '12px',
+      titleOffsetY: '-12px',
       titleWrapTop: '0',
       titleWrapHeight: '100%',
       titleArtWidth: '100%',
@@ -4755,7 +4769,10 @@ button, a, select { font: inherit; }
     const id = type === 'person'
       ? (card.personId || card.title)
       : (card.tmdbId || card.title);
-    return type + ':' + String(id || '').trim().toLowerCase();
+    const roleSuffix = type === 'person'
+      ? (':' + String(card.roleKey || card.personType || 'person').trim().toLowerCase())
+      : '';
+    return type + ':' + String(id || '').trim().toLowerCase() + roleSuffix;
   }
 
   function isBookmarked(card) {
@@ -5303,7 +5320,8 @@ button, a, select { font: inherit; }
   }
 
   function filmIdentityKey(movie) {
-    if (!movie || movie.cardType === 'person') return '';
+    if (!movie) return '';
+    if (movie.cardType === 'person') return personIdentityKey(movie);
     const tmdbId = Number(movie.tmdbId || movie.id) || 0;
     if (tmdbId) return 'tmdb:' + String(tmdbId);
     const normalizedTitle = normalizeFilmIdentityText(movie.title);
@@ -5333,7 +5351,16 @@ button, a, select { font: inherit; }
   }
 
   function buildRecentPersonSet() {
-    return new Set((progress.recentPullTitles || []).slice(0, RECENT_PULL_HARD_EXCLUDE));
+    const storedKeys = Array.isArray(progress.recentPullKeys) ? progress.recentPullKeys : [];
+    if (storedKeys.length) {
+      return new Set(storedKeys.filter(function (key) {
+        return String(key || '').indexOf('person:') === 0;
+      }).slice(0, RECENT_PULL_HARD_EXCLUDE));
+    }
+    return new Set((progress.recentPullTitles || []).slice(0, RECENT_PULL_HARD_EXCLUDE).map(function (title) {
+      const normalized = personKey(title);
+      return normalized ? ('person:' + normalized + ':person') : '';
+    }).filter(Boolean));
   }
 
   function buildOwnedFilmTitleSet() {
@@ -6332,6 +6359,7 @@ button, a, select { font: inherit; }
       + '; --pack-tier-font-size:' + escapeHtml(theme.tierFontSize || '0.68rem')
       + '; --pack-count-gap:' + escapeHtml(theme.countGap || '9px')
       + '; --pack-count-justify-self:' + escapeHtml(theme.countJustifySelf || 'center')
+      + '; --pack-count-offset-x:' + escapeHtml(theme.countOffsetX || '0px')
       + '; --pack-count-size:' + escapeHtml(theme.countSize || '0.62rem')
       + '; --pack-count-opacity:' + escapeHtml(theme.countOpacity || '0.56')
       + '; --pack-cta-ink:' + escapeHtml(theme.ctaInk || 'rgba(255,255,255,.84)')
@@ -6351,7 +6379,7 @@ button, a, select { font: inherit; }
     const canAfford = tickets >= Number(packDef.price);
     const isGoldPack = packDef && packDef.theme === 'gold';
     const previewOptions = packDef && packDef.theme === 'actors'
-      ? { extraClasses: 'shop-actors-pack', titleArtY: '-2px' }
+      ? { extraClasses: 'shop-actors-pack', titleArtY: '-13px' }
       : null;
     let previewMarkup = '';
     try {
@@ -6570,6 +6598,15 @@ button, a, select { font: inherit; }
       .replace(/[\u0300-\u036f]/g, '')
       .trim()
       .toLowerCase();
+  }
+
+  function personIdentityKey(cardOrCandidate) {
+    if (!cardOrCandidate) return '';
+    const rawName = cardOrCandidate.title || cardOrCandidate.name || '';
+    const normalizedName = personKey(rawName);
+    if (!normalizedName) return '';
+    const role = String(cardOrCandidate.roleKey || cardOrCandidate.personType || 'person').toLowerCase();
+    return 'person:' + normalizedName + ':' + role;
   }
 
   function collectionMetaLabel(card) {
@@ -6869,7 +6906,7 @@ button, a, select { font: inherit; }
     const weights = buildPersonRoleWeights(themeKey);
     const recentPulls = buildRecentPersonSet();
     const filtered = (Array.isArray(candidates) ? candidates : []).filter(function (candidate) {
-      return candidate && candidate.name && !recentPulls.has(candidate.name);
+      return candidate && candidate.name && !recentPulls.has(personIdentityKey(candidate));
     });
     const source = filtered.length ? filtered : (Array.isArray(candidates) ? candidates : []);
     if (!source.length) return null;
@@ -7016,7 +7053,7 @@ button, a, select { font: inherit; }
     const existingCards = Array.isArray(existingPersonCards) ? existingPersonCards : [];
     if (existingKeys.size) {
       const filteredCandidates = candidates.filter(function (candidate) {
-        return candidate && !existingKeys.has(personKey(candidate.name));
+        return candidate && !existingKeys.has(personIdentityKey(candidate));
       });
       if (filteredCandidates.length) candidates = filteredCandidates;
     }
@@ -7029,9 +7066,9 @@ button, a, select { font: inherit; }
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
       const picked = choosePersonCandidate(candidatePool, themeKey);
       if (!picked) break;
-      const pickedKey = personKey(picked.name);
+      const pickedKey = personIdentityKey(picked);
       const pickedIndex = candidatePool.findIndex(function (candidate) {
-        return candidate && personKey(candidate.name) === pickedKey;
+        return candidate && personIdentityKey(candidate) === pickedKey;
       });
       if (pickedIndex !== -1) candidatePool.splice(pickedIndex, 1);
 
@@ -7120,9 +7157,29 @@ button, a, select { font: inherit; }
     return tags;
   }
 
+  function buildPersonAwardTag(movie) {
+    if (!movie || movie.cardType !== 'person') return '';
+    const bio = String(movie.biography || movie.desc || '');
+    if (/\b(oscar|academy award)\b[\s\S]{0,40}\b(winner|won)\b/i.test(bio) || /\bwon\b[\s\S]{0,40}\b(oscar|academy award)\b/i.test(bio)) {
+      return 'Award Winner';
+    }
+    if (/\b(oscar|academy award)\b[\s\S]{0,40}\b(nominee|nominated)\b/i.test(bio) || /\bnominated\b[\s\S]{0,40}\b(oscar|academy award)\b/i.test(bio)) {
+      return 'Award Nominee';
+    }
+    const peak = Number(movie.knownForPeakRank) || 0;
+    const depth = Number(movie.knownForDepth) || 0;
+    const popularity = Number(movie.popularity) || 0;
+    if (peak >= 4 && depth >= 3) return 'Award Circuit';
+    if (peak >= 4 && depth >= 2 && popularity >= 20) return 'Award Circuit';
+    return '';
+  }
+
   function buildCardChips(movie) {
     if (movie.cardType === 'person') {
-      return ['<div class="chip">' + escapeHtml(roleLabelForDisplay(movie)) + '</div>'];
+      const personTag = buildPersonAwardTag(movie);
+      return personTag
+        ? ['<div class="chip">' + escapeHtml(personTag) + '</div>']
+        : [];
     }
 
     const chips = [];
@@ -7274,6 +7331,7 @@ button, a, select { font: inherit; }
       + '; --pack-tier-letter-spacing:' + (theme.tierLetterSpacing || '0.12em')
       + '; --pack-count-gap:' + (theme.countGap || '9px')
       + '; --pack-count-justify-self:' + (theme.countJustifySelf || 'center')
+      + '; --pack-count-offset-x:' + (theme.countOffsetX || '0px')
       + '; --pack-count-size:' + (theme.countSize || '0.62rem')
       + '; --pack-count-letter-spacing:' + (theme.countLetterSpacing || '0.12em')
       + '; --pack-count-opacity:' + (theme.countOpacity || '0.56')
@@ -7392,12 +7450,12 @@ button, a, select { font: inherit; }
 
     if (movie.cardType === 'person') {
       const personClass = movie.personType === 'actor' ? 'person-actor' : (movie.personType === 'director' ? 'person-director' : 'person-crew');
-      const chips = ['<div class="chip">' + escapeHtml(roleLabelForDisplay(movie)) + '</div>'];
+      const chips = buildCardChips(movie);
       return '<div class="card person-card ' + personClass + ' ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
         + '<div class="card-frame"></div>'
-        + '<div class="card-header"><div class="card-title-meta"><div class="person-role-badge">' + escapeHtml(roleLabelForDisplay(movie)) + '</div></div><div class="card-side-meta"><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div></div></div>'
+        + '<div class="card-header"><div class="card-title-meta person-title-meta"><div class="card-title person-card-title">' + escapeHtml(movie.title) + '</div><div class="person-role-badge">' + escapeHtml(roleLabelForDisplay(movie)) + '</div></div><div class="card-side-meta"><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div></div></div>'
         + '<div class="card-img-wrap person-portrait-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait"' + cardImageAttrs('low') + ' data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
-        + '<div class="card-body"><div class="person-name">' + escapeHtml(movie.title) + '</div><div class="chips">' + chips.join('') + '</div><div class="desc">' + escapeHtml(movie.desc) + '</div></div>'
+        + '<div class="card-body">' + (chips.length ? ('<div class="chips">' + chips.join('') + '</div>') : '') + '<div class="desc">' + escapeHtml(movie.desc) + '</div></div>'
         + '</div>';
     }
 
@@ -8265,7 +8323,7 @@ button, a, select { font: inherit; }
           .catch(function () { return null; })
           .then(function (personInsert) {
             if (personInsert) {
-              existingPersonKeys.add(personKey(personInsert.title));
+              existingPersonKeys.add(personIdentityKey(personInsert));
               personInserts.push(personInsert);
             }
           });
@@ -8279,7 +8337,7 @@ button, a, select { font: inherit; }
             .catch(function () { return null; })
             .then(function (personInsert) {
               if (personInsert) {
-                existingPersonKeys.add(personKey(personInsert.title));
+                existingPersonKeys.add(personIdentityKey(personInsert));
                 personInserts.push(personInsert);
               }
             });
