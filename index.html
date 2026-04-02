@@ -1285,10 +1285,11 @@ button, a, select { font: inherit; }
   position: relative;
   z-index: 3;
   display: grid;
-  justify-items: center;
+  justify-items: var(--pack-copy-align, center);
   align-content: center;
   width: var(--pack-copy-width, min(80%, 208px));
   transform: translateY(var(--pack-copy-offset, -2px));
+  text-align: var(--pack-copy-text-align, center);
 }
 
 .pack-title {
@@ -1299,6 +1300,7 @@ button, a, select { font: inherit; }
   font-family: var(--pack-title-font, inherit);
   line-height: var(--pack-title-line-height, .95);
   text-wrap: balance;
+  white-space: pre-line;
   max-width: 100%;
 }
 
@@ -1317,7 +1319,7 @@ button, a, select { font: inherit; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  justify-self: center;
+  justify-self: var(--pack-tier-justify-self, center);
   width: fit-content;
   margin-top: var(--pack-tier-gap, 14px);
   padding: var(--pack-tier-pad-y, 7px) var(--pack-tier-pad-x, 12px);
@@ -1335,6 +1337,7 @@ button, a, select { font: inherit; }
 .pack-card-count {
   position: relative;
   z-index: 1;
+  justify-self: var(--pack-count-justify-self, center);
   margin-top: var(--pack-count-gap, 9px);
   font-size: var(--pack-count-size, 0.62rem);
   font-weight: 700;
@@ -3997,11 +4000,20 @@ button, a, select { font: inherit; }
     docs: {
       label: 'Documentary',
       ribbon: 'NONFICTION',
-      title: 'Documentary',
+      title: 'Docu-\nmen-\ntary.',
       blurb: 'truth, but make it cinema',
       titleFont: '"Caprasimo", serif',
-      titleSpacing: '0.02em',
-      titleSize: '1.74rem',
+      titleSpacing: '0.01em',
+      titleSize: '3.28rem',
+      titleLineHeight: '.79',
+      copyWidth: 'min(92%, 246px)',
+      copyOffset: '-10px',
+      copyAlign: 'start',
+      copyTextAlign: 'left',
+      tierJustifySelf: 'start',
+      countJustifySelf: 'start',
+      tierGap: '14px',
+      countGap: '10px',
       colors: ['#00A796', '#18D4A8', '#00FEA4'],
       tier: 'Genre Pack',
       ink: '#ecfeff',
@@ -4169,9 +4181,7 @@ button, a, select { font: inherit; }
       `)
     }
   };
-  const PACK_ART_FILE_ASSETS = {
-    docs: { title: '/design/pack-v2/title/pack_doc_title.svg.svg?v=docs-2026-04-02-2' }
-  };
+  const PACK_ART_FILE_ASSETS = {};
   const PACK_TITLE_STATIC = {
     horror: svgToDataUri(`
 <svg width="356" height="518" viewBox="0 0 356 518" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -6309,13 +6319,17 @@ button, a, select { font: inherit; }
       + '; --pack-tier-ink:' + escapeHtml(theme.tierInk || 'rgba(255,255,255,.84)')
       + '; --pack-tier-bg:' + escapeHtml(theme.tierBg || 'rgba(8,10,15,.32)')
       + '; --pack-tier-border:' + escapeHtml(theme.tierBorder || 'rgba(255,255,255,.16)')
+      + '; --pack-copy-align:' + escapeHtml(theme.copyAlign || 'center')
+      + '; --pack-copy-text-align:' + escapeHtml(theme.copyTextAlign || 'center')
       + '; --pack-copy-width:' + escapeHtml(theme.copyWidth || 'min(80%, 208px)')
       + '; --pack-copy-offset:' + escapeHtml(theme.copyOffset || '-2px')
       + '; --pack-tier-gap:' + escapeHtml(theme.tierGap || '14px')
       + '; --pack-tier-pad-y:' + escapeHtml(theme.tierPadY || '7px')
       + '; --pack-tier-pad-x:' + escapeHtml(theme.tierPadX || '12px')
+      + '; --pack-tier-justify-self:' + escapeHtml(theme.tierJustifySelf || 'center')
       + '; --pack-tier-font-size:' + escapeHtml(theme.tierFontSize || '0.68rem')
       + '; --pack-count-gap:' + escapeHtml(theme.countGap || '9px')
+      + '; --pack-count-justify-self:' + escapeHtml(theme.countJustifySelf || 'center')
       + '; --pack-count-size:' + escapeHtml(theme.countSize || '0.62rem')
       + '; --pack-count-opacity:' + escapeHtml(theme.countOpacity || '0.56')
       + '; --pack-cta-ink:' + escapeHtml(theme.ctaInk || 'rgba(255,255,255,.84)')
@@ -7246,14 +7260,18 @@ button, a, select { font: inherit; }
       + '; --pack-tier-ink:' + (theme.tierInk || 'rgba(255,255,255,.84)')
       + '; --pack-tier-bg:' + (theme.tierBg || 'rgba(8,10,15,.32)')
       + '; --pack-tier-border:' + (theme.tierBorder || 'rgba(255,255,255,.16)')
+      + '; --pack-copy-align:' + (theme.copyAlign || 'center')
+      + '; --pack-copy-text-align:' + (theme.copyTextAlign || 'center')
       + '; --pack-copy-width:' + (theme.copyWidth || 'min(80%, 208px)')
       + '; --pack-copy-offset:' + (theme.copyOffset || '-2px')
       + '; --pack-tier-gap:' + (theme.tierGap || '14px')
       + '; --pack-tier-pad-y:' + (theme.tierPadY || '7px')
       + '; --pack-tier-pad-x:' + (theme.tierPadX || '12px')
+      + '; --pack-tier-justify-self:' + (theme.tierJustifySelf || 'center')
       + '; --pack-tier-font-size:' + (theme.tierFontSize || '0.68rem')
       + '; --pack-tier-letter-spacing:' + (theme.tierLetterSpacing || '0.12em')
       + '; --pack-count-gap:' + (theme.countGap || '9px')
+      + '; --pack-count-justify-self:' + (theme.countJustifySelf || 'center')
       + '; --pack-count-size:' + (theme.countSize || '0.62rem')
       + '; --pack-count-letter-spacing:' + (theme.countLetterSpacing || '0.12em')
       + '; --pack-count-opacity:' + (theme.countOpacity || '0.56')
