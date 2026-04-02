@@ -4170,7 +4170,7 @@ button, a, select { font: inherit; }
     }
   };
   const PACK_ART_FILE_ASSETS = {
-    docs: { title: '/design/pack-v2/title/pack_doc_title.svg.svg' }
+    docs: { title: '/design/pack-v2/title/pack_doc_title.svg.svg?v=docs-2026-04-02-2' }
   };
   const PACK_TITLE_STATIC = {
     horror: svgToDataUri(`
@@ -7210,9 +7210,9 @@ button, a, select { font: inherit; }
   }
 
   function resolvePackTitleAsset(themeKey) {
-    if (PACK_TITLE_STATIC[themeKey]) return PACK_TITLE_STATIC[themeKey];
     const fileAssets = PACK_ART_FILE_ASSETS[themeKey];
     if (fileAssets && fileAssets.title) return fileAssets.title;
+    if (PACK_TITLE_STATIC[themeKey]) return PACK_TITLE_STATIC[themeKey];
     return '';
   }
 
