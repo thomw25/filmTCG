@@ -625,6 +625,26 @@ button, a, select { font: inherit; }
   --pack-title-art-y: 0px;
 }
 
+.reward-pack-option .pack.pack-theme-docs {
+  --pack-title-art-scale: 1.66;
+  --pack-title-art-y: -22px;
+  --pack-copy-offset: -8px;
+  --pack-tier-gap: 18px;
+  --pack-count-gap: 11px;
+}
+
+.reward-pack-option .pack.pack-theme-animation {
+  --pack-title-art-scale: 1.42;
+  --pack-title-art-y: -2px;
+  --pack-animation-tier-y: -98px;
+  --pack-animation-count-y: 82px;
+}
+
+.reward-pack-option .pack.pack-theme-noir {
+  --pack-title-art-scale: 1.46;
+  --pack-title-art-y: 0px;
+}
+
 .shop-item:hover .shop-pack-preview .pack,
 .shop-pack-preview:hover .pack,
 .shop-pack-preview .pack:hover,
@@ -892,26 +912,30 @@ button, a, select { font: inherit; }
   cursor: pointer;
 }
 
+#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling) {
+  animation: packHoverTranslate 5.6s ease-in-out infinite;
+}
+
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover,
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible {
-  translate: 0 0;
-  filter: saturate(1.015) brightness(1.006);
+  translate: 0 -2px;
+  filter: saturate(1.02) brightness(1.01);
   outline: none;
 }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-foil,
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-foil {
-  opacity: 0.98;
+  opacity: var(--pack-foil-static-opacity, 0.18);
 }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-glint,
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-glint {
-  filter: brightness(1.1) saturate(1.06);
+  filter: blur(var(--pack-wipe-blur, .62px));
 }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-glow,
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-glow {
-  opacity: 0.22;
+  opacity: 0.18;
 }
 
 .pack-art-wrap {
@@ -1367,9 +1391,13 @@ button, a, select { font: inherit; }
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--pack-tier-ink, rgba(255,255,255,.82));
-  border: 1px solid var(--pack-tier-border, rgba(255,255,255,.16));
+  border: none;
   background: var(--pack-tier-bg, rgba(8,10,15,.32));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.14);
+  box-shadow: none;
+}
+
+.pack.pack-theme-actors .pack-tier {
+  border: 1px solid var(--pack-tier-border, rgba(214,180,112,.9));
 }
 
 .pack-card-count {
@@ -3197,6 +3225,11 @@ button, a, select { font: inherit; }
   50% { transform: translateY(-1.8px) rotate(0.08deg) scale(1.002); }
 }
 
+@keyframes packHoverTranslate {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -1.5px; }
+}
+
 @keyframes packGlowPulse {
   0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.34; }
   50% { transform: translateX(-50%) scale(1.04); opacity: 0.48; }
@@ -3571,6 +3604,23 @@ button, a, select { font: inherit; }
     --pack-cta-bottom: 16px;
     --pack-cta-size: 0.62rem;
   }
+  .reward-pack-option .pack.pack-theme-docs {
+    --pack-title-art-scale: 1.48;
+    --pack-title-art-y: -12px;
+    --pack-copy-offset: -4px;
+    --pack-tier-gap: 14px;
+    --pack-count-gap: 9px;
+  }
+  .reward-pack-option .pack.pack-theme-animation {
+    --pack-title-art-scale: 1.34;
+    --pack-title-art-y: -1px;
+    --pack-animation-tier-y: -78px;
+    --pack-animation-count-y: 70px;
+  }
+  .reward-pack-option .pack.pack-theme-noir {
+    --pack-title-art-scale: 1.38;
+    --pack-title-art-y: 1px;
+  }
   .reward-pack-option .pack .pack-sub {
     font-size: 0.68rem;
     line-height: 1.34;
@@ -3581,7 +3631,7 @@ button, a, select { font: inherit; }
     letter-spacing: 0.09em;
   }
   .reward-pack-option.is-left {
-    transform: translateY(8px);
+    transform: translateY(0);
     z-index: 1;
     --reward-commit-x: calc(50% + 5px);
     --reward-commit-y: 6px;
@@ -3593,7 +3643,7 @@ button, a, select { font: inherit; }
     --reward-commit-y: 6px;
   }
   .reward-pack-option:hover.is-left {
-    transform: translateY(6px) scale(1.005);
+    transform: translateY(-1px) scale(1.005);
   }
   .reward-pack-option:hover.is-right {
     transform: translateY(-1px) scale(1.005);
@@ -3784,7 +3834,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-46</div>
+  <div class="sub">Build: packs-people-tier-48</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3880,6 +3930,7 @@ button, a, select { font: inherit; }
     <div class="collection-search-row">
       <input id="collectionSearch" class="collection-search" type="search" placeholder="Search title, director, role, or year">
     </div>
+    <div id="collectionTradeRow" class="shop-trade-row"></div>
     <div id="collectionGrid" class="collection-grid"></div>
   </div>
 </div>
@@ -4349,7 +4400,7 @@ button, a, select { font: inherit; }
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-138';
+  const BUILD_ID = 'logic-sync-140';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -4428,6 +4479,8 @@ button, a, select { font: inherit; }
     'ian mckellen': 'Epic',
     'jeff bridges': 'Epic',
     'kurt russell': 'Epic',
+    'anthony hopkins': 'Legendary',
+    'philip baker hall': 'Select',
     'robert downey jr.': 'Epic',
     'robert downey jr': 'Epic',
     'morgan freeman': 'Epic',
@@ -4530,7 +4583,7 @@ button, a, select { font: inherit; }
   ];
   const SAMPLE_MOVIES = [
     { title: 'Jaws', rarity: 'Base', genre: 'Thriller', desc: 'Shark terrorizes a beach town.', packs: ['all', 'horror'] },
-    { title: 'Ferris Bueller\'s Day Off', rarity: 'Base', genre: 'Comedy', desc: 'A perfect skip day through Chicago.', packs: ['all'] },
+    { title: 'Ferris Bueller\'s Day Off', rarity: 'Epic', genre: 'Comedy', desc: 'A perfect skip day through Chicago.', packs: ['all'] },
     { title: 'Scream', rarity: 'Select', genre: 'Horror', desc: 'A meta slasher classic.', packs: ['all', 'horror'] },
     { title: 'Whiplash', rarity: 'Select', genre: 'Drama', desc: 'A drummer is pushed toward greatness and collapse.', packs: ['all'] },
     { title: 'The Conjuring', rarity: 'Select', genre: 'Horror', desc: 'Paranormal investigators confront a dark presence.', packs: ['all', 'horror'] },
@@ -6385,6 +6438,22 @@ button, a, select { font: inherit; }
     showToast('Traded ' + String(traded.length) + ' dupes for ' + String(gained) + ' Tickets.');
   }
 
+  function renderCollectionTradeRow() {
+    const tradeRow = document.getElementById('collectionTradeRow');
+    if (!tradeRow) return;
+    const tradeSummary = duplicateTradeSummary();
+    const tradeBreakdown = 'B:' + String(tradeSummary.byRarity.Base || 0)
+      + ' · S:' + String(tradeSummary.byRarity.Select || 0)
+      + ' · E:' + String(tradeSummary.byRarity.Epic || 0)
+      + ' · L:' + String(tradeSummary.byRarity.Legendary || 0);
+    tradeRow.innerHTML = '<div class="shop-trade-copy">Trade in duplicates for Tickets. Keeps one copy of each card. ' + escapeHtml(tradeBreakdown) + '</div>'
+      + '<button id="collectionTradeDuplicatesButton" class="shop-trade-btn" type="button"' + (tradeSummary.ticketValue > 0 ? '' : ' disabled') + '>Trade Duplicates · +' + String(tradeSummary.ticketValue) + ' Tickets</button>';
+    const tradeButton = document.getElementById('collectionTradeDuplicatesButton');
+    if (tradeButton) {
+      tradeButton.addEventListener('click', tradeInDuplicates);
+    }
+  }
+
   async function openThemedPackInShop(themeKey, label, openOptions) {
     const config = openOptions || {};
     const overlayUi = openShopPackOverlay(themeKey, label);
@@ -6870,19 +6939,24 @@ button, a, select { font: inherit; }
       (knownForPeakRank >= 3 && popularity >= 18)
       || (knownForPeakRank >= 3 && knownForDepth >= 3 && popularity >= 14)
       || (knownForPeakRank >= 2 && popularity >= 42)
+      || (knownForPeakRank >= 4 && knownForDepth >= 2)
+      || (knownForPeakRank >= 3 && knownForDepth >= 4 && popularity >= 10)
     ));
     const majorActorProxy = Boolean(isActor && (
       (knownForPeakRank >= 3 && knownForDepth >= 3)
       || (knownForPeakRank >= 3 && popularity >= 24)
+      || (knownForPeakRank >= 4 && knownForDepth >= 2)
     ));
     const actorPantheonProxy = Boolean(isActor && (
       (knownForPeakRank >= 4 && knownForDepth >= 3)
       || (knownForPeakRank >= 3 && knownForDepth >= 5 && popularity >= 24)
       || (knownForPeakRank >= 3 && popularity >= 46)
+      || (knownForPeakRank >= 4 && knownForDepth >= 2 && popularity >= 12)
     ));
     const characterActorProxy = Boolean(isActor && (
       (knownForPeakRank >= 3 && knownForDepth >= 4 && popularity >= 4)
       || (knownForPeakRank >= 2 && knownForDepth >= 5 && popularity >= 4)
+      || (knownForPeakRank >= 2 && knownForDepth >= 3 && popularity >= 6)
     ));
     const actorRecognitionProxy = Boolean(isActor && (
       (popularity >= 14 && knownForDepth >= 2)
@@ -8959,6 +9033,7 @@ button, a, select { font: inherit; }
       return rarityRank(entry.card.rarity) >= 3;
     }).length);
     renderCollectionViewToggle();
+    renderCollectionTradeRow();
 
     if (!filtered.length) {
       collectionGrid.innerHTML = '<div class="empty-state">No matching cards yet. Open a pack or change your filter.</div>';

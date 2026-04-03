@@ -13,8 +13,8 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const LOGIC_VERSION = 'logic-2026-03-31-7';
-const POOL_SNAPSHOT_VERSION = 'server-rotation-24';
+const LOGIC_VERSION = 'logic-2026-04-03-1';
+const POOL_SNAPSHOT_VERSION = 'server-rotation-26';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
 const BASE_REEL_COUNT = 3;
@@ -27,6 +27,8 @@ const MAX_MOVIE_ART_CACHE = 120;
 const MAX_MOVIE_CREDITS_CACHE = 180;
 const MAX_PERSON_CREDITS_CACHE = 120;
 const MAX_PERSON_DETAILS_CACHE = 120;
+const PERSON_CANDIDATE_SHORTLIST_LIMIT = 34;
+const PERSON_CANDIDATE_MIN_DIRECTORS = 2;
 const TV_MOVIE_GENRE_ID = 10770;
 const GENRE_NAME_BY_ID = {
   12: ['adventure'],
@@ -228,6 +230,7 @@ const TITLE_RARITY_FLOORS = {
   'city of god': 'Epic',
   'cleo from 5 to 7': 'Epic',
   'clockers': 'Select',
+  'deep cover': 'Select',
   'black panther': 'Epic',
   'candyman': 'Select',
   'close-up': 'Epic',
@@ -239,6 +242,7 @@ const TITLE_RARITY_FLOORS = {
   'election': 'Epic',
   'e.t. the extra-terrestrial': 'Epic',
   'et the extra-terrestrial': 'Epic',
+  'ferris bueller\'s day off': 'Epic',
   'friday the 13th': 'Select',
   'goodfellas': 'Legendary',
   'grey gardens': 'Epic',
@@ -270,12 +274,14 @@ const TITLE_RARITY_FLOORS = {
   'nights of cabiria': 'Epic',
   'police story': 'Epic',
   'paper moon': 'Select',
+  'paddington 2': 'Legendary',
   'parasite': 'Epic',
   'paris, texas': 'Epic',
   'paris is burning': 'Epic',
   'persona': 'Legendary',
   'phantom thread': 'Epic',
   'playtime': 'Epic',
+  'home alone': 'Epic',
   'rashomon': 'Legendary',
   'robocop': 'Epic',
   'roman holiday': 'Epic',
@@ -284,6 +290,7 @@ const TITLE_RARITY_FLOORS = {
   'stalker': 'Legendary',
   'sunrise: a song of two humans': 'Epic',
   'taste of cherry': 'Epic',
+  'titanic': 'Legendary',
   'the favourite': 'Epic',
   'the 400 blows': 'Epic',
   'the battle of algiers': 'Epic',
@@ -295,6 +302,8 @@ const TITLE_RARITY_FLOORS = {
   'the color of pomegranates': 'Epic',
   'the french connection': 'Select',
   'the graduate': 'Legendary',
+  'the hangover': 'Epic',
+  'hangover': 'Epic',
   'the godfather': 'Legendary',
   'the godfather part ii': 'Legendary',
   'the long goodbye': 'Epic',
@@ -333,19 +342,48 @@ const TITLE_RARITY_FLOORS = {
 };
 
 const TITLE_YEAR_RARITY_FLOORS = {
+  'paddington 2::2017': 'Legendary',
   'the lighthouse::2019': 'Epic',
   'lighthouse::2019': 'Epic',
+  'the hangover::2009': 'Epic',
   'the postman::1994': 'Epic',
   'il postino::1994': 'Epic',
   'the postman::1997': 'Select'
 };
 
 const TITLE_YEAR_RARITY_CEILINGS = {
+  'paddington 2::2017': 'Legendary',
+  'dragon ball z plan to eradicate the super saiyans::1993': 'Select',
+  'dragon ball z: plan to eradicate the super saiyans::1993': 'Select',
+  'dragon ball z plan to eradicate the saiyans::1993': 'Select',
+  'dragon ball z: plan to eradicate the saiyans::1993': 'Select',
+  'dragon ball z side story plan to eradicate the saiyans::1993': 'Select',
+  'dragon ball z: side story: plan to eradicate the saiyans::1993': 'Select',
+  'dragon ball z side story plan to eradicate the super saiyans::1993': 'Select',
+  'dragon ball z: side story: plan to eradicate the super saiyans::1993': 'Select',
   'the lighthouse::2019': 'Epic',
   'lighthouse::2019': 'Epic',
+  'the hangover::2009': 'Epic',
   'the postman::1994': 'Epic',
   'il postino::1994': 'Epic',
-  'the postman::1997': 'Select'
+  'the postman::1997': 'Select',
+  'scooby-doo! and the loch ness monster::2004': 'Select',
+  'selena gomez: my mind & me::2022': 'Select'
+};
+
+const TITLE_RARITY_CEILINGS = {
+  'dragon ball z plan to eradicate the super saiyans': 'Select',
+  'dragon ball z: plan to eradicate the super saiyans': 'Select',
+  'dragon ball z plan to eradicate the saiyans': 'Select',
+  'dragon ball z: plan to eradicate the saiyans': 'Select',
+  'dragon ball z side story plan to eradicate the saiyans': 'Select',
+  'dragon ball z: side story: plan to eradicate the saiyans': 'Select',
+  'dragon ball z side story plan to eradicate the super saiyans': 'Select',
+  'dragon ball z: side story: plan to eradicate the super saiyans': 'Select',
+  'scooby-doo and the loch ness monster': 'Select',
+  'scooby-doo! and the loch ness monster': 'Select',
+  'selena gomez my mind and me': 'Select',
+  'selena gomez: my mind & me': 'Select'
 };
 
 const CANON_SHORT_TITLES = [
@@ -1012,7 +1050,7 @@ async function getMoviePeople(movieIds) {
     if (!credits) continue;
 
     buildPeopleCandidatesForMovie(configuration, movieId, credits).forEach(function (candidate) {
-      const key = String(candidate.personId);
+      const key = String(candidate.personId) + ':' + String(candidate.roleKey || candidate.personType || 'person');
       if (!byPerson.has(key)) {
         byPerson.set(key, candidate);
         return;
@@ -1034,10 +1072,10 @@ async function getMoviePeople(movieIds) {
     });
   }
 
-  const candidates = shuffledCopy(Array.from(byPerson.values())).map(function (candidate) {
+  const seededCandidates = shuffledCopy(Array.from(byPerson.values())).map(function (candidate) {
     const popularity = Number(candidate && candidate.popularity) || 0;
     const castOrder = Number(candidate && candidate.castOrder);
-    const actorBoost = candidate && candidate.roleKey === 'actor' ? 390 : 320;
+    const roleBaseBoost = candidate && candidate.roleKey === 'director' ? 430 : 350;
     const billingBonus = candidate && candidate.roleKey === 'actor'
       ? (Number.isFinite(castOrder)
         ? (castOrder >= 5 && castOrder <= 18
@@ -1049,7 +1087,7 @@ async function getMoviePeople(movieIds) {
     const nicheBoost = popularity >= 2 && popularity < 8 ? 120 : 0;
     const mainstreamPenalty = popularity >= 26 ? (Math.pow(popularity - 26, 1.22) * 38) : 0;
     const megastarPenalty = popularity >= 42 ? ((popularity - 42) * 120) : 0;
-    const seedScore = actorBoost
+    const seedScore = roleBaseBoost
       + billingBonus
       + (Math.min(30, popularity) * 42)
       + midBandBoost
@@ -1060,7 +1098,31 @@ async function getMoviePeople(movieIds) {
     return { candidate: candidate, seedScore: seedScore };
   }).sort(function (a, b) {
     return b.seedScore - a.seedScore;
-  }).slice(0, 34).map(function (entry) {
+  });
+
+  const shortlistedEntries = seededCandidates.slice(0, PERSON_CANDIDATE_SHORTLIST_LIMIT);
+  const shortlistDirectorCount = shortlistedEntries.reduce(function (count, entry) {
+    return count + ((entry && entry.candidate && entry.candidate.roleKey === 'director') ? 1 : 0);
+  }, 0);
+  if (shortlistDirectorCount < PERSON_CANDIDATE_MIN_DIRECTORS) {
+    const needed = PERSON_CANDIDATE_MIN_DIRECTORS - shortlistDirectorCount;
+    const directorFallback = seededCandidates.slice(PERSON_CANDIDATE_SHORTLIST_LIMIT).filter(function (entry) {
+      return entry && entry.candidate && entry.candidate.roleKey === 'director';
+    }).slice(0, needed);
+    if (directorFallback.length) {
+      let replaceCursor = shortlistedEntries.length - 1;
+      directorFallback.forEach(function (entry) {
+        while (replaceCursor >= 0 && shortlistedEntries[replaceCursor] && shortlistedEntries[replaceCursor].candidate && shortlistedEntries[replaceCursor].candidate.roleKey === 'director') {
+          replaceCursor -= 1;
+        }
+        if (replaceCursor >= 0) {
+          shortlistedEntries[replaceCursor] = entry;
+          replaceCursor -= 1;
+        }
+      });
+    }
+  }
+  const candidates = shortlistedEntries.map(function (entry) {
     return entry.candidate;
   });
 
@@ -1095,10 +1157,12 @@ async function getMoviePeople(movieIds) {
     const bCharacterLaneBonus = (b && b.roleKey === 'actor' && Number.isFinite(bOrder))
       ? (bOrder >= 5 && bOrder <= 20 ? 85 : (bOrder >= 21 && bOrder <= 42 ? 55 : 0))
       : 0;
+    const aDirectorLaneBonus = (a && a.roleKey === 'director') ? 34 : 0;
+    const bDirectorLaneBonus = (b && b.roleKey === 'director') ? 34 : 0;
     const aPopScore = Math.min(26, aPopularity) - (aPopularity > 30 ? (aPopularity - 30) * 2.2 : 0);
     const bPopScore = Math.min(26, bPopularity) - (bPopularity > 30 ? (bPopularity - 30) * 2.2 : 0);
-    return ((bTitles * 110) + (bPeak * 38) + (bDepth * 22) + bPopScore + bCharacterLaneBonus)
-      - ((aTitles * 110) + (aPeak * 38) + (aDepth * 22) + aPopScore + aCharacterLaneBonus);
+    return ((bTitles * 110) + (bPeak * 38) + (bDepth * 22) + bPopScore + bCharacterLaneBonus + bDirectorLaneBonus)
+      - ((aTitles * 110) + (aPeak * 38) + (aDepth * 22) + aPopScore + aCharacterLaneBonus + aDirectorLaneBonus);
   });
 }
 
@@ -1489,6 +1553,30 @@ function computeMovieSignals(movie) {
   const hongKongActionProxy = isHongKongLanguage && isActionCrimeLane && year >= 1970 && year <= 2005 && (cult >= 2 || (recognition >= 2 && respect >= 2));
   const comedyCrowdMemoryProxy = isComedyLane && recognition >= 4 && (respect >= 1 || cult >= 1);
   const iconicFamilyAnimationProxy = isFamilyLane && isIconicAnimation && recognition >= 4 && (respect >= 2 || cult >= 1);
+  const animeFandomSkewProxy = isIconicAnimation
+    && !isFamilyLane
+    && originalLanguage === 'ja'
+    && year >= 1985
+    && voteAverage >= 7.6
+    && voteCount >= 120
+    && voteCount <= 2600
+    && popularity >= 7
+    && popularity <= 48
+    && canon < 2
+    && respect <= 4
+    && !iconicAnimationProxy
+    && !iconicFamilyAnimationProxy;
+  const franchiseAnimationSkewProxy = isIconicAnimation
+    && isFamilyLane
+    && year >= 1990
+    && voteCount >= 20
+    && voteCount <= 240
+    && popularity >= 4
+    && popularity <= 22
+    && canon < 2
+    && respect <= 3
+    && !familyAnimationStapleProxy
+    && !iconicFamilyAnimationProxy;
   const modernAuteurLandmarkProxy = year >= 1990 && year <= 2015 && respect >= 3 && (cult >= 2 || (recognition >= 2 && popularity <= 32));
   const auteurBaselineProxy = auteurDirectorProxy && (recognition >= 1 || respect >= 1 || cult >= 1 || voteCount >= 45);
   const auteurPromotionProxy = auteurDirectorProxy && (respect >= 2 || cult >= 2 || recognition >= 3 || voteCount >= 260);
@@ -1503,6 +1591,14 @@ function computeMovieSignals(movie) {
   const horrorFranchiseStapleProxy = year >= 1970 && year <= 2022 && movieHasGenreId(movie, [27, 53]) && voteCount >= 300 && popularity >= 8;
   const modernHorrorRecognitionProxy = year >= 1990 && year <= 2022 && isHorrorThrillerLane && voteCount >= 280 && popularity >= 9 && (recognition >= 2 || cult >= 1 || respect >= 1);
   const concertFandomDocProxy = isMusicDocumentary && popularity >= 10 && canon < 2 && respect < 5;
+  const fandomDocSkewProxy = isDocumentary
+    && year >= 2010
+    && popularity >= 10
+    && voteCount >= 120
+    && canon < 2
+    && respect <= 4
+    && (isMusicDocumentary || popularity >= 18)
+    && !documentaryLandmarkProxy;
   const lowSignalObscurityProxy = voteCount < 90 && popularity < 7 && recognition < 3 && canon < 2;
   const microObscureOverperformerProxy = voteAverage >= 7.7 && voteCount < 50 && popularity < 5 && canon < 2;
   const majorPromotionProxy = Boolean(
@@ -1563,6 +1659,8 @@ function computeMovieSignals(movie) {
     hongKongActionProxy: hongKongActionProxy,
     comedyCrowdMemoryProxy: comedyCrowdMemoryProxy,
     iconicFamilyAnimationProxy: iconicFamilyAnimationProxy,
+    animeFandomSkewProxy: animeFandomSkewProxy,
+    franchiseAnimationSkewProxy: franchiseAnimationSkewProxy,
     modernAuteurLandmarkProxy: modernAuteurLandmarkProxy,
     auteurDirectorProxy: auteurDirectorProxy,
     auteurBaselineProxy: auteurBaselineProxy,
@@ -1579,6 +1677,7 @@ function computeMovieSignals(movie) {
     modernHorrorRecognitionProxy: modernHorrorRecognitionProxy,
     underappreciatedBlackDirectorProxy: underappreciatedBlackDirectorProxy,
     concertFandomDocProxy: concertFandomDocProxy,
+    fandomDocSkewProxy: fandomDocSkewProxy,
     lowSignalObscurityProxy: lowSignalObscurityProxy,
     microObscureOverperformerProxy: microObscureOverperformerProxy,
     majorPromotionProxy: majorPromotionProxy,
@@ -1694,8 +1793,11 @@ function computeRarityScore(movie) {
   if (signals.popularity < 2.5 && signals.respect < 4) penalty += 4;
   if (signals.lowSignalObscurityProxy) penalty += 6;
   if (signals.microObscureOverperformerProxy) penalty += 6;
+  if (signals.animeFandomSkewProxy && !signals.majorPromotionProxy && !signals.titlePromotion) penalty += 10;
   if (signals.concertFandomDocProxy) penalty += 7;
+  if (signals.fandomDocSkewProxy) penalty += 6;
   if (signals.celebrityEventDocProxy) penalty += 6;
+  if (signals.franchiseAnimationSkewProxy) penalty += 7;
 
   return Math.max(0, Math.min(100, recognitionPoints + respectPoints + cultPoints + canonPoints + bonus - penalty));
 }
@@ -2028,6 +2130,8 @@ function rarityFloorForMovie(movie) {
 function rarityCeilingForMovie(movie) {
   const exactCeiling = TITLE_YEAR_RARITY_CEILINGS[titleYearKey(movie)];
   if (exactCeiling) return normalizeRarityLabel(exactCeiling);
+  const titleCeiling = TITLE_RARITY_CEILINGS[titleKey(movie && movie.title)];
+  if (titleCeiling) return normalizeRarityLabel(titleCeiling);
   if (TITLE_RARITY_FLOORS[titleKey(movie && movie.title)]) {
     return 'Legendary';
   }
@@ -2057,7 +2161,14 @@ function rarityCeilingForMovie(movie) {
     && signals.canon < 2
     && signals.respect < 5
   ) {
-    return 'Epic';
+    return signals.respect >= 4 ? 'Epic' : 'Select';
+  }
+
+  if (
+    signals.fandomDocSkewProxy
+    && !TITLE_RARITY_FLOORS[titleKey(movie && movie.title)]
+  ) {
+    return signals.respect >= 4 ? 'Epic' : 'Select';
   }
 
   if (
@@ -2081,6 +2192,24 @@ function rarityCeilingForMovie(movie) {
 
   if (signals.year >= 2023 && signals.voteCount < 180 && signals.popularity < 12 && signals.respect < 4) {
     return 'Select';
+  }
+
+  if (
+    signals.animeFandomSkewProxy
+    && !signals.majorPromotionProxy
+    && !signals.titlePromotion
+    && signals.canon < 2
+  ) {
+    return signals.respect >= 4 ? 'Epic' : 'Select';
+  }
+
+  if (
+    signals.franchiseAnimationSkewProxy
+    && !signals.majorPromotionProxy
+    && !signals.titlePromotion
+    && signals.canon < 2
+  ) {
+    return signals.respect >= 4 ? 'Epic' : 'Select';
   }
 
   if (signals.canon < 4 && signals.respect < 5 && !(signals.recognition >= 6 && signals.respect >= 4)) {
@@ -2552,6 +2681,11 @@ async function routeApi(req, res, url) {
       'Access-Control-Allow-Headers': 'Content-Type, Accept, ngrok-skip-browser-warning'
     });
     res.end();
+    return;
+  }
+
+  if (url.pathname.indexOf('/api/assets/') === 0) {
+    sendStatic(req, res, url.pathname);
     return;
   }
 
