@@ -4258,13 +4258,20 @@ button, a, select { font: inherit; }
   };
   const PACK_ART_FILE_ASSETS = {
     animation: {
-      title: '/design/pack-v2/title/pack_animation_title.svg.svg?v=anim-2026-04-02-5'
+      titleCandidates: [
+        '/api/assets/pack_animation_title.svg?v=anim-2026-04-03-1',
+        '/design/pack-v2/title/pack_animation_title.svg?v=anim-2026-04-03-1',
+        '/design/pack-v2/title/pack_animation_title.svg.svg?v=anim-2026-04-03-1'
+      ]
     },
     noir: {
-      title: '/design/pack-v2/title/pack_noir_title.svg.svg?v=noir-2026-04-02-5'
+      titleCandidates: [
+        '/design/pack-v2/title/pack_noir_title.svg?v=noir-2026-04-02-6',
+        '/design/pack-v2/title/pack_noir_title.svg.svg?v=noir-2026-04-02-6'
+      ]
     },
     docs: {
-      title: '/design/pack-v2/title/pack_doc_title.svg.svg?v=docs-2026-04-02-3'
+      title: '/design/pack-v2/title/pack_doc_title.svg.svg?v=docs-2026-04-02-6'
     }
   };
   const PACK_TITLE_STATIC = {
@@ -4315,7 +4322,7 @@ button, a, select { font: inherit; }
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-121';
+  const BUILD_ID = 'logic-sync-123';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -7412,6 +7419,7 @@ button, a, select { font: inherit; }
     const titleAssets = resolvePackTitleAssets(themeKey).map(normalizeAssetSrc).filter(Boolean);
     const titleAsset = titleAssets[0] || '';
     const titleFallbackAssets = titleAssets.slice(1);
+    const hasTitleArtAsset = Boolean(titleAsset);
     const titleFallbackAttr = titleFallbackAssets.length
       ? ' data-title-fallbacks="' + escapeHtml(titleFallbackAssets.join('||')) + '"'
       : '';
@@ -7491,7 +7499,7 @@ button, a, select { font: inherit; }
       ? ' is-gold'
       : (themeKey !== 'all' ? ' is-featured' : '');
     const customArtClass = hasCustomArt ? ' has-custom-art' : '';
-    const inlineArtClass = (fallbackShapeAsset ? ' has-loaded-shape' : '') + (hasInlineTitle ? ' has-title-art' : '');
+    const inlineArtClass = (fallbackShapeAsset ? ' has-loaded-shape' : '') + ((hasInlineTitle || hasTitleArtAsset) ? ' has-title-art' : '');
     const classes = 'pack'
       + packTextureClass
       + customArtClass
