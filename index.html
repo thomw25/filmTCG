@@ -51,6 +51,22 @@ body {
   overflow-x: hidden;
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 46%, rgba(9,12,20,0.06) 0%, rgba(9,12,20,0.18) 18%, rgba(5,7,12,0.52) 54%, rgba(3,4,8,0.72) 100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+  z-index: 11;
+}
+
+body.pack-opening-focus::before {
+  opacity: 1;
+}
+
 body.overlay-open {
   overflow: hidden;
 }
@@ -788,7 +804,7 @@ button, a, select { font: inherit; }
 }
 
 .pull-open-shell.is-stage {
-  grid-template-rows: auto 468px 52px;
+  grid-template-rows: auto minmax(468px, auto) 52px;
   align-items: center;
   gap: 18px;
 }
@@ -813,9 +829,19 @@ button, a, select { font: inherit; }
 .pull-center-stage {
   width: 100%;
   min-height: 468px;
+  padding: 10px 0 14px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+  transition: z-index 0s linear 220ms;
+}
+
+body.pack-opening-focus .pull-center-stage {
+  z-index: 14;
+  transition-delay: 0s;
 }
 
 .pull-bottom-stage {
@@ -918,6 +944,7 @@ button, a, select { font: inherit; }
   justify-content: center;
   width: fit-content;
   height: fit-content;
+  overflow: visible;
   will-change: transform, filter;
   transform-origin: center 62%;
   transition: transform 340ms cubic-bezier(.22,1,.36,1), filter 300ms ease;
@@ -933,11 +960,12 @@ button, a, select { font: inherit; }
   justify-content: center;
   width: fit-content;
   height: fit-content;
+  overflow: visible;
   will-change: transform;
   transform-origin: center 62%;
 }
 
-#openPackMotion:not(.is-loading):not(.is-opening):not(.is-shuffling) .pull-pack-idle {
+.pull-pack-motion:not(.is-opening):not(.is-shuffling) .pull-pack-idle {
   animation: packHover 4.6s ease-in-out infinite;
 }
 
@@ -1161,8 +1189,8 @@ button, a, select { font: inherit; }
   cursor: wait;
   animation: none;
   opacity: 0.98;
-  transform: translateY(-2px) scale(1.01);
-  filter: saturate(1.04) brightness(1.01);
+  transform: none;
+  filter: saturate(1.01) brightness(1.004);
 }
 
 .pack::before {
@@ -1982,10 +2010,10 @@ button, a, select { font: inherit; }
     0 22px 60px rgba(0,0,0,.46);
 }
 
-.peel-card-wrap.is-peeling-out-next { animation: peelOutNext 280ms ease forwards; }
-.peel-card-wrap.is-peeling-out-prev { animation: peelOutPrev 280ms ease forwards; }
-.peel-card-wrap.is-peeling-in-next { animation: peelInNext 320ms ease forwards; }
-.peel-card-wrap.is-peeling-in-prev { animation: peelInPrev 320ms ease forwards; }
+.peel-card-wrap.is-peeling-out-next { animation: peelOutNext 220ms ease forwards; }
+.peel-card-wrap.is-peeling-out-prev { animation: peelOutPrev 220ms ease forwards; }
+.peel-card-wrap.is-peeling-in-next { animation: peelInNext 250ms ease forwards; }
+.peel-card-wrap.is-peeling-in-prev { animation: peelInPrev 250ms ease forwards; }
 
 .carousel-wrap.is-fresh-reveal .peel-card-wrap {
   animation: freshLeadCardIn 620ms cubic-bezier(.18,.84,.22,1) 190ms both;
@@ -3889,7 +3917,7 @@ button, a, select { font: inherit; }
     padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
   }
   .pull-open-shell.is-stage {
-    grid-template-rows: auto 462px 66px;
+    grid-template-rows: auto minmax(494px, auto) 66px;
     gap: 14px;
     padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px));
   }
@@ -3907,7 +3935,8 @@ button, a, select { font: inherit; }
     min-height: 28px;
   }
   .pull-center-stage {
-    min-height: 462px;
+    min-height: 494px;
+    padding: 18px 0 28px;
   }
   .pull-bottom-stage {
     min-height: 66px;
@@ -4192,7 +4221,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-153</div>
+  <div class="sub">Build: logic-sync-155</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -4759,7 +4788,7 @@ button, a, select { font: inherit; }
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-153';
+  const BUILD_ID = 'logic-sync-155';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6014,6 +6043,23 @@ button, a, select { font: inherit; }
     return remainder === 0 ? REEL_REFRESH_INTERVAL : (REEL_REFRESH_INTERVAL - remainder);
   }
 
+  function maybeWarmUpcomingRewardThemes(force) {
+    if (dataSourceLabel.indexOf('TMDB') === -1) return;
+
+    if (progress.rewardChoicesAvailable > 0) {
+      warmRewardThemePools(ensureFeaturedRewardThemes(false));
+      return;
+    }
+
+    if (selectedPackMode !== 'all-packs') return;
+    if (!force && packsUntilReward() > 4) return;
+
+    const rewardThemes = ensureFeaturedRewardThemes(false);
+    if (rewardThemes.length) {
+      warmRewardThemePools(rewardThemes);
+    }
+  }
+
   function currentReelCycleKey() {
     return Math.floor(progress.standardPacksOpened / REEL_REFRESH_INTERVAL);
   }
@@ -6728,6 +6774,7 @@ button, a, select { font: inherit; }
     if (ticketValue) ticketValue.textContent = ticketText;
     const ticketBadgeValue = document.getElementById('ticketBadgeValue');
     if (ticketBadgeValue) ticketBadgeValue.textContent = ticketText;
+    maybeWarmUpcomingRewardThemes(false);
   }
 
   function formatTickets(value) {
@@ -8735,7 +8782,7 @@ button, a, select { font: inherit; }
     }
     keepViewport();
 
-    await new Promise(function (resolve) { setTimeout(resolve, 120); });
+    await new Promise(function (resolve) { setTimeout(resolve, 80); });
     keepViewport();
 
     const selectedPackFace = selectedButton ? selectedButton.querySelector('.pack') : null;
@@ -8748,7 +8795,7 @@ button, a, select { font: inherit; }
     }
     keepViewport();
 
-    await new Promise(function (resolve) { setTimeout(resolve, 170); });
+    await new Promise(function (resolve) { setTimeout(resolve, 110); });
     keepViewport();
 
     if (statusLine) {
@@ -9617,7 +9664,7 @@ button, a, select { font: inherit; }
     setTimeout(function () {
       peelWrap.classList.remove('is-peeling-in-next');
       peelWrap.classList.remove('is-peeling-in-prev');
-    }, 320);
+    }, 250);
   }
 
   function animateToCard(direction) {
@@ -9635,8 +9682,8 @@ button, a, select { font: inherit; }
         ? (index + 1) % pack.length
         : (index - 1 + pack.length) % pack.length;
       renderCarousel();
-      setTimeout(function () { isAnimatingPeel = false; }, 340);
-    }, 220);
+      setTimeout(function () { isAnimatingPeel = false; }, 250);
+    }, 170);
   }
 
   function nextCard() { animateToCard('next'); }
