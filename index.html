@@ -913,29 +913,36 @@ button, a, select { font: inherit; }
 }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling) {
-  animation: packHoverTranslate 5.6s ease-in-out infinite;
+  animation: packHover 5.8s ease-in-out infinite;
+  will-change: transform, filter;
 }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover,
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible {
-  translate: 0 -2px;
-  filter: saturate(1.02) brightness(1.01);
+  animation-play-state: paused;
+  transform: translateY(-4px) scale(1.008);
+  filter: saturate(1.03) brightness(1.018);
   outline: none;
+}
+
+#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover::before,
+#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible::before {
+  animation-duration: 8.8s;
 }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-foil,
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-foil {
-  opacity: var(--pack-foil-static-opacity, 0.18);
+  opacity: calc(var(--pack-foil-static-opacity, 0.18) + 0.08);
 }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-glint,
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-glint {
-  filter: blur(var(--pack-wipe-blur, .62px));
+  opacity: 0.09;
 }
 
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-glow,
 #openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-glow {
-  opacity: 0.18;
+  opacity: 0.24;
 }
 
 .pack-art-wrap {
@@ -1704,6 +1711,11 @@ button, a, select { font: inherit; }
   min-height: 30px;
   padding: 6px 12px;
   font-size: 0.7rem;
+}
+
+.carousel-open-more-btn {
+  animation: carouselKeepGoingPulse 2.8s ease-in-out infinite;
+  will-change: box-shadow, filter, border-color;
 }
 
 .carousel {
@@ -3317,11 +3329,9 @@ button, a, select { font: inherit; }
 @keyframes packBodyFade {
   0%, 58% {
     opacity: 1;
-    transform: translateY(0);
   }
   100% {
     opacity: 0;
-    transform: translateY(8px);
   }
 }
 
@@ -3329,6 +3339,25 @@ button, a, select { font: inherit; }
   0%, 100% { transform: scale(0.65) rotate(0deg); opacity: 0.2; }
   25% { transform: scale(1) rotate(0deg); opacity: 0.95; }
   55% { transform: scale(0.72) rotate(12deg); opacity: 0.3; }
+}
+
+@keyframes carouselKeepGoingPulse {
+  0%, 100% {
+    border-color: rgba(162,190,255,.34);
+    box-shadow:
+      0 12px 30px rgba(0,0,0,.3),
+      inset 0 1px 0 rgba(255,255,255,.14),
+      0 0 0 0 rgba(162,190,255,0);
+    filter: saturate(1) brightness(1);
+  }
+  50% {
+    border-color: rgba(192,214,255,.5);
+    box-shadow:
+      0 14px 34px rgba(0,0,0,.34),
+      inset 0 1px 0 rgba(255,255,255,.18),
+      0 0 0 4px rgba(162,190,255,.08);
+    filter: saturate(1.04) brightness(1.02);
+  }
 }
 
 @keyframes loadingDots {
@@ -3716,19 +3745,22 @@ button, a, select { font: inherit; }
   }
   .carousel-open-more-btn {
     position: fixed;
-    left: 50%;
+    left: 14px;
+    right: 14px;
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     z-index: 36;
-    width: min(320px, calc(100vw - 28px));
+    width: auto;
+    max-width: 320px;
     margin: 0;
-    transform: translateX(-50%);
+    margin-inline: auto;
+    transform: none;
     background: linear-gradient(180deg, rgba(24,35,62,.96), rgba(15,23,39,.96));
     border-color: rgba(162,190,255,.46);
     color: #f4f8ff;
     box-shadow: 0 12px 30px rgba(0,0,0,.44), inset 0 1px 0 rgba(255,255,255,.18);
   }
   .carousel-open-more-btn:active {
-    transform: translateX(-50%) scale(0.99);
+    filter: brightness(0.98) saturate(0.98);
   }
   .shop-open-overlay {
     padding: 14px;
@@ -3834,7 +3866,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: packs-people-tier-48</div>
+  <div class="sub">Build: logic-sync-143</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -4400,7 +4432,7 @@ button, a, select { font: inherit; }
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-140';
+  const BUILD_ID = 'logic-sync-143';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
