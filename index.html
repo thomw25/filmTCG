@@ -912,37 +912,45 @@ button, a, select { font: inherit; }
   cursor: pointer;
 }
 
-#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling) {
-  animation: packHover 5.8s ease-in-out infinite;
+.pull-pack-motion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  height: fit-content;
   will-change: transform, filter;
+  transform-origin: center 62%;
 }
 
-#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover,
-#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible {
-  animation-play-state: paused;
-  transform: translateY(-4px) scale(1.008);
-  filter: saturate(1.03) brightness(1.018);
-  outline: none;
+#openPackMotion:not(.is-loading):not(.is-opening):not(.is-shuffling) {
+  animation: packHover 4.8s ease-in-out infinite;
+  transition: transform 240ms cubic-bezier(.22,.61,.36,1), filter 240ms ease;
 }
 
-#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover::before,
-#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible::before {
-  animation-duration: 8.8s;
+#openPackMotion:not(.is-loading):not(.is-opening):not(.is-shuffling):hover,
+#openPackMotion.is-hovered:not(.is-loading):not(.is-opening):not(.is-shuffling) {
+  animation: none;
+  transform: translateY(-5px) scale(1.008);
+  filter: saturate(1.028) brightness(1.016);
 }
 
-#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-foil,
-#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-foil {
+#openPackMotion:not(.is-loading):not(.is-opening):not(.is-shuffling):hover .pack-foil,
+#openPackMotion.is-hovered:not(.is-loading):not(.is-opening):not(.is-shuffling) .pack-foil {
   opacity: calc(var(--pack-foil-static-opacity, 0.18) + 0.08);
 }
 
-#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-glint,
-#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-glint {
+#openPackMotion:not(.is-loading):not(.is-opening):not(.is-shuffling):hover .pack-glint,
+#openPackMotion.is-hovered:not(.is-loading):not(.is-opening):not(.is-shuffling) .pack-glint {
   opacity: 0.09;
 }
 
-#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):hover .pack-glow,
-#openPackButton:not(.is-loading):not(.opening):not(.is-shuffling):focus-visible .pack-glow {
+#openPackMotion:not(.is-loading):not(.is-opening):not(.is-shuffling):hover .pack-glow,
+#openPackMotion.is-hovered:not(.is-loading):not(.is-opening):not(.is-shuffling) .pack-glow {
   opacity: 0.24;
+}
+
+#openPackMotion:not(.is-loading):not(.is-opening):not(.is-shuffling) .pack-glow {
+  animation: packIdleGlow 4.8s ease-in-out infinite;
 }
 
 .pack-art-wrap {
@@ -1125,8 +1133,10 @@ button, a, select { font: inherit; }
   opacity: 0.36;
 }
 
-.pack.opening { animation: none; }
-.pack.is-shuffling {
+.pack.opening,
+.pack.is-shuffling { animation: none; }
+
+.pull-pack-motion.is-shuffling {
   animation: packBurst 860ms cubic-bezier(.18,.88,.24,1) forwards;
 }
 
@@ -1457,21 +1467,17 @@ button, a, select { font: inherit; }
   animation: packTearLine 320ms cubic-bezier(.18,.24,.14,1) forwards;
 }
 
-.pack.opening .pack-title,
-.pack.opening .pack-sub,
-.pack.opening .pack-tier,
-.pack.opening .pack-card-count,
+.pack.opening .pack-copy,
+.pack.opening .pack-art-wrap,
 .pack.opening .pack-top-seal,
 .pack.opening .pack-spine,
 .pack.opening .pack-twinkle,
-.pack.is-shuffling .pack-title,
-.pack.is-shuffling .pack-sub,
-.pack.is-shuffling .pack-tier,
-.pack.is-shuffling .pack-card-count,
+.pack.is-shuffling .pack-copy,
+.pack.is-shuffling .pack-art-wrap,
 .pack.is-shuffling .pack-top-seal,
 .pack.is-shuffling .pack-spine,
 .pack.is-shuffling .pack-twinkle {
-  animation: packBodyFade 700ms ease-out forwards;
+  animation: packBodyFade 760ms ease-out 100ms forwards;
 }
 
 .pack.opening .pack-foil,
@@ -1482,7 +1488,7 @@ button, a, select { font: inherit; }
 .pack.is-shuffling .pack-glow,
 .pack.is-shuffling .pack-glint,
 .pack.is-shuffling .pack-grain {
-  animation: packSurfaceFade 170ms ease-out forwards;
+  animation: packSurfaceFade 700ms ease-out 160ms forwards;
 }
 
 .pack.has-loaded-shape:not(.opening):not(.is-shuffling) .pack-foil,
@@ -1511,7 +1517,7 @@ button, a, select { font: inherit; }
 
 .pack.opening::after,
 .pack.is-shuffling::after {
-  animation: packBodyFade 700ms ease-out forwards;
+  animation: packBodyFade 760ms ease-out 100ms forwards;
 }
 
 .status-line {
@@ -3225,21 +3231,27 @@ button, a, select { font: inherit; }
 }
 
 @keyframes packBurst {
-  0% { transform: scale(1.01) translateY(-2px); filter: saturate(1.04) brightness(1.01); }
-  22% { transform: scale(0.96) translateY(3px); filter: saturate(1.02); }
-  54% { transform: scale(1.07) translateY(-10px); filter: saturate(1.15); }
-  78% { transform: scale(1.01) translateY(-2px); }
-  100% { transform: scale(1) translateY(0); filter: saturate(1.12); }
+  0% { transform: translateY(-3px) scale(1.006); filter: saturate(1.024) brightness(1.014); }
+  18% { transform: translateY(2px) scale(0.972); filter: saturate(1.018) brightness(1.008); }
+  52% { transform: translateY(-8px) scale(1.036); filter: saturate(1.09) brightness(1.026); }
+  76% { transform: translateY(-2px) scale(1.012); filter: saturate(1.07) brightness(1.016); }
+  100% { transform: translateY(0) scale(1); filter: saturate(1.04) brightness(1.008); }
 }
 
 @keyframes packHover {
   0%, 100% { transform: translateY(0) rotate(-0.08deg) scale(1); }
-  50% { transform: translateY(-1.8px) rotate(0.08deg) scale(1.002); }
+  50% { transform: translateY(-4px) rotate(0.08deg) scale(1.006); }
 }
 
-@keyframes packHoverTranslate {
-  0%, 100% { translate: 0 0; }
-  50% { translate: 0 -1.5px; }
+@keyframes packIdleGlow {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.22;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.035);
+    opacity: 0.3;
+  }
 }
 
 @keyframes packGlowPulse {
@@ -3327,7 +3339,7 @@ button, a, select { font: inherit; }
 }
 
 @keyframes packBodyFade {
-  0%, 58% {
+  0%, 66% {
     opacity: 1;
   }
   100% {
@@ -3866,7 +3878,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-143</div>
+  <div class="sub">Build: logic-sync-146</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -4432,7 +4444,7 @@ button, a, select { font: inherit; }
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-143';
+  const BUILD_ID = 'logic-sync-146';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -7950,12 +7962,14 @@ button, a, select { font: inherit; }
       + '<div class="status-line' + (isPoolLoading ? ' is-loading' : '') + '">' + escapeHtml(artworkStatus) + '</div>'
       + '</div>'
       + '<div class="pull-center-stage">'
+      + '<div id="openPackMotion" class="pull-pack-motion' + (isPoolLoading ? ' is-loading' : '') + '">'
       + buildPackFaceMarkup(currentPackTheme, {
         id: 'openPackButton',
         extraClasses: loadingClass.trim(),
         disabled: isPoolLoading,
         buttonLike: !isPoolLoading
       })
+      + '</div>'
       + '</div>'
       + '<div class="pull-bottom-stage"><div class="pull-bottom-placeholder" aria-hidden="true"></div></div>'
       + '</div>';
@@ -8026,10 +8040,12 @@ button, a, select { font: inherit; }
       + '<div class="status-line is-loading">' + escapeHtml(statusText || 'Loading your reward pack...') + '</div>'
       + '</div>'
       + '<div class="pull-center-stage">'
+      + '<div id="rewardOpenPackMotion" class="pull-pack-motion is-loading">'
       + buildPackFaceMarkup(resolvedThemeKey, {
         id: 'rewardOpenPackFace',
         extraClasses: 'is-loading'
       })
+      + '</div>'
       + '</div>'
       + '<div class="pull-bottom-stage"><div class="pull-bottom-placeholder" aria-hidden="true"></div></div>'
       + '</div>';
@@ -8051,6 +8067,7 @@ button, a, select { font: inherit; }
 
     pullArea.innerHTML = buildPackMarkup();
     const button = document.getElementById('openPackButton');
+    const motion = document.getElementById('openPackMotion');
     if (isPoolLoading) return;
     button.addEventListener('click', openPack);
     button.addEventListener('keydown', function (event) {
@@ -8059,6 +8076,20 @@ button, a, select { font: inherit; }
         openPack();
       }
     });
+    if (motion) {
+      button.addEventListener('mouseenter', function () {
+        motion.classList.add('is-hovered');
+      });
+      button.addEventListener('mouseleave', function () {
+        motion.classList.remove('is-hovered');
+      });
+      button.addEventListener('focus', function () {
+        motion.classList.add('is-hovered');
+      });
+      button.addEventListener('blur', function () {
+        motion.classList.remove('is-hovered');
+      });
+    }
   }
 
   async function restorePoolAfterReward() {
@@ -8700,9 +8731,16 @@ button, a, select { font: inherit; }
     if (isOpeningPack || isPoolLoading) return;
     isOpeningPack = true;
     const currentPack = openOptions.openingElement || document.getElementById('openPackButton');
+    const currentPackMotion = currentPack && currentPack.parentElement && currentPack.parentElement.classList.contains('pull-pack-motion')
+      ? currentPack.parentElement
+      : null;
     const statusLineTarget = openOptions.statusElement || pullArea.querySelector('.status-line');
     if (currentPack) {
       currentPack.classList.add('is-loading');
+      if (currentPackMotion) {
+        currentPackMotion.classList.add('is-loading');
+        currentPackMotion.classList.remove('is-hovered');
+      }
       if (statusLineTarget) {
         statusLineTarget.textContent = hasOwnedPack
           ? ('Opening owned ' + ownedPackLabel(ownedPack) + '...')
@@ -8789,6 +8827,12 @@ button, a, select { font: inherit; }
       if (currentPack) {
         currentPack.classList.remove('is-loading');
         applyPackCueToElement(currentPack, draftedPack);
+        if (currentPackMotion) {
+          currentPackMotion.classList.remove('is-loading');
+          currentPackMotion.classList.remove('is-hovered');
+          currentPackMotion.classList.add('is-opening');
+          currentPackMotion.classList.add('is-shuffling');
+        }
         currentPack.classList.add('opening');
         currentPack.classList.add('is-shuffling');
       }
@@ -8828,6 +8872,12 @@ button, a, select { font: inherit; }
         currentPack.classList.remove('is-loading');
         currentPack.classList.remove('opening');
         currentPack.classList.remove('is-shuffling');
+        if (currentPackMotion) {
+          currentPackMotion.classList.remove('is-loading');
+          currentPackMotion.classList.remove('is-opening');
+          currentPackMotion.classList.remove('is-shuffling');
+          currentPackMotion.classList.remove('is-hovered');
+        }
       }
       isOpeningPack = false;
     }
