@@ -3766,6 +3766,7 @@ body.pack-opening-focus .pull-center-stage {
     justify-content: flex-start;
     gap: 18px;
     padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    overflow: visible;
   }
   .page {
     padding: 14px 12px 18px;
@@ -3915,9 +3916,10 @@ body.pack-opening-focus .pull-center-stage {
   .pull-open-shell {
     gap: 14px;
     padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    overflow: visible;
   }
   .pull-open-shell.is-stage {
-    grid-template-rows: auto minmax(494px, auto) 66px;
+    grid-template-rows: auto minmax(526px, auto) 66px;
     gap: 14px;
     padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px));
   }
@@ -3935,8 +3937,22 @@ body.pack-opening-focus .pull-center-stage {
     min-height: 28px;
   }
   .pull-center-stage {
-    min-height: 494px;
-    padding: 18px 0 28px;
+    min-height: 526px;
+    padding: 20px 0 34px;
+    overflow: visible;
+  }
+  #openPackMotion .pull-pack-idle,
+  #rewardOpenPackMotion .pull-pack-idle {
+    padding: 18px 0 22px;
+  }
+  .pull-pack-motion {
+    transition-duration: 280ms;
+  }
+  .pull-pack-motion.is-reward-settling {
+    animation-duration: 210ms;
+  }
+  .pull-pack-motion.is-shuffling {
+    animation-duration: 780ms;
   }
   .pull-bottom-stage {
     min-height: 66px;
@@ -3964,6 +3980,7 @@ body.pack-opening-focus .pull-center-stage {
     display: grid;
     justify-items: center;
     align-content: start;
+    transition-duration: 260ms;
   }
   .reward-pack-option .pack {
     width: min(188px, calc(50vw - 24px));
@@ -4033,28 +4050,29 @@ body.pack-opening-focus .pull-center-stage {
     transform: translateY(-1px) scale(1.005);
   }
   .reward-pack-option.is-selected {
-    transform: translateY(2px) scale(1.04);
+    transform: translateY(1px) scale(1.026);
     z-index: 4;
   }
   .reward-pack-option.is-selected.is-committing {
-    transform: translateX(var(--reward-commit-x)) translateY(var(--reward-commit-y)) scale(1.48);
+    transform: translateX(var(--reward-commit-x)) translateY(var(--reward-commit-y)) scale(1.34);
     z-index: 6;
   }
   .reward-pack-option.is-dismissed.is-left {
     opacity: 0;
-    transform: translateX(-28px) translateY(18px) scale(0.94);
+    transform: translateX(-18px) translateY(12px) scale(0.95);
   }
   .reward-pack-option.is-dismissed.is-right {
     opacity: 0;
-    transform: translateX(28px) translateY(18px) scale(0.94);
+    transform: translateX(18px) translateY(12px) scale(0.95);
   }
   .reward-pack-caption {
     display: none;
   }
   .carousel-wrap {
-    grid-template-rows: auto 462px 66px;
-    gap: 14px;
+    grid-template-rows: auto minmax(476px, auto) 66px;
+    gap: 12px;
     padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px));
+    overflow: visible;
   }
   .carousel-top-rail {
     gap: 6px;
@@ -4067,7 +4085,8 @@ body.pack-opening-focus .pull-center-stage {
     min-height: 28px;
   }
   .overlap-stack {
-    min-height: 462px;
+    min-height: 476px;
+    overflow: visible;
   }
   .overlap-ghost.is-left-2, .overlap-ghost.is-right-2 { display: none; }
   .overlap-ghost.is-left-1 { transform: translateX(-28px) translateY(8px) rotate(-1.5deg); }
@@ -4077,6 +4096,44 @@ body.pack-opening-focus .pull-center-stage {
   .peel-card-wrap {
     width: min(286px, calc(100vw - 104px));
     height: calc(min(286px, calc(100vw - 104px)) * 1.4333);
+  }
+  .carousel-wrap.is-fresh-reveal .overlap-stack::before {
+    animation-duration: 560ms;
+    animation-delay: 90ms;
+  }
+  .carousel-wrap.is-fresh-reveal .overlap-ghost.is-left-2 {
+    animation-duration: 400ms;
+    animation-delay: 0ms;
+  }
+  .carousel-wrap.is-fresh-reveal .overlap-ghost.is-left-1 {
+    animation-duration: 420ms;
+    animation-delay: 60ms;
+  }
+  .carousel-wrap.is-fresh-reveal .overlap-ghost.is-right-2 {
+    animation-duration: 400ms;
+    animation-delay: 24ms;
+  }
+  .carousel-wrap.is-fresh-reveal .overlap-ghost.is-right-1 {
+    animation-duration: 420ms;
+    animation-delay: 84ms;
+  }
+  .carousel-wrap.is-fresh-reveal .overlap-count,
+  .carousel-wrap.is-fresh-reveal .stack-arrow.is-left,
+  .carousel-wrap.is-fresh-reveal .stack-arrow.is-right {
+    animation-duration: 220ms;
+    animation-delay: 190ms;
+  }
+  .carousel-wrap.is-fresh-reveal .peel-card-wrap {
+    animation-duration: 500ms;
+    animation-delay: 120ms;
+  }
+  .peel-card-wrap.is-peeling-out-next,
+  .peel-card-wrap.is-peeling-out-prev {
+    animation-duration: 180ms;
+  }
+  .peel-card-wrap.is-peeling-in-next,
+  .peel-card-wrap.is-peeling-in-prev {
+    animation-duration: 220ms;
   }
   .overlap-ghost-rarity {
     width: 28px;
@@ -4221,7 +4278,7 @@ body.pack-opening-focus .pull-center-stage {
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-156</div>
+  <div class="sub">Build: logic-sync-157</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -4788,7 +4845,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-156';
+  const BUILD_ID = 'logic-sync-157';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -4942,6 +4999,13 @@ body.pack-opening-focus .pull-center-stage {
   const PACK_OPEN_REFRESH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 3600 : 7600;
   const PERSON_INSERT_FETCH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 4600 : 7200;
   const PERSON_BIO_FETCH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 1000 : 2600;
+  const REWARD_CHOICE_PREVIEW_DELAY_MS = IS_MOBILE_RUNTIME ? 60 : 80;
+  const REWARD_CHOICE_OPENING_DELAY_MS = IS_MOBILE_RUNTIME ? 84 : 110;
+  const PACK_OPEN_REEL_SETTLE_MS = IS_MOBILE_RUNTIME ? 28 : 56;
+  const PACK_OPEN_BURST_MS = IS_MOBILE_RUNTIME ? 780 : 860;
+  const CAROUSEL_PEEL_IN_CLEANUP_MS = IS_MOBILE_RUNTIME ? 220 : 250;
+  const CAROUSEL_PEEL_OUT_SWITCH_MS = IS_MOBILE_RUNTIME ? 150 : 170;
+  const CAROUSEL_PEEL_UNLOCK_MS = IS_MOBILE_RUNTIME ? 220 : 250;
   const MOBILE_POOL_LIMIT = 860;
   const MOBILE_PACK_REFRESH_SAMPLE = 620;
   const DAILY_HUNT_COUNT = 3;
@@ -8789,7 +8853,7 @@ body.pack-opening-focus .pull-center-stage {
     }
     keepViewport();
 
-    await new Promise(function (resolve) { setTimeout(resolve, 80); });
+    await new Promise(function (resolve) { setTimeout(resolve, REWARD_CHOICE_PREVIEW_DELAY_MS); });
     keepViewport();
 
     const selectedPackFace = selectedButton ? selectedButton.querySelector('.pack') : null;
@@ -8802,7 +8866,7 @@ body.pack-opening-focus .pull-center-stage {
     }
     keepViewport();
 
-    await new Promise(function (resolve) { setTimeout(resolve, 110); });
+    await new Promise(function (resolve) { setTimeout(resolve, REWARD_CHOICE_OPENING_DELAY_MS); });
     keepViewport();
 
     if (statusLine) {
@@ -8858,7 +8922,7 @@ body.pack-opening-focus .pull-center-stage {
         rewardOpenPackFace.classList.add('opening');
         rewardOpenPackFace.classList.add('is-shuffling');
       }
-      await new Promise(function (resolve) { setTimeout(resolve, 860); });
+      await new Promise(function (resolve) { setTimeout(resolve, PACK_OPEN_BURST_MS); });
       keepViewport();
       await finalizePackOpen(draftedPack, {
         themeKey: currentPackTheme,
@@ -9438,7 +9502,7 @@ body.pack-opening-focus .pull-center-stage {
       }
 
       if (shouldRefreshReel) {
-        await new Promise(function (resolve) { setTimeout(resolve, 56); });
+        await new Promise(function (resolve) { setTimeout(resolve, PACK_OPEN_REEL_SETTLE_MS); });
       }
       let openPool = getPackPool(packThemeForOpen);
       let forcedRefreshOk = true;
@@ -9489,7 +9553,7 @@ body.pack-opening-focus .pull-center-stage {
         currentPack.classList.add('is-shuffling');
       }
 
-      await new Promise(function (resolve) { setTimeout(resolve, 860); });
+      await new Promise(function (resolve) { setTimeout(resolve, PACK_OPEN_BURST_MS); });
 
       openedPackCards = await finalizePackOpen(draftedPack, {
         revealCarousel: revealCarousel,
@@ -9682,7 +9746,7 @@ body.pack-opening-focus .pull-center-stage {
     setTimeout(function () {
       peelWrap.classList.remove('is-peeling-in-next');
       peelWrap.classList.remove('is-peeling-in-prev');
-    }, 250);
+    }, CAROUSEL_PEEL_IN_CLEANUP_MS);
   }
 
   function animateToCard(direction) {
@@ -9700,8 +9764,8 @@ body.pack-opening-focus .pull-center-stage {
         ? (index + 1) % pack.length
         : (index - 1 + pack.length) % pack.length;
       renderCarousel();
-      setTimeout(function () { isAnimatingPeel = false; }, 250);
-    }, 170);
+      setTimeout(function () { isAnimatingPeel = false; }, CAROUSEL_PEEL_UNLOCK_MS);
+    }, CAROUSEL_PEEL_OUT_SWITCH_MS);
   }
 
   function nextCard() { animateToCard('next'); }
