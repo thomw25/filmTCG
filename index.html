@@ -1275,6 +1275,19 @@ button, a, select { font: inherit; }
   z-index: 0;
 }
 
+.pack-reveal-flash {
+  position: absolute;
+  inset: 10% 12% 11%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 48%, var(--pack-reveal-core, rgba(255,255,255,.26)) 0%, var(--pack-reveal-soft, rgba(255,255,255,.08)) 32%, transparent 72%);
+  opacity: 0;
+  transform: scale(0.72);
+  filter: blur(20px);
+  pointer-events: none;
+  z-index: 1;
+}
+
 .pack-glint {
   inset: 0;
   background:
@@ -1491,13 +1504,20 @@ button, a, select { font: inherit; }
 
 .pack.opening .pack-foil,
 .pack.opening .pack-glow,
+.pack.opening .pack-reveal-flash,
 .pack.opening .pack-glint,
 .pack.opening .pack-grain,
 .pack.is-shuffling .pack-foil,
 .pack.is-shuffling .pack-glow,
+.pack.is-shuffling .pack-reveal-flash,
 .pack.is-shuffling .pack-glint,
 .pack.is-shuffling .pack-grain {
   animation: packSurfaceFade 700ms ease-out 160ms forwards;
+}
+
+.pack.opening .pack-reveal-flash,
+.pack.is-shuffling .pack-reveal-flash {
+  animation: packRevealFlash 560ms cubic-bezier(.18,.78,.22,1) 120ms forwards;
 }
 
 .pack.has-loaded-shape:not(.opening):not(.is-shuffling) .pack-foil,
@@ -1841,6 +1861,51 @@ button, a, select { font: inherit; }
 .overlap-ghost.is-right-1 { transform: translateX(34px) translateY(6px) rotate(2deg); }
 .overlap-ghost.is-right-2 { transform: translateX(58px) translateY(12px) rotate(4deg); }
 
+.carousel-wrap.is-fresh-reveal .overlap-stack::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 320px;
+  height: 320px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%) scale(0.72);
+  background: radial-gradient(circle, var(--reveal-accent, rgba(255,255,255,.22)) 0%, transparent 72%);
+  filter: blur(26px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+  animation: freshRevealAura 520ms ease-out 80ms forwards;
+}
+
+.carousel-wrap.is-fresh-reveal .overlap-ghost.is-left-2 {
+  animation: freshGhostInLeft2 360ms cubic-bezier(.22,.88,.22,1) 20ms both;
+}
+
+.carousel-wrap.is-fresh-reveal .overlap-ghost.is-left-1 {
+  animation: freshGhostInLeft1 360ms cubic-bezier(.22,.88,.22,1) 70ms both;
+}
+
+.carousel-wrap.is-fresh-reveal .overlap-ghost.is-right-2 {
+  animation: freshGhostInRight2 360ms cubic-bezier(.22,.88,.22,1) 40ms both;
+}
+
+.carousel-wrap.is-fresh-reveal .overlap-ghost.is-right-1 {
+  animation: freshGhostInRight1 360ms cubic-bezier(.22,.88,.22,1) 90ms both;
+}
+
+.carousel-wrap.is-fresh-reveal .overlap-count {
+  animation: freshChromeIn 280ms ease-out 180ms both;
+}
+
+.carousel-wrap.is-fresh-reveal .stack-arrow.is-left {
+  animation: freshArrowInLeft 280ms ease-out 180ms both;
+}
+
+.carousel-wrap.is-fresh-reveal .stack-arrow.is-right {
+  animation: freshArrowInRight 280ms ease-out 180ms both;
+}
+
 .overlap-count {
   position: absolute;
   right: 12px;
@@ -1914,6 +1979,10 @@ button, a, select { font: inherit; }
 .peel-card-wrap.is-peeling-out-prev { animation: peelOutPrev 280ms ease forwards; }
 .peel-card-wrap.is-peeling-in-next { animation: peelInNext 320ms ease forwards; }
 .peel-card-wrap.is-peeling-in-prev { animation: peelInPrev 320ms ease forwards; }
+
+.carousel-wrap.is-fresh-reveal .peel-card-wrap {
+  animation: freshLeadCardIn 460ms cubic-bezier(.18,.88,.22,1) 120ms both;
+}
 
 .stack-arrow {
   position: absolute;
@@ -2672,6 +2741,7 @@ button, a, select { font: inherit; }
   flex: 0 0 auto;
   overflow: visible;
   border-radius: 0;
+  isolation: isolate;
 }
 
 .showcase-card-preview {
@@ -2729,6 +2799,69 @@ button, a, select { font: inherit; }
 .collection-card-preview .showcase-btn,
 .showcase-card-preview .showcase-btn {
   display: none;
+}
+
+.collection-preview-flags {
+  position: absolute;
+  top: 8px;
+  z-index: 5;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: calc(100% - 14px);
+  pointer-events: none;
+}
+
+.collection-preview-flags.is-left {
+  left: 7px;
+  justify-content: flex-start;
+}
+
+.collection-preview-flags.is-right {
+  right: 7px;
+  justify-content: flex-end;
+}
+
+.collection-preview-flag {
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11,14,20,.82);
+  border: 1px solid rgba(255,255,255,.14);
+  color: rgba(255,255,255,.9);
+  box-shadow: 0 8px 18px rgba(0,0,0,.22);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.collection-preview-flag.is-new {
+  background: rgba(56,189,248,.18);
+  border-color: rgba(125,211,252,.34);
+  color: #d9f6ff;
+}
+
+.collection-preview-flag.is-showcase {
+  background: rgba(250,204,21,.16);
+  border-color: rgba(253,224,71,.3);
+  color: #fff0a8;
+}
+
+.collection-preview-flag.is-duplicate {
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.88);
+}
+
+.collection-preview-flag.is-trade {
+  background: rgba(168,85,247,.16);
+  border-color: rgba(216,180,254,.3);
+  color: #f3ddff;
 }
 
 .lb-badge {
@@ -3000,6 +3133,40 @@ button, a, select { font: inherit; }
   white-space: nowrap;
 }
 
+.collection-inline-flag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.84);
+}
+
+.collection-inline-flag.is-new {
+  background: rgba(56,189,248,.14);
+  border-color: rgba(125,211,252,.28);
+  color: #d9f6ff;
+}
+
+.collection-inline-flag.is-showcase {
+  background: rgba(250,204,21,.14);
+  border-color: rgba(253,224,71,.26);
+  color: #fff0a8;
+}
+
+.collection-inline-flag.is-trade {
+  background: rgba(168,85,247,.14);
+  border-color: rgba(216,180,254,.28);
+  color: #f3ddff;
+}
+
 .collection-list-actions {
   display: flex;
   justify-content: flex-end;
@@ -3263,6 +3430,25 @@ button, a, select { font: inherit; }
   }
 }
 
+@keyframes packRevealFlash {
+  0% {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+  28% {
+    opacity: 0.44;
+    transform: scale(0.98);
+  }
+  58% {
+    opacity: 0.22;
+    transform: scale(1.12);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.24);
+  }
+}
+
 @keyframes packGlowPulse {
   0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.34; }
   50% { transform: translateX(-50%) scale(1.04); opacity: 0.48; }
@@ -3425,6 +3611,88 @@ button, a, select { font: inherit; }
 @keyframes peelInPrev {
   0% { transform: translateX(-52px) translateY(6px) rotate(-5deg) scale(0.985); opacity: 1; }
   100% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes freshRevealAura {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.72);
+  }
+  30% {
+    opacity: 0.28;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+}
+
+@keyframes freshGhostInLeft2 {
+  0% { opacity: 0; transform: translateX(-74px) translateY(24px) rotate(-7deg) scale(0.94); }
+  100% { opacity: 1; transform: translateX(-58px) translateY(12px) rotate(-4deg) scale(1); }
+}
+
+@keyframes freshGhostInLeft1 {
+  0% { opacity: 0; transform: translateX(-52px) translateY(18px) rotate(-4deg) scale(0.96); }
+  100% { opacity: 1; transform: translateX(-34px) translateY(6px) rotate(-2deg) scale(1); }
+}
+
+@keyframes freshGhostInRight2 {
+  0% { opacity: 0; transform: translateX(74px) translateY(24px) rotate(7deg) scale(0.94); }
+  100% { opacity: 1; transform: translateX(58px) translateY(12px) rotate(4deg) scale(1); }
+}
+
+@keyframes freshGhostInRight1 {
+  0% { opacity: 0; transform: translateX(52px) translateY(18px) rotate(4deg) scale(0.96); }
+  100% { opacity: 1; transform: translateX(34px) translateY(6px) rotate(2deg) scale(1); }
+}
+
+@keyframes freshLeadCardIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  42% {
+    opacity: 1;
+    transform: translateY(-7px) scale(1.016);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes freshChromeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes freshArrowInLeft {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-10px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0) scale(1);
+  }
+}
+
+@keyframes freshArrowInRight {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(10px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0) scale(1);
+  }
 }
 
 @media (max-width: 780px) {
@@ -3887,7 +4155,7 @@ button, a, select { font: inherit; }
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-147</div>
+  <div class="sub">Build: logic-sync-148</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -3955,9 +4223,10 @@ button, a, select { font: inherit; }
           <button id="collectionViewGrid" type="button">Grid</button>
         </div>
         <select id="collectionSort" class="filter-select">
-          <option value="recent">Sort: Recent</option>
+          <option value="recent">Sort: Newest</option>
           <option value="rarity">Sort: Rarity</option>
-          <option value="title">Sort: Title</option>
+          <option value="title">Sort: A-Z</option>
+          <option value="duplicates">Sort: Duplicates</option>
         </select>
         <select id="collectionFilter" class="filter-select">
           <option value="all">Filter: All</option>
@@ -4453,7 +4722,7 @@ button, a, select { font: inherit; }
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-147';
+  const BUILD_ID = 'logic-sync-148';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -4667,10 +4936,12 @@ button, a, select { font: inherit; }
   let selectedPackMode = 'all-packs';
   let currentPackTheme = 'all';
   let selectedOwnedPackId = '';
-  let collectionSort = 'recent';
+  let collectionSort = loadCollectionSort();
   let collectionFilter = 'all';
   let collectionView = loadCollectionView();
   let collectionSearch = '';
+  let freshCollectionKeys = loadFreshCollectionKeys();
+  let collectionFreshDirty = false;
   let isAnimatingPeel = false;
   let isOpeningPack = false;
   let isPoolLoading = true;
@@ -4685,6 +4956,7 @@ button, a, select { font: inherit; }
   let activeReelThemeKey = null;
   let activeReelSeenTitles = new Set();
   let lastPeelDirection = 'next';
+  let animateFreshReveal = false;
   let shopRenderVersion = 0;
   const artCache = new Map();
   const personKnownForCache = new Map();
@@ -4951,6 +5223,72 @@ button, a, select { font: inherit; }
       localStorage.setItem('filmtcg.collectionView', collectionView);
     } catch (error) {
     }
+  }
+
+  function loadCollectionSort() {
+    try {
+      const stored = String(localStorage.getItem('filmtcg.collectionSort') || '').toLowerCase();
+      return ['recent', 'rarity', 'title', 'duplicates'].indexOf(stored) !== -1 ? stored : 'recent';
+    } catch (error) {
+      return 'recent';
+    }
+  }
+
+  function saveCollectionSort() {
+    try {
+      localStorage.setItem('filmtcg.collectionSort', collectionSort);
+    } catch (error) {
+    }
+  }
+
+  function loadFreshCollectionKeys() {
+    try {
+      const stored = JSON.parse(localStorage.getItem('filmtcg.freshCollectionKeys') || '[]');
+      return Array.isArray(stored)
+        ? stored.filter(function (key) { return typeof key === 'string' && key.trim(); }).slice(0, 120)
+        : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveFreshCollectionKeys() {
+    try {
+      localStorage.setItem('filmtcg.freshCollectionKeys', JSON.stringify(freshCollectionKeys.slice(0, 120)));
+    } catch (error) {
+    }
+  }
+
+  function isFreshCollectionCard(card) {
+    const key = cardKey(card);
+    return key ? freshCollectionKeys.indexOf(key) !== -1 : false;
+  }
+
+  function markFreshCollectionCardSeen(card) {
+    const key = typeof card === 'string' ? card : cardKey(card);
+    const index = key ? freshCollectionKeys.indexOf(key) : -1;
+    if (index === -1) return;
+    freshCollectionKeys.splice(index, 1);
+    collectionFreshDirty = true;
+    saveFreshCollectionKeys();
+  }
+
+  function rememberFreshCollectionCards(cards, collectionKeysBefore) {
+    const existingKeys = collectionKeysBefore instanceof Set ? collectionKeysBefore : new Set();
+    let changed = false;
+    (Array.isArray(cards) ? cards : []).forEach(function (card) {
+      const key = cardKey(card);
+      if (!key || existingKeys.has(key)) return;
+      if (freshCollectionKeys.indexOf(key) === -1) {
+        freshCollectionKeys.unshift(key);
+        changed = true;
+      }
+    });
+    if (!changed) return;
+    freshCollectionKeys = freshCollectionKeys.filter(function (key, index, items) {
+      return items.indexOf(key) === index;
+    }).slice(0, 120);
+    saveFreshCollectionKeys();
   }
 
   function aggregateCollectionEntries(cards) {
@@ -6880,6 +7218,47 @@ button, a, select { font: inherit; }
     return card.directorName ? ('Dir. ' + card.directorName) : 'Dir. Unknown';
   }
 
+  function duplicateTicketValueForEntry(duplicateCount, rarity) {
+    const extraCount = Math.max(0, Number(duplicateCount) - 1);
+    if (!extraCount) return 0;
+    return extraCount * (Number(DUPLICATE_TRADE_VALUES[normalizeRarityLabel(rarity)]) || 0);
+  }
+
+  function buildCollectionInlineFlags(card, duplicateCount) {
+    const flags = [];
+    if (isFreshCollectionCard(card)) {
+      flags.push('<span class="collection-inline-flag is-new">New</span>');
+    }
+    if (isInShowcase(card)) {
+      flags.push('<span class="collection-inline-flag is-showcase">Top 4</span>');
+    }
+    const duplicateValue = duplicateTicketValueForEntry(duplicateCount, card && card.rarity);
+    if (duplicateValue > 0) {
+      flags.push('<span class="collection-inline-flag is-trade">+' + escapeHtml(String(duplicateValue)) + 'T</span>');
+    }
+    return flags.join('');
+  }
+
+  function buildCollectionPreviewFlags(card, duplicateCount) {
+    const left = [];
+    const right = [];
+    if (isFreshCollectionCard(card)) {
+      left.push('<span class="collection-preview-flag is-new">New</span>');
+    }
+    if (isInShowcase(card)) {
+      left.push('<span class="collection-preview-flag is-showcase">Top 4</span>');
+    }
+    if (Number(duplicateCount) > 1) {
+      right.push('<span class="collection-preview-flag is-duplicate">x' + escapeHtml(String(duplicateCount)) + '</span>');
+    }
+    const duplicateValue = duplicateTicketValueForEntry(duplicateCount, card && card.rarity);
+    if (duplicateValue > 0) {
+      right.push('<span class="collection-preview-flag is-trade">+' + escapeHtml(String(duplicateValue)) + 'T</span>');
+    }
+    return (left.length ? '<div class="collection-preview-flags is-left">' + left.join('') + '</div>' : '')
+      + (right.length ? '<div class="collection-preview-flags is-right">' + right.join('') + '</div>' : '');
+  }
+
   function buildCollectionKindMarkup(card, duplicateCount) {
     const iconClass = card.cardType === 'person' ? 'is-person' : 'is-film';
     const inlineMeta = card.cardType === 'film'
@@ -6890,7 +7269,7 @@ button, a, select { font: inherit; }
     const duplicateMarkup = Number(duplicateCount) > 1
       ? '<span class="collection-inline-count">x' + escapeHtml(String(duplicateCount)) + '</span>'
       : '';
-    return '<div class="collection-kind"><span class="collection-kind-icon ' + iconClass + '" aria-hidden="true"></span><span class="collection-titleline"><span class="collection-list-title">' + escapeHtml(card.title) + '</span>' + inlineMeta + duplicateMarkup + '</span></div>';
+    return '<div class="collection-kind"><span class="collection-kind-icon ' + iconClass + '" aria-hidden="true"></span><span class="collection-titleline"><span class="collection-list-title">' + escapeHtml(card.title) + '</span>' + inlineMeta + duplicateMarkup + buildCollectionInlineFlags(card, duplicateCount) + '</span></div>';
   }
 
   function matchesCollectionSearch(card) {
@@ -7683,6 +8062,7 @@ button, a, select { font: inherit; }
       + '<div class="pack-top-seal"></div>'
       + '<div class="pack-spine"></div>'
       + '<div class="pack-glow"></div>'
+      + '<div class="pack-reveal-flash"></div>'
       + '<div class="pack-glint"></div>'
       + '<div class="pack-grain"></div>'
       + '<div class="pack-twinkle"></div>'
@@ -8584,6 +8964,8 @@ button, a, select { font: inherit; }
     element.style.setProperty('--pack-tear-core-strong', palette.strong);
     element.style.setProperty('--pack-tear-soft', palette.soft);
     element.style.setProperty('--pack-tear-glow', palette.glow);
+    element.style.setProperty('--pack-reveal-core', palette.glow);
+    element.style.setProperty('--pack-reveal-soft', palette.soft);
   }
 
   function buildDraftPack(pool, options) {
@@ -8920,6 +9302,7 @@ button, a, select { font: inherit; }
     applyDailyHuntsFromPack(resolvedPack, collectionKeysBefore, {
       themeKey: finalizeOptions.themeKey || currentPackTheme
     });
+    rememberFreshCollectionCards(resolvedPack, collectionKeysBefore);
     const isRewardPack = Boolean(finalizeOptions.isRewardPack);
     resolvedPack.forEach(function (card) {
       collection.unshift(card);
@@ -8970,6 +9353,7 @@ button, a, select { font: inherit; }
     if (!revealCarousel) return resolvedPack;
     pack = sortPackForReveal(resolvedPack);
     index = 0;
+    animateFreshReveal = true;
     try {
       renderCarousel();
     } catch (error) {
@@ -8986,7 +9370,10 @@ button, a, select { font: inherit; }
       return;
     }
 
+    const shouldFreshReveal = animateFreshReveal;
+    animateFreshReveal = false;
     const current = pack[index];
+    const revealAccent = rarityColor(highestRarityInCards(pack));
     try {
       preloadPackCards(pack, index);
     } catch (error) {
@@ -9005,7 +9392,7 @@ button, a, select { font: inherit; }
     if (remainingAfter > 1 && nextTwo) ghostMarkup += buildGhostMarkup('is-right-2', nextTwo);
     if (remainingAfter > 0 && nextOne) ghostMarkup += buildGhostMarkup('is-right-1', nextOne);
 
-    pullArea.innerHTML = '<div class="carousel-wrap">'
+    pullArea.innerHTML = '<div class="carousel-wrap' + (shouldFreshReveal ? ' is-fresh-reveal' : '') + '" style="--reveal-accent:' + escapeHtml(revealAccent) + ';">'
       + '<div class="carousel-top-rail">'
       + '<div class="progress">Card ' + (index + 1) + ' of ' + pack.length + ' · ' + escapeHtml(dataSourceLabel) + '</div>'
       + buildPackHookMarkup()
@@ -9061,6 +9448,7 @@ button, a, select { font: inherit; }
   function prevCard() { animateToCard('prev'); }
 
   function openCollectionModal(movie) {
+    markFreshCollectionCardSeen(movie);
     if (movie.cardType === 'person') {
       modalBody.innerHTML = '<div class="modal-grid">'
         + '<div><img class="modal-poster" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
@@ -9109,6 +9497,12 @@ button, a, select { font: inherit; }
   function closeCollectionModal() {
     cardModal.classList.remove('open');
     cardModal.setAttribute('aria-hidden', 'true');
+    if (collectionFreshDirty && collectionPage.classList.contains('active')) {
+      collectionFreshDirty = false;
+      renderCollection();
+      return;
+    }
+    collectionFreshDirty = false;
   }
 
   function renderCollection() {
@@ -9120,6 +9514,7 @@ button, a, select { font: inherit; }
     filtered.sort(function (a, b) {
       if (collectionSort === 'title') return a.card.title.localeCompare(b.card.title);
       if (collectionSort === 'rarity') return rarityRank(b.card.rarity) - rarityRank(a.card.rarity) || a.card.title.localeCompare(b.card.title);
+      if (collectionSort === 'duplicates') return b.count - a.count || rarityRank(b.card.rarity) - rarityRank(a.card.rarity) || a.card.title.localeCompare(b.card.title);
       return a.rawIndex - b.rawIndex;
     });
 
@@ -9166,7 +9561,7 @@ button, a, select { font: inherit; }
       collectionGrid.innerHTML = filtered.map(function (entry, filteredIndex) {
         const movie = entry.card;
         return '<div class="collection-card" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
-          + '<div class="collection-card-preview">' + buildShelfCardMarkup(movie) + '</div>'
+          + '<div class="collection-card-preview">' + buildShelfCardMarkup(movie) + buildCollectionPreviewFlags(movie, entry.count) + '</div>'
           + '<div class="collection-card-actions"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>' + buildDuplicateCountMarkup(entry.count) + '<span class="collection-card-actions-right">' + buildShowcaseButtonMarkup(movie) + buildBookmarkButtonMarkup(movie) + '</span></div>'
           + '</div>';
       }).join('');
@@ -9270,6 +9665,7 @@ button, a, select { font: inherit; }
     sortEl.value = collectionSort;
     sortEl.addEventListener('change', function (event) {
       collectionSort = event.target.value;
+      saveCollectionSort();
       renderCollection();
     });
 
