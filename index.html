@@ -3960,6 +3960,16 @@ body.pack-opening-focus .pull-center-stage {
     --pack-static-shape-scale: 1.28;
     --pack-fallback-shape-scale: 1.28;
   }
+  #openPackMotion .pack.is-loading .pack-shape-art,
+  #rewardOpenPackMotion .pack.is-loading .pack-shape-art,
+  #openPackMotion .pack.is-loading .pack-skin-art,
+  #rewardOpenPackMotion .pack.is-loading .pack-skin-art {
+    transform: scale(1) !important;
+  }
+  #openPackMotion .pack.is-loading .pack-title-art,
+  #rewardOpenPackMotion .pack.is-loading .pack-title-art {
+    transform: translate(var(--pack-title-art-x, 0), var(--pack-title-art-y, 0)) scale(calc(var(--pack-title-art-scale, 1.04) * 0.96));
+  }
   .pull-pack-motion {
     transition-duration: 280ms;
   }
@@ -4293,7 +4303,7 @@ body.pack-opening-focus .pull-center-stage {
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-160</div>
+  <div class="sub">Build: logic-sync-161</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -4860,7 +4870,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-160';
+  const BUILD_ID = 'logic-sync-161';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
