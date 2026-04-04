@@ -3765,6 +3765,10 @@ body.pack-opening-focus .pull-center-stage {
     0%, 100% { transform: translateY(0) rotate(-0.05deg) scale(1); }
     50% { transform: translateY(-3px) rotate(0.05deg) scale(1.004); }
   }
+  @keyframes packLoadingFloatMobile {
+    0%, 100% { top: 0; }
+    50% { top: -4px; }
+  }
   .pack-area {
     min-height: 0;
     justify-content: flex-start;
@@ -3947,28 +3951,22 @@ body.pack-opening-focus .pull-center-stage {
   }
   #openPackMotion .pull-pack-idle,
   #rewardOpenPackMotion .pull-pack-idle {
-    padding: 24px 0 28px;
+    padding: 18px 0 22px;
     animation-name: packHoverMobile;
   }
   #openPackMotion .pack,
   #rewardOpenPackMotion .pack {
-    --pack-static-shape-scale: 1.34;
-    --pack-fallback-shape-scale: 1.34;
+    --pack-static-shape-scale: 1.48;
+    --pack-fallback-shape-scale: 1.48;
   }
-  #openPackMotion .pack.is-loading,
-  #rewardOpenPackMotion .pack.is-loading {
-    --pack-static-shape-scale: 1.28;
-    --pack-fallback-shape-scale: 1.28;
+  #openPackMotion.is-loading,
+  #rewardOpenPackMotion.is-loading {
+    position: relative;
+    animation: packLoadingFloatMobile 4.6s ease-in-out infinite;
   }
-  #openPackMotion .pack.is-loading .pack-shape-art,
-  #rewardOpenPackMotion .pack.is-loading .pack-shape-art,
-  #openPackMotion .pack.is-loading .pack-skin-art,
-  #rewardOpenPackMotion .pack.is-loading .pack-skin-art {
-    transform: scale(1) !important;
-  }
-  #openPackMotion .pack.is-loading .pack-title-art,
-  #rewardOpenPackMotion .pack.is-loading .pack-title-art {
-    transform: translate(var(--pack-title-art-x, 0), var(--pack-title-art-y, 0)) scale(calc(var(--pack-title-art-scale, 1.04) * 0.96));
+  #openPackMotion.is-loading .pull-pack-idle,
+  #rewardOpenPackMotion.is-loading .pull-pack-idle {
+    animation: none;
   }
   .pull-pack-motion {
     transition-duration: 280ms;
@@ -4303,7 +4301,7 @@ body.pack-opening-focus .pull-center-stage {
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-161</div>
+  <div class="sub">Build: logic-sync-162</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -4870,7 +4868,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-161';
+  const BUILD_ID = 'logic-sync-162';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
