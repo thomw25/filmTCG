@@ -3947,8 +3947,13 @@ body.pack-opening-focus .pull-center-stage {
   }
   #openPackMotion .pack,
   #rewardOpenPackMotion .pack {
-    --pack-static-shape-scale: 1.42;
-    --pack-fallback-shape-scale: 1.42;
+    --pack-static-shape-scale: 1.4;
+    --pack-fallback-shape-scale: 1.4;
+  }
+  #openPackMotion .pack.is-loading,
+  #rewardOpenPackMotion .pack.is-loading {
+    --pack-static-shape-scale: 1.36;
+    --pack-fallback-shape-scale: 1.36;
   }
   .pull-pack-motion {
     transition-duration: 280ms;
@@ -4283,7 +4288,7 @@ body.pack-opening-focus .pull-center-stage {
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-158</div>
+  <div class="sub">Build: logic-sync-159</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -4850,7 +4855,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-158';
+  const BUILD_ID = 'logic-sync-159';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -5004,10 +5009,10 @@ body.pack-opening-focus .pull-center-stage {
   const PACK_OPEN_REFRESH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 3600 : 7600;
   const PERSON_INSERT_FETCH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 4600 : 7200;
   const PERSON_BIO_FETCH_TIMEOUT_MS = IS_MOBILE_RUNTIME ? 1000 : 2600;
-  const REWARD_CHOICE_PREVIEW_DELAY_MS = IS_MOBILE_RUNTIME ? 60 : 80;
-  const REWARD_CHOICE_OPENING_DELAY_MS = IS_MOBILE_RUNTIME ? 84 : 110;
-  const PACK_OPEN_REEL_SETTLE_MS = IS_MOBILE_RUNTIME ? 28 : 56;
-  const PACK_OPEN_BURST_MS = IS_MOBILE_RUNTIME ? 780 : 860;
+  const REWARD_CHOICE_PREVIEW_DELAY_MS = IS_MOBILE_RUNTIME ? 40 : 80;
+  const REWARD_CHOICE_OPENING_DELAY_MS = IS_MOBILE_RUNTIME ? 64 : 110;
+  const PACK_OPEN_REEL_SETTLE_MS = IS_MOBILE_RUNTIME ? 16 : 56;
+  const PACK_OPEN_BURST_MS = IS_MOBILE_RUNTIME ? 740 : 860;
   const CAROUSEL_PEEL_IN_CLEANUP_MS = IS_MOBILE_RUNTIME ? 220 : 250;
   const CAROUSEL_PEEL_OUT_SWITCH_MS = IS_MOBILE_RUNTIME ? 150 : 170;
   const CAROUSEL_PEEL_UNLOCK_MS = IS_MOBILE_RUNTIME ? 220 : 250;
@@ -6121,7 +6126,7 @@ body.pack-opening-focus .pull-center-stage {
     }
 
     if (selectedPackMode !== 'all-packs') return;
-    if (!force && packsUntilReward() > 4) return;
+    if (!force && packsUntilReward() > 6) return;
 
     const rewardThemes = ensureFeaturedRewardThemes(false);
     if (rewardThemes.length) {
