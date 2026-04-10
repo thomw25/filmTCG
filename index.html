@@ -2552,6 +2552,16 @@ body.pack-opening-focus .pull-center-stage {
 
 .collection-shell { display: grid; gap: 18px; }
 
+#collection.is-lists-mode #collectionSummaryBar,
+#collection.is-lists-mode #showcasePanel,
+#collection.is-lists-mode #collectionTradeRow {
+  display: none !important;
+}
+
+#collection.is-lists-mode .collection-shell {
+  gap: 14px;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -3438,10 +3448,29 @@ body.pack-opening-focus .pull-center-stage {
   width: 66px;
   height: 92px;
   border-radius: 10px;
-  background: linear-gradient(160deg, rgba(255,255,255,.13), rgba(255,255,255,.035));
-  border: 1px solid rgba(255,255,255,.12);
+  padding: 5px;
+  box-sizing: border-box;
+  background:
+    linear-gradient(180deg, var(--shell-bg-top, rgba(255,255,255,.14)), var(--shell-bg-bottom, rgba(255,255,255,.04))),
+    rgba(15,23,42,.98);
+  border: 1px solid var(--shell-border-soft, rgba(255,255,255,.12));
   box-shadow: 0 12px 22px rgba(0,0,0,.24);
   overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 4px;
+  isolation: isolate;
+}
+
+.collection-list-mini-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(118deg, transparent 0 24%, rgba(255,255,255,.12) 34%, rgba(255,255,255,.03) 46%, transparent 62%),
+    radial-gradient(circle at top left, rgba(255,255,255,.1), transparent 34%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .collection-list-mini-card:nth-child(1) { left: 0; top: 4px; transform: rotate(-7deg); }
@@ -3449,11 +3478,90 @@ body.pack-opening-focus .pull-center-stage {
 .collection-list-mini-card:nth-child(3) { left: 88px; top: 5px; transform: rotate(5deg); }
 .collection-list-mini-card:nth-child(4) { left: 132px; top: 12px; transform: rotate(10deg); }
 
-.collection-list-mini-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.88;
+.collection-list-mini-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.collection-list-mini-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.collection-list-mini-title {
+  min-width: 0;
+  color: #fff;
+  font-size: 0.47rem;
+  line-height: 1.05;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.collection-list-mini-rarity {
+  flex: 0 0 auto;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  color: #fff;
+  font-size: 0.42rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+}
+
+.collection-list-mini-art {
+  border-radius: 7px;
+  border: 1px solid rgba(255,255,255,.08);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)),
+    linear-gradient(180deg, rgba(5,8,14,.84), rgba(15,23,42,.34));
+  position: relative;
+  overflow: hidden;
+}
+
+.collection-list-mini-art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(128deg, rgba(255,255,255,.08), transparent 44%),
+    linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+}
+
+.collection-list-mini-mark {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  color: rgba(255,255,255,.76);
+  font-size: 0.38rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.collection-list-mini-meta {
+  color: rgba(255,255,255,.62);
+  font-size: 0.38rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .collection-list-tile-title {
@@ -5039,7 +5147,7 @@ body.pack-opening-focus .pull-center-stage {
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-173</div>
+  <div class="sub">Build: logic-sync-174</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -5092,7 +5200,7 @@ body.pack-opening-focus .pull-center-stage {
         <button id="collectionModeLists" type="button">Lists</button>
       </div>
     </div>
-    <div class="collection-topbar">
+    <div id="collectionSummaryBar" class="collection-topbar">
       <div class="collection-stats">
         <div class="collection-stat">
           <div class="collection-stat-label">Cards</div>
@@ -5612,7 +5720,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-172';
+  const BUILD_ID = 'logic-sync-174';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -5882,6 +5990,8 @@ body.pack-opening-focus .pull-center-stage {
   const shopPanel = document.getElementById('shopPanel');
   const collectionGrid = document.getElementById('collectionGrid');
   const showcasePanel = document.getElementById('showcasePanel');
+  const collectionShell = collectionPage ? collectionPage.querySelector('.collection-shell') : null;
+  const collectionSummaryBar = document.getElementById('collectionSummaryBar');
   const collectionSearchEl = document.getElementById('collectionSearch');
   const pullTab = document.getElementById('pullTab');
   const dailyTab = document.getElementById('dailyTab');
@@ -8538,8 +8648,22 @@ body.pack-opening-focus .pull-center-stage {
     }
     return '<div class="collection-list-cover-stack">' + cards.map(function (entry) {
       const card = entry.card;
-      return '<div class="collection-list-mini-card" style="' + escapeHtml(collectionShellStyle(card)) + '"><img src="' + escapeHtml(resolveArt(card)) + '" alt="" aria-hidden="true" data-poster="' + escapeHtml(card.poster || '') + '" data-still="' + escapeHtml(card.still || '') + '" data-title="' + escapeHtml(card.title) + '" data-rarity="' + escapeHtml(card.rarity) + '" data-genre="' + escapeHtml(card.genre || roleLabelForDisplay(card)) + '"></div>';
+      return buildCollectionListMiniCardMarkup(card);
     }).join('') + '</div>';
+  }
+
+  function buildCollectionListMiniCardMarkup(card) {
+    const meta = card && card.cardType === 'person'
+      ? roleLabelForDisplay(card)
+      : (card && card.year ? String(card.year) : String(card && card.genre || 'Film'));
+    const mark = card && card.cardType === 'person'
+      ? roleLabelForDisplay(card)
+      : String(card && card.genre || 'Film');
+    return '<div class="collection-list-mini-card" style="' + escapeHtml(collectionShellStyle(card)) + '">'
+      + '<div class="collection-list-mini-head"><div class="collection-list-mini-title">' + escapeHtml(card && card.title || 'Unknown') + '</div><span class="collection-list-mini-rarity" style="background:' + escapeHtml(rarityColor(card && card.rarity)) + ';">' + escapeHtml(rarityShortLabel(card && card.rarity)) + '</span></div>'
+      + '<div class="collection-list-mini-art"><span class="collection-list-mini-mark">' + escapeHtml(mark) + '</span></div>'
+      + '<div class="collection-list-mini-meta">' + escapeHtml(meta) + '</div>'
+      + '</div>';
   }
 
   function openCollectionListMenu() {
@@ -8655,20 +8779,6 @@ body.pack-opening-focus .pull-center-stage {
     ].filter(Boolean).join(' ').toLowerCase();
   }
 
-  function collectionListAddFilterTokens(entry) {
-    const card = entry && entry.card ? entry.card : {};
-    const tokens = ['all', normalizeRarityLabel(card.rarity).toLowerCase()];
-    if ((card.cardType || 'film') === 'person') {
-      tokens.push('people');
-      if (card.roleKey === 'actor') tokens.push('actors');
-      if (card.roleKey === 'director') tokens.push('directors');
-    } else {
-      tokens.push('films');
-    }
-    if (isBookmarked(card)) tokens.push('bookmarked');
-    return tokens.join(' ');
-  }
-
   function sortCollectionListAddCandidates(entries) {
     const sorted = (Array.isArray(entries) ? entries : []).slice();
     const sortMode = String(collectionListAddSort || 'recent').toLowerCase();
@@ -8718,11 +8828,23 @@ body.pack-opening-focus .pull-center-stage {
     let visibleCount = 0;
     collectionGrid.querySelectorAll('[data-list-add-key]').forEach(function (cardButton) {
       const haystack = String(cardButton.getAttribute('data-add-search') || '');
-      const filters = String(cardButton.getAttribute('data-add-filters') || '').split(/\s+/);
       const matchesQuery = !query || haystack.indexOf(query) !== -1;
-      const matchesFilter = filter === 'all' || filters.indexOf(filter) !== -1;
+      const cardType = String(cardButton.getAttribute('data-add-card-type') || 'film').toLowerCase();
+      const role = String(cardButton.getAttribute('data-add-role') || '').toLowerCase();
+      const rarity = String(cardButton.getAttribute('data-add-rarity') || 'base').toLowerCase();
+      const bookmarked = cardButton.getAttribute('data-add-bookmarked') === 'true';
+      let matchesFilter = filter === 'all';
+      if (!matchesFilter) {
+        if (filter === 'bookmarked') matchesFilter = bookmarked;
+        else if (filter === 'films') matchesFilter = cardType === 'film';
+        else if (filter === 'people') matchesFilter = cardType === 'person';
+        else if (filter === 'actors') matchesFilter = role === 'actor';
+        else if (filter === 'directors') matchesFilter = role === 'director';
+        else matchesFilter = rarity === filter;
+      }
       const matches = matchesQuery && matchesFilter;
       cardButton.hidden = !matches;
+      cardButton.style.display = matches ? '' : 'none';
       if (matches) visibleCount += 1;
     });
     const countEl = document.getElementById('collectionListAddAvailableCount');
@@ -8783,7 +8905,7 @@ body.pack-opening-focus .pull-center-stage {
       + (candidates.length
         ? '<div class="collection-list-add-grid">' + candidates.map(function (entry) {
           const card = entry.card;
-          return '<div class="collection-list-add-card" role="button" tabindex="0" aria-pressed="false" data-list-add-key="' + escapeHtml(entry.key) + '" data-add-search="' + escapeHtml(collectionListAddSearchText(entry)) + '" data-add-filters="' + escapeHtml(collectionListAddFilterTokens(entry)) + '" style="' + escapeHtml(collectionShellStyle(card)) + '">'
+          return '<div class="collection-list-add-card" role="button" tabindex="0" aria-pressed="false" data-list-add-key="' + escapeHtml(entry.key) + '" data-add-search="' + escapeHtml(collectionListAddSearchText(entry)) + '" data-add-card-type="' + escapeHtml(card.cardType || 'film') + '" data-add-role="' + escapeHtml(card.roleKey || '') + '" data-add-rarity="' + escapeHtml(normalizeRarityLabel(card.rarity).toLowerCase()) + '" data-add-bookmarked="' + (isBookmarked(card) ? 'true' : 'false') + '" style="' + escapeHtml(collectionShellStyle(card)) + '">'
             + '<span class="collection-list-add-check" aria-hidden="true">+</span>'
             + '<div class="collection-card-preview">' + buildShelfCardMarkup(card) + buildCollectionPreviewFlags(card, entry.count) + '</div>'
             + '<div class="collection-card-actions"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(card.rarity)) + '; border-color:' + escapeHtml(rarityColor(card.rarity)) + ';">' + escapeHtml(rarityShortLabel(card.rarity)) + '</span>' + buildDuplicateCountMarkup(entry.count) + '</div>'
@@ -10083,6 +10205,251 @@ body.pack-opening-focus .pull-center-stage {
     }).filter(Boolean).slice(0, MAX_SHOWCASE_SIZE);
   }
 
+  function drawRoundedRectPath(ctx, x, y, width, height, radius) {
+    const r = Math.min(radius, width / 2, height / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + width - r, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+    ctx.lineTo(x + width, y + height - r);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+    ctx.lineTo(x + r, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  function wrapCanvasTextLines(ctx, text, maxWidth, maxLines) {
+    const words = String(text || '').split(/\s+/).filter(Boolean);
+    if (!words.length) return [''];
+    const lines = [];
+    let current = words[0];
+    for (let i = 1; i < words.length; i += 1) {
+      const test = current + ' ' + words[i];
+      if (ctx.measureText(test).width <= maxWidth) {
+        current = test;
+      } else {
+        lines.push(current);
+        current = words[i];
+        if (lines.length === maxLines - 1) break;
+      }
+    }
+    if (lines.length < maxLines) {
+      lines.push(current);
+    }
+    const remainder = words.slice(lines.join(' ').split(/\s+/).filter(Boolean).length).join(' ');
+    if (remainder && lines.length) {
+      let last = lines[lines.length - 1];
+      while (last && ctx.measureText(last + '…').width > maxWidth) {
+        last = last.slice(0, -1);
+      }
+      lines[lines.length - 1] = last + '…';
+    }
+    return lines.slice(0, maxLines);
+  }
+
+  function drawShowcaseStoryCard(ctx, card, x, y, width, height, slotIndex) {
+    const accent = rarityColor(card && card.rarity);
+    const isEmpty = !card;
+    const topColor = isEmpty ? 'rgba(255,255,255,0.06)' : hexToRgba(accent, 0.26);
+    const bottomColor = isEmpty ? 'rgba(255,255,255,0.02)' : 'rgba(15,23,42,0.98)';
+    const bg = ctx.createLinearGradient(x, y, x, y + height);
+    bg.addColorStop(0, topColor);
+    bg.addColorStop(1, bottomColor);
+    drawRoundedRectPath(ctx, x, y, width, height, 34);
+    ctx.fillStyle = bg;
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = isEmpty ? 'rgba(255,255,255,0.08)' : hexToRgba(accent, 0.7);
+    ctx.stroke();
+
+    drawRoundedRectPath(ctx, x + 18, y + 18, width - 36, height - 36, 26);
+    ctx.strokeStyle = isEmpty ? 'rgba(255,255,255,0.05)' : hexToRgba(accent, 0.28);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    const innerX = x + 28;
+    const innerY = y + 26;
+    const innerWidth = width - 56;
+    const artY = y + 118;
+    const artHeight = height - 250;
+
+    if (card) {
+      ctx.fillStyle = hexToRgba(accent, 0.98);
+      drawRoundedRectPath(ctx, x + width - 112, y + 28, 64, 36, 18);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(rarityShortLabel(card.rarity), x + width - 80, y + 47);
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,0.24)';
+      ctx.font = '800 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText('TOP ' + String(slotIndex + 1), innerX, y + 54);
+    }
+
+    const artBg = ctx.createLinearGradient(innerX, artY, innerX, artY + artHeight);
+    artBg.addColorStop(0, isEmpty ? 'rgba(255,255,255,0.06)' : hexToRgba(accent, 0.18));
+    artBg.addColorStop(1, 'rgba(10,14,22,0.88)');
+    drawRoundedRectPath(ctx, innerX, artY, innerWidth, artHeight, 24);
+    ctx.fillStyle = artBg;
+    ctx.fill();
+
+    ctx.save();
+    drawRoundedRectPath(ctx, innerX, artY, innerWidth, artHeight, 24);
+    ctx.clip();
+    const sheen = ctx.createLinearGradient(innerX - 30, artY, innerX + innerWidth * 0.6, artY + artHeight);
+    sheen.addColorStop(0, 'rgba(255,255,255,0.18)');
+    sheen.addColorStop(0.3, 'rgba(255,255,255,0.03)');
+    sheen.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = sheen;
+    ctx.fillRect(innerX, artY, innerWidth, artHeight);
+    ctx.restore();
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    if (card) {
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 40px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      const titleLines = wrapCanvasTextLines(ctx, card.title, innerWidth - 8, 3);
+      titleLines.forEach(function (line, index) {
+        ctx.fillText(line, innerX + 4, y + 34 + (index * 42));
+      });
+
+      ctx.fillStyle = 'rgba(255,255,255,0.72)';
+      ctx.font = '800 22px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillText(card.cardType === 'person' ? roleLabelForDisplay(card) : (card.year || card.genre || 'Film'), innerX, y + height - 72);
+
+      ctx.fillStyle = hexToRgba(accent, 0.92);
+      ctx.font = '900 20px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText((card.cardType === 'person' ? roleLabelForDisplay(card) : (card.genre || 'Film')).toUpperCase(), innerX + (innerWidth / 2), artY + artHeight - 26);
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,0.46)';
+      ctx.font = '800 26px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillText('Open more packs.', innerX, y + height - 72);
+    }
+  }
+
+  function canvasToBlob(canvas) {
+    return new Promise(function (resolve) {
+      canvas.toBlob(function (blob) {
+        resolve(blob || null);
+      }, 'image/png');
+    });
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(function () {
+      URL.revokeObjectURL(url);
+    }, 1000);
+  }
+
+  async function shareShowcaseStory() {
+    const cards = getShowcaseCards();
+    if (!cards.length) {
+      showToast('Add a few favorites to Top 4 first.');
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      showToast('Could not build story image.');
+      return;
+    }
+
+    const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    bg.addColorStop(0, '#090b10');
+    bg.addColorStop(0.55, '#101522');
+    bg.addColorStop(1, '#1b1228');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    drawRoundedRectPath(ctx, 48, 48, canvas.width - 96, canvas.height - 96, 46);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(191,219,254,0.9)';
+    ctx.font = '800 40px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('filmTCG', 96, 96);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 112px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('My Top 4', 96, 148);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.62)';
+    ctx.font = '700 30px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('How would you rank yours?', 100, 280);
+
+    const cardWidth = 410;
+    const cardHeight = 560;
+    const startX = 96;
+    const startY = 380;
+    const gapX = 68;
+    const gapY = 74;
+    for (let i = 0; i < MAX_SHOWCASE_SIZE; i += 1) {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      drawShowcaseStoryCard(
+        ctx,
+        cards[i] || null,
+        startX + col * (cardWidth + gapX),
+        startY + row * (cardHeight + gapY),
+        cardWidth,
+        cardHeight,
+        i
+      );
+    }
+
+    ctx.fillStyle = 'rgba(255,255,255,0.46)';
+    ctx.font = '700 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('filmtcg', canvas.width / 2, 1820);
+
+    const blob = await canvasToBlob(canvas);
+    if (!blob) {
+      showToast('Could not build story image.');
+      return;
+    }
+
+    const file = typeof File === 'function'
+      ? new File([blob], 'filmtcg-top-4-story.png', { type: 'image/png' })
+      : null;
+
+    if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          title: 'filmTCG My Top 4',
+          text: 'filmTCG My Top 4',
+          files: [file]
+        });
+        showToast('Story ready to share.');
+        return;
+      } catch (error) {
+        if (error && error.name === 'AbortError') return;
+      }
+    }
+
+    downloadBlob(blob, 'filmtcg-top-4-story.png');
+    showToast('Story image downloaded.');
+  }
+
   function renderShowcase() {
     if (!showcasePanel) return;
     if (collectionMode === 'lists') {
@@ -10138,10 +10505,18 @@ body.pack-opening-focus .pull-center-stage {
     }
 
     showcasePanel.classList.toggle('is-editing', showcaseEditMode);
-    showcasePanel.innerHTML = '<div class="showcase-head"><div><div class="showcase-title"><span class="showcase-title-icon" aria-hidden="true">&#127942;</span>Top 4 Showcase</div><div class="showcase-sub">Flex your favorite pulls.</div></div><div class="showcase-head-actions"><button id="showcaseEditButton" class="showcase-edit-btn' + (showcaseEditMode ? ' is-active' : '') + '" type="button">' + (showcaseEditMode ? 'Done' : 'Edit Showcase') + '</button><div class="pack-hook">Pinned ' + String(cards.length) + ' / ' + String(MAX_SHOWCASE_SIZE) + '</div></div></div>'
+    showcasePanel.innerHTML = '<div class="showcase-head"><div><div class="showcase-title"><span class="showcase-title-icon" aria-hidden="true">&#127942;</span>Top 4 Showcase</div><div class="showcase-sub">Flex your favorite pulls.</div></div><div class="showcase-head-actions"><button id="showcaseShareButton" class="showcase-edit-btn" type="button">Share Story</button><button id="showcaseEditButton" class="showcase-edit-btn' + (showcaseEditMode ? ' is-active' : '') + '" type="button">' + (showcaseEditMode ? 'Done' : 'Edit Showcase') + '</button><div class="pack-hook">Pinned ' + String(cards.length) + ' / ' + String(MAX_SHOWCASE_SIZE) + '</div></div></div>'
       + '<div class="showcase-grid">' + slots.join('') + '</div>';
 
     addImageFallbacks(showcasePanel);
+    const showcaseShareButton = document.getElementById('showcaseShareButton');
+    if (showcaseShareButton) {
+      showcaseShareButton.addEventListener('click', function () {
+        shareShowcaseStory().catch(function () {
+          showToast('Could not build story image.');
+        });
+      });
+    }
     const showcaseEditButton = document.getElementById('showcaseEditButton');
     if (showcaseEditButton) {
       showcaseEditButton.addEventListener('click', function () {
@@ -10234,6 +10609,8 @@ body.pack-opening-focus .pull-center-stage {
       : null;
     const isListsMode = collectionMode === 'lists';
     const isListsMenu = isListsMode && collectionListWindow === 'menu' && !activeCollectionListId;
+    if (collectionPage) collectionPage.classList.toggle('is-lists-mode', isListsMode);
+    if (collectionShell) collectionShell.classList.toggle('is-lists-mode', isListsMode);
     if (cardsModeButton) cardsModeButton.classList.toggle('is-active', !isListsMode);
     if (listsModeButton) listsModeButton.classList.toggle('is-active', isListsMode);
     if (cardViewToggle) cardViewToggle.hidden = isListsMode && !isListsMenu;
@@ -11589,6 +11966,7 @@ body.pack-opening-focus .pull-center-stage {
     document.getElementById('legendaryCount').textContent = String(grouped.filter(function (entry) {
       return rarityRank(entry.card.rarity) >= 3;
     }).length);
+    if (collectionSummaryBar) collectionSummaryBar.hidden = collectionMode === 'lists';
     renderCollectionViewToggle();
     renderCollectionTradeRow();
 
@@ -11602,6 +11980,7 @@ body.pack-opening-focus .pull-center-stage {
       return;
     }
     if (showcasePanel) showcasePanel.hidden = false;
+    if (collectionSummaryBar) collectionSummaryBar.hidden = false;
 
     if (!filtered.length) {
       collectionGrid.classList.remove('collection-lists-grid');
