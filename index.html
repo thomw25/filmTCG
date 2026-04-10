@@ -3363,6 +3363,14 @@ body.pack-opening-focus .pull-center-stage {
   transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
+.collection-list-tile.is-pinned,
+.collection-list-text-row.is-pinned {
+  border-color: rgba(250,204,21,.22);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(250,204,21,.12), transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.025));
+}
+
 .collection-list-tile:hover {
   transform: translateY(-3px);
   border-color: rgba(255,255,255,.18);
@@ -3419,9 +3427,10 @@ body.pack-opening-focus .pull-center-stage {
 
 .collection-list-tile-title {
   color: #fff;
-  font-size: 1.02rem;
+  font-size: 1.06rem;
   font-weight: 850;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  line-height: 1.12;
 }
 
 .collection-list-tile-meta,
@@ -3432,9 +3441,15 @@ body.pack-opening-focus .pull-center-stage {
   font-size: 0.8rem;
 }
 
+.collection-list-tile-meta,
+.collection-list-text-meta {
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+}
+
 .collection-list-description {
-  margin-top: 6px;
-  line-height: 1.45;
+  margin-top: 9px;
+  line-height: 1.5;
   max-width: 58ch;
 }
 
@@ -3454,6 +3469,16 @@ body.pack-opening-focus .pull-center-stage {
   gap: 16px;
 }
 
+.collection-list-add {
+  padding: 18px;
+  display: grid;
+  gap: 16px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.025));
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 16px 32px rgba(0,0,0,.16);
+}
+
 .collection-list-detail-head {
   display: flex;
   justify-content: space-between;
@@ -3470,11 +3495,11 @@ body.pack-opening-focus .pull-center-stage {
 }
 
 .collection-list-text-row {
-  min-height: 78px;
-  padding: 16px 18px;
+  min-height: 86px;
+  padding: 18px 20px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
   align-items: center;
   color: inherit;
   font: inherit;
@@ -3487,6 +3512,33 @@ body.pack-opening-focus .pull-center-stage {
   transform: translateY(-2px);
   border-color: rgba(255,255,255,.18);
   box-shadow: 0 16px 30px rgba(0,0,0,.22), 0 0 0 1px rgba(255,255,255,.08);
+}
+
+.collection-list-pin-btn {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.045);
+  color: rgba(255,255,255,.5);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.collection-list-pin-btn:hover {
+  transform: translateY(-1px);
+  color: #fff3bf;
+  border-color: rgba(250,204,21,.28);
+  background: rgba(250,204,21,.12);
+}
+
+.collection-list-pin-btn.is-active {
+  color: #facc15;
+  border-color: rgba(250,204,21,.34);
+  background: rgba(250,204,21,.14);
 }
 
 .collection-list-create-grid {
@@ -3542,6 +3594,94 @@ body.pack-opening-focus .pull-center-stage {
   padding: 16px;
   background: radial-gradient(circle at 20% 10%, rgba(96,165,250,.16), transparent 38%), rgba(255,255,255,.035);
   border: 1px solid rgba(255,255,255,.08);
+}
+
+.collection-list-add-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.collection-list-add-search {
+  min-width: min(100%, 320px);
+  flex: 1;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 13px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.2);
+  color: #fff;
+  font: inherit;
+}
+
+.collection-list-add-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(156px, 1fr));
+  gap: 16px;
+  justify-items: center;
+}
+
+.collection-list-add-card {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  color: inherit;
+  font: inherit;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.88;
+  transition: transform 180ms ease, opacity 180ms ease, filter 180ms ease;
+}
+
+.collection-list-add-card:hover {
+  opacity: 1;
+  transform: translateY(-3px);
+}
+
+.collection-list-add-card.is-selected {
+  opacity: 1;
+  filter: saturate(1.08) brightness(1.04);
+}
+
+.collection-list-add-card.is-selected .collection-card-preview::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 18px;
+  border: 2px solid rgba(147,197,253,.92);
+  box-shadow: 0 0 0 4px rgba(96,165,250,.18), 0 18px 34px rgba(37,99,235,.24);
+  pointer-events: none;
+  z-index: 8;
+}
+
+.collection-list-add-check {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(9,11,16,.88);
+  border: 1px solid rgba(255,255,255,.16);
+  color: rgba(255,255,255,.42);
+  font-weight: 900;
+  z-index: 12;
+}
+
+.collection-list-add-card.is-selected .collection-list-add-check {
+  background: var(--btn-active-bg);
+  border-color: var(--btn-active-border);
+  color: #fff;
 }
 
 .collection-list-card-grid {
@@ -3673,7 +3813,7 @@ body.pack-opening-focus .pull-center-stage {
 
 .modal-grid {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: minmax(240px, 310px) minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
@@ -3697,7 +3837,7 @@ body.pack-opening-focus .pull-center-stage {
 
 .modal-meta {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .modal-kicker {
@@ -3709,17 +3849,17 @@ body.pack-opening-focus .pull-center-stage {
 
 .modal-panel {
   display: grid;
-  gap: 12px;
-  padding: 16px 18px;
+  gap: 14px;
+  padding: 17px 18px;
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
   border: 1px solid rgba(255,255,255,.08);
 }
 
 .modal-title {
-  font-size: 1.7rem;
+  font-size: clamp(1.55rem, 2.7vw, 2.25rem);
   font-weight: 900;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.055em;
   line-height: 1.02;
 }
 
@@ -3741,6 +3881,20 @@ body.pack-opening-focus .pull-center-stage {
   flex-wrap: wrap;
 }
 
+.modal-action-panel {
+  display: grid;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.modal-action-heading {
+  color: rgba(255,255,255,.5);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .modal-button {
   display: inline-flex;
   align-items: center;
@@ -3755,10 +3909,25 @@ body.pack-opening-focus .pull-center-stage {
   transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
 }
 
+.modal-button.is-primary {
+  background: var(--btn-active-bg);
+  border-color: var(--btn-active-border);
+  color: var(--btn-active-text);
+}
+
+.modal-button.is-link {
+  color: rgba(255,255,255,.72);
+}
+
 .modal-button:hover {
   transform: translateY(-1px);
   border-color: rgba(202,218,252,.36);
   background: var(--btn-neutral-bg-hover);
+}
+
+.modal-button.is-primary:hover {
+  background: var(--btn-active-bg);
+  border-color: rgba(162,190,255,.62);
 }
 
 .shop-open-overlay {
@@ -4213,8 +4382,18 @@ body.pack-opening-focus .pull-center-stage {
   .collection-list-create-grid {
     grid-template-columns: 1fr;
   }
+  .collection-list-add-toolbar {
+    align-items: stretch;
+  }
+  .collection-list-add-search {
+    min-width: 100%;
+  }
   .collection-list-text-row {
     grid-template-columns: 1fr;
+  }
+  .collection-list-text-row .collection-list-pin-btn,
+  .collection-list-text-row .showcase-edit-btn {
+    justify-self: start;
   }
   .showcase-panel {
     padding: 14px;
@@ -4750,7 +4929,7 @@ body.pack-opening-focus .pull-center-stage {
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-166</div>
+  <div class="sub">Build: logic-sync-168</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -5323,7 +5502,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-166';
+  const BUILD_ID = 'logic-sync-168';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -5556,6 +5735,8 @@ body.pack-opening-focus .pull-center-stage {
   let collectionSearch = '';
   let collectionListWindow = 'menu';
   let activeCollectionListId = '';
+  let collectionListAddSearch = '';
+  let collectionListAddSelection = [];
   let freshCollectionKeys = loadFreshCollectionKeys();
   let isAnimatingPeel = false;
   let isOpeningPack = false;
@@ -5861,6 +6042,8 @@ body.pack-opening-focus .pull-center-stage {
       sortMode: ['manual', 'recent', 'rarity', 'title'].indexOf(String(source.sortMode || '').toLowerCase()) !== -1
         ? String(source.sortMode).toLowerCase()
         : 'manual',
+      pinned: Boolean(source.pinned),
+      pinnedAt: Number(source.pinnedAt) || 0,
       createdAt: Number(source.createdAt) || now,
       updatedAt: Number(source.updatedAt) || now
     };
@@ -5880,6 +6063,33 @@ body.pack-opening-focus .pull-center-stage {
       localStorage.setItem('filmtcg.collectionLists', JSON.stringify(collectionLists.map(normalizeCollectionList)));
     } catch (error) {
     }
+  }
+
+  function pinnedCollectionListCount() {
+    return collectionLists.filter(function (list) { return list && list.pinned; }).length;
+  }
+
+  function sortCollectionListsForMenu(lists) {
+    return (Array.isArray(lists) ? lists : []).slice().sort(function (a, b) {
+      if (Boolean(a && a.pinned) !== Boolean(b && b.pinned)) return a && a.pinned ? -1 : 1;
+      if (a && a.pinned && b && b.pinned) return (Number(b.pinnedAt) || 0) - (Number(a.pinnedAt) || 0);
+      return (Number(b && b.updatedAt) || 0) - (Number(a && a.updatedAt) || 0);
+    });
+  }
+
+  function toggleCollectionListPin(listId) {
+    const list = listById(listId);
+    if (!list) return false;
+    if (!list.pinned && pinnedCollectionListCount() >= 3) {
+      showToast('You can pin up to 3 lists.');
+      return false;
+    }
+    list.pinned = !list.pinned;
+    list.pinnedAt = list.pinned ? Date.now() : 0;
+    list.updatedAt = Date.now();
+    saveCollectionLists();
+    showToast(list.pinned ? 'List pinned.' : 'List unpinned.');
+    return true;
   }
 
   function loadCollectionMode() {
@@ -5950,6 +6160,33 @@ body.pack-opening-focus .pull-center-stage {
     list.updatedAt = Date.now();
     saveCollectionLists();
     return true;
+  }
+
+  function addCardKeysToCollectionList(cardKeys, listId) {
+    const list = listById(listId);
+    const keys = Array.isArray(cardKeys) ? cardKeys.map(function (key) {
+      return String(key || '').trim().toLowerCase();
+    }).filter(Boolean) : [];
+    if (!list || !keys.length) return 0;
+
+    const existing = new Set(list.cardKeys);
+    let added = 0;
+    for (let i = keys.length - 1; i >= 0; i -= 1) {
+      const key = keys[i];
+      if (existing.has(key)) continue;
+      existing.add(key);
+      list.cardKeys.unshift(key);
+      list.manualOrder = list.manualOrder.filter(function (item) { return item !== key; });
+      list.manualOrder.unshift(key);
+      if (!list.coverKey) list.coverKey = key;
+      added += 1;
+    }
+
+    if (added) {
+      list.updatedAt = Date.now();
+      saveCollectionLists();
+    }
+    return added;
   }
 
   function removeCardFromCollectionList(cardKeyValue, listId) {
@@ -8190,11 +8427,30 @@ body.pack-opening-focus .pull-center-stage {
   function openCollectionListMenu() {
     activeCollectionListId = '';
     collectionListWindow = 'menu';
+    collectionListAddSearch = '';
+    collectionListAddSelection = [];
   }
 
   function openCollectionListCreate() {
     activeCollectionListId = '';
     collectionListWindow = 'create';
+    collectionListAddSearch = '';
+    collectionListAddSelection = [];
+  }
+
+  function openCollectionListAddCards(listId) {
+    const id = String(listId || activeCollectionListId || '');
+    if (!id) return;
+    activeCollectionListId = id;
+    collectionListWindow = 'add';
+    collectionListAddSearch = '';
+    collectionListAddSelection = [];
+  }
+
+  function closeCollectionListAddCards() {
+    collectionListWindow = 'detail';
+    collectionListAddSearch = '';
+    collectionListAddSelection = [];
   }
 
   function collectionListSummaryMarkup(list, entries) {
@@ -8202,6 +8458,11 @@ body.pack-opening-focus .pull-center-stage {
     return '<div><div class="collection-list-tile-title">' + escapeHtml(list.name) + '</div>'
       + (list.description ? '<div class="collection-list-description">' + escapeHtml(list.description) + '</div>' : '')
       + '<div class="collection-list-tile-meta">' + String(count) + ' cards · ' + escapeHtml(collectionListDateLabel(list.updatedAt)) + '</div></div>';
+  }
+
+  function buildCollectionListPinButton(list) {
+    const active = Boolean(list && list.pinned);
+    return '<button class="collection-list-pin-btn' + (active ? ' is-active' : '') + '" type="button" aria-label="' + (active ? 'Unpin list' : 'Pin list') + '" title="' + (active ? 'Unpin list' : 'Pin list') + '" data-list-pin="' + escapeHtml(list && list.id || '') + '">&#128204;</button>';
   }
 
   function buildNewListGridMarkup() {
@@ -8261,6 +8522,156 @@ body.pack-opening-focus .pull-center-stage {
     window.prompt('Copy your list', text);
   }
 
+  function collectionListAddSearchText(entry) {
+    const card = entry && entry.card ? entry.card : {};
+    return [
+      card.title,
+      card.year,
+      card.rarity,
+      card.genre,
+      roleLabelForDisplay(card),
+      collectionSecondaryLabel(card),
+      card.desc
+    ].filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function syncCollectionListAddSelectionUi() {
+    const selected = new Set(collectionListAddSelection);
+    const addButton = document.getElementById('collectionListAddSelectedButton');
+    const selectedCount = document.getElementById('collectionListAddSelectedCount');
+    collectionGrid.querySelectorAll('[data-list-add-key]').forEach(function (cardButton) {
+      const key = String(cardButton.getAttribute('data-list-add-key') || '').trim().toLowerCase();
+      const isSelected = selected.has(key);
+      cardButton.classList.toggle('is-selected', isSelected);
+      cardButton.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      const check = cardButton.querySelector('.collection-list-add-check');
+      if (check) check.textContent = isSelected ? '✓' : '+';
+    });
+    if (addButton) addButton.disabled = collectionListAddSelection.length === 0;
+    if (selectedCount) {
+      selectedCount.textContent = collectionListAddSelection.length
+        ? String(collectionListAddSelection.length) + ' selected'
+        : 'Pick cards to add';
+    }
+  }
+
+  function applyCollectionListAddFilter() {
+    const query = String(collectionListAddSearch || '').trim().toLowerCase();
+    let visibleCount = 0;
+    collectionGrid.querySelectorAll('[data-list-add-key]').forEach(function (cardButton) {
+      const haystack = String(cardButton.getAttribute('data-add-search') || '');
+      const matches = !query || haystack.indexOf(query) !== -1;
+      cardButton.hidden = !matches;
+      if (matches) visibleCount += 1;
+    });
+    const countEl = document.getElementById('collectionListAddAvailableCount');
+    if (countEl) {
+      countEl.textContent = String(visibleCount) + (visibleCount === 1 ? ' card showing' : ' cards showing');
+    }
+    syncCollectionListAddSelectionUi();
+  }
+
+  function toggleCollectionListAddSelection(cardKeyValue) {
+    const key = String(cardKeyValue || '').trim().toLowerCase();
+    if (!key) return;
+    const index = collectionListAddSelection.indexOf(key);
+    if (index === -1) {
+      collectionListAddSelection.push(key);
+    } else {
+      collectionListAddSelection.splice(index, 1);
+    }
+    syncCollectionListAddSelectionUi();
+  }
+
+  function renderCollectionListAddCards(listId, entryMap) {
+    const map = entryMap || collectionCardMap();
+    const list = listById(listId);
+    if (!list) {
+      openCollectionListMenu();
+      renderCollectionListsView(map);
+      return;
+    }
+
+    collectionGrid.classList.remove('collection-grid');
+    collectionGrid.classList.remove('collection-list');
+    collectionGrid.classList.remove('collection-lists-grid');
+    collectionGrid.classList.remove('collection-lists-text');
+    collectionGrid.classList.remove('collection-list-detail');
+    collectionGrid.classList.remove('collection-list-create');
+    collectionGrid.classList.add('collection-list-add');
+
+    const existingKeys = new Set(list.cardKeys);
+    const candidates = Array.from(map.values()).filter(function (entry) {
+      return entry && entry.key && !existingKeys.has(entry.key);
+    }).sort(function (a, b) {
+      return a.rawIndex - b.rawIndex;
+    });
+    const candidateKeys = new Set(candidates.map(function (entry) { return entry.key; }));
+    collectionListAddSelection = collectionListAddSelection.filter(function (key) {
+      return candidateKeys.has(key);
+    });
+
+    collectionGrid.innerHTML = '<div class="collection-list-detail-head">'
+      + '<div><button id="collectionListAddBackButton" class="showcase-edit-btn" type="button">Back To List</button><div class="collection-list-detail-title">Add Cards</div><div class="collection-list-detail-meta">Choose multiple cards for ' + escapeHtml(list.name) + '.</div></div>'
+      + '<div class="collection-list-detail-actions"><span id="collectionListAddSelectedCount" class="collection-list-detail-meta">Pick cards to add</span><button id="collectionListAddSelectedButton" class="modal-button" type="button" disabled>Add Selected</button><button id="collectionListAddCancelButton" class="showcase-edit-btn" type="button">Cancel</button></div>'
+      + '</div>'
+      + '<div class="collection-list-add-toolbar"><input id="collectionListAddSearchInput" class="collection-list-add-search" type="search" placeholder="Search your collection" value="' + escapeHtml(collectionListAddSearch) + '"><span id="collectionListAddAvailableCount" class="collection-list-detail-meta">' + String(candidates.length) + ' cards showing</span></div>'
+      + (candidates.length
+        ? '<div class="collection-list-add-grid">' + candidates.map(function (entry) {
+          const card = entry.card;
+          return '<div class="collection-list-add-card" role="button" tabindex="0" aria-pressed="false" data-list-add-key="' + escapeHtml(entry.key) + '" data-add-search="' + escapeHtml(collectionListAddSearchText(entry)) + '" style="' + escapeHtml(collectionShellStyle(card)) + '">'
+            + '<span class="collection-list-add-check" aria-hidden="true">+</span>'
+            + '<div class="collection-card-preview">' + buildShelfCardMarkup(card) + buildCollectionPreviewFlags(card, entry.count) + '</div>'
+            + '<div class="collection-card-actions"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(card.rarity)) + '; border-color:' + escapeHtml(rarityColor(card.rarity)) + ';">' + escapeHtml(rarityShortLabel(card.rarity)) + '</span>' + buildDuplicateCountMarkup(entry.count) + '</div>'
+            + '</div>';
+        }).join('') + '</div>'
+        : '<div class="empty-state">Every collected card is already in this list.</div>');
+
+    addImageFallbacks(collectionGrid);
+    const searchInput = document.getElementById('collectionListAddSearchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', function (event) {
+        collectionListAddSearch = event.target.value || '';
+        applyCollectionListAddFilter();
+      });
+    }
+    const backButton = document.getElementById('collectionListAddBackButton');
+    const cancelButton = document.getElementById('collectionListAddCancelButton');
+    function closeAddCards() {
+      closeCollectionListAddCards();
+      renderCollection();
+    }
+    if (backButton) backButton.addEventListener('click', closeAddCards);
+    if (cancelButton) cancelButton.addEventListener('click', closeAddCards);
+    const addButton = document.getElementById('collectionListAddSelectedButton');
+    if (addButton) {
+      addButton.addEventListener('click', function () {
+        const selected = new Set(collectionListAddSelection);
+        const selectedKeys = candidates.filter(function (entry) {
+          return selected.has(entry.key);
+        }).map(function (entry) {
+          return entry.key;
+        });
+        const added = addCardKeysToCollectionList(selectedKeys, list.id);
+        showToast(added ? String(added) + (added === 1 ? ' card added.' : ' cards added.') : 'Pick a few cards first.');
+        closeCollectionListAddCards();
+        renderCollection();
+      });
+    }
+    collectionGrid.querySelectorAll('[data-list-add-key]').forEach(function (cardButton) {
+      cardButton.addEventListener('click', function () {
+        toggleCollectionListAddSelection(cardButton.getAttribute('data-list-add-key'));
+      });
+      cardButton.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggleCollectionListAddSelection(cardButton.getAttribute('data-list-add-key'));
+        }
+      });
+    });
+    applyCollectionListAddFilter();
+  }
+
   function renderCollectionListsView(entryMap) {
     const map = entryMap || collectionCardMap();
     renderCollectionViewToggle();
@@ -8268,6 +8679,11 @@ body.pack-opening-focus .pull-center-stage {
 
     if (collectionListWindow === 'create') {
       renderCollectionListCreateView(map);
+      return;
+    }
+
+    if (collectionListWindow === 'add' && activeCollectionListId) {
+      renderCollectionListAddCards(activeCollectionListId, map);
       return;
     }
 
@@ -8281,32 +8697,33 @@ body.pack-opening-focus .pull-center-stage {
     collectionGrid.classList.remove('collection-list');
     collectionGrid.classList.remove('collection-list-detail');
     collectionGrid.classList.remove('collection-list-create');
+    collectionGrid.classList.remove('collection-list-add');
     collectionGrid.classList.toggle('collection-lists-grid', collectionView === 'grid');
     collectionGrid.classList.toggle('collection-lists-text', collectionView !== 'grid');
 
-    const visibleLists = collectionLists.filter(function (list) {
+    const visibleLists = sortCollectionListsForMenu(collectionLists.filter(function (list) {
       return collectionListSearchMatch(list, collectionListCards(list, map));
-    });
+    }));
 
     collectionGrid.innerHTML = (collectionView === 'grid'
       ? buildNewListGridMarkup() + visibleLists.map(function (list) {
         const entries = collectionListCards(list, map);
-        return '<div class="collection-list-tile" role="button" tabindex="0" data-list-id="' + escapeHtml(list.id) + '">'
+        return '<div class="collection-list-tile' + (list.pinned ? ' is-pinned' : '') + '" role="button" tabindex="0" data-list-id="' + escapeHtml(list.id) + '">'
           + buildCollectionListCoverMarkup(entries)
           + collectionListSummaryMarkup(list, entries)
-          + '<div class="collection-list-tile-actions"><span class="pack-hook">Open List</span><button class="showcase-edit-btn" type="button" data-list-delete="' + escapeHtml(list.id) + '">Delete</button></div>'
+          + '<div class="collection-list-tile-actions"><span class="pack-hook">' + (list.pinned ? 'Pinned' : 'Open List') + '</span><span class="collection-list-actions-right">' + buildCollectionListPinButton(list) + '<button class="showcase-edit-btn" type="button" data-list-delete="' + escapeHtml(list.id) + '">Delete</button></span></div>'
           + '</div>';
       }).join('')
       : buildNewListTextMarkup() + visibleLists.map(function (list) {
         const entries = collectionListCards(list, map);
-        return '<div class="collection-list-text-row" role="button" tabindex="0" data-list-id="' + escapeHtml(list.id) + '">'
+        return '<div class="collection-list-text-row' + (list.pinned ? ' is-pinned' : '') + '" role="button" tabindex="0" data-list-id="' + escapeHtml(list.id) + '">'
           + collectionListSummaryMarkup(list, entries)
+          + buildCollectionListPinButton(list)
           + '<button class="showcase-edit-btn" type="button" data-list-delete="' + escapeHtml(list.id) + '">Delete</button>'
           + '</div>';
       }).join(''));
 
     addImageFallbacks(collectionGrid);
-    renderShowcase();
     bindListCreateTriggers();
     collectionGrid.querySelectorAll('[data-list-id]').forEach(function (button) {
       button.addEventListener('click', function () {
@@ -8335,6 +8752,15 @@ body.pack-opening-focus .pull-center-stage {
         }
       });
     });
+    collectionGrid.querySelectorAll('[data-list-pin]').forEach(function (button) {
+      button.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (toggleCollectionListPin(button.getAttribute('data-list-pin'))) {
+          renderCollection();
+        }
+      });
+    });
   }
 
   function renderCollectionListCreateView(entryMap) {
@@ -8343,6 +8769,7 @@ body.pack-opening-focus .pull-center-stage {
     collectionGrid.classList.remove('collection-lists-grid');
     collectionGrid.classList.remove('collection-lists-text');
     collectionGrid.classList.remove('collection-list-detail');
+    collectionGrid.classList.remove('collection-list-add');
     collectionGrid.classList.add('collection-list-create');
 
     collectionGrid.innerHTML = '<div class="collection-list-detail-head">'
@@ -8357,7 +8784,6 @@ body.pack-opening-focus .pull-center-stage {
       + '<div class="collection-list-create-preview"><div class="collection-list-plus" aria-hidden="true">+</div><div class="collection-list-description">Lists are local shelves for now. A card can live in multiple lists, so you can keep a Top 4, a horror run, and a "show this to friends" pile without messing up your collection.</div></div>'
       + '</div>';
 
-    renderShowcase();
     const backButton = document.getElementById('collectionListCreateBackButton');
     const cancelButton = document.getElementById('collectionListCreateCancelButton');
     function cancelCreate() {
@@ -8397,12 +8823,13 @@ body.pack-opening-focus .pull-center-stage {
     collectionGrid.classList.remove('collection-lists-grid');
     collectionGrid.classList.remove('collection-lists-text');
     collectionGrid.classList.remove('collection-list-create');
+    collectionGrid.classList.remove('collection-list-add');
     collectionGrid.classList.add('collection-list-detail');
 
     const entries = collectionListCards(list, map);
     collectionGrid.innerHTML = '<div class="collection-list-detail-head">'
       + '<div><button id="collectionListBackButton" class="showcase-edit-btn" type="button">Back To Lists</button><div class="collection-list-detail-title">' + escapeHtml(list.name) + '</div>' + (list.description ? '<div class="collection-list-description">' + escapeHtml(list.description) + '</div>' : '') + '<div class="collection-list-detail-meta">' + String(entries.length) + ' cards · Cards can live in multiple lists.</div></div>'
-      + '<div class="collection-list-detail-actions"><select id="collectionListSortSelect" class="filter-select"><option value="manual">Manual</option><option value="recent">Newest Added</option><option value="rarity">Rarity</option><option value="title">A-Z</option></select><button id="collectionListShareButton" class="showcase-edit-btn" type="button">Share</button><button id="collectionListDeleteButton" class="showcase-edit-btn" type="button">Delete List</button></div>'
+      + '<div class="collection-list-detail-actions"><select id="collectionListSortSelect" class="filter-select"><option value="manual">Manual</option><option value="recent">Newest Added</option><option value="rarity">Rarity</option><option value="title">A-Z</option></select><button id="collectionListAddCardsButton" class="modal-button" type="button">Add Cards</button>' + buildCollectionListPinButton(list) + '<button id="collectionListShareButton" class="showcase-edit-btn" type="button">Share</button><button id="collectionListDeleteButton" class="showcase-edit-btn" type="button">Delete List</button></div>'
       + '</div>'
       + (entries.length
         ? '<div class="collection-list-card-grid">' + entries.map(function (entry, index) {
@@ -8413,7 +8840,7 @@ body.pack-opening-focus .pull-center-stage {
             + '<div class="collection-card-actions"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(card.rarity)) + '; border-color:' + escapeHtml(rarityColor(card.rarity)) + ';">' + escapeHtml(rarityShortLabel(card.rarity)) + '</span>' + buildDuplicateCountMarkup(entry.count) + '</div>'
             + '</div>';
         }).join('') + '</div>'
-        : '<div class="empty-state">This list is empty. Open a card and hit Add To List.</div>');
+        : '<div class="empty-state">This list is empty. Hit Add Cards to build this shelf.</div>');
 
     addImageFallbacks(collectionGrid);
     const backButton = document.getElementById('collectionListBackButton');
@@ -8427,6 +8854,23 @@ body.pack-opening-focus .pull-center-stage {
     if (shareButton) {
       shareButton.addEventListener('click', function () {
         shareCollectionList(list, entries);
+      });
+    }
+    const addCardsButton = document.getElementById('collectionListAddCardsButton');
+    if (addCardsButton) {
+      addCardsButton.addEventListener('click', function () {
+        openCollectionListAddCards(list.id);
+        renderCollection();
+      });
+    }
+    const pinButton = collectionGrid.querySelector('[data-list-pin]');
+    if (pinButton) {
+      pinButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (toggleCollectionListPin(pinButton.getAttribute('data-list-pin'))) {
+          renderCollection();
+        }
       });
     }
     const sortSelect = document.getElementById('collectionListSortSelect');
@@ -10768,12 +11212,15 @@ body.pack-opening-focus .pull-center-stage {
   function prevCard() { animateToCard('prev'); }
 
   function buildModalActionsMarkup(movie) {
-    return '<div class="modal-actions">'
-      + '<button class="modal-button" type="button" id="modalShowcaseButton">' + (isInShowcase(movie) ? 'Remove From Top 4' : 'Add To Top 4') + '</button>'
-      + '<button class="modal-button" type="button" id="modalListButton">Add To List</button>'
-      + '<a class="modal-button" href="' + escapeHtml(resolveCardLink(movie)) + '" target="_blank" rel="noopener noreferrer">Open on Letterboxd</a>'
+    return '<div class="modal-action-panel">'
+      + '<div class="modal-action-heading">Card Actions</div>'
+      + '<div class="modal-actions">'
+      + '<button class="modal-button" type="button" id="modalShowcaseButton">' + (isInShowcase(movie) ? 'Remove Top 4' : 'Add Top 4') + '</button>'
+      + '<button class="modal-button is-primary" type="button" id="modalListButton">Add To List</button>'
+      + '<a class="modal-button is-link" href="' + escapeHtml(resolveCardLink(movie)) + '" target="_blank" rel="noopener noreferrer">Letterboxd</a>'
       + '</div>'
-      + '<div id="modalListPanel" class="modal-list-panel" hidden></div>';
+      + '<div id="modalListPanel" class="modal-list-panel" hidden></div>'
+      + '</div>'
   }
 
   function renderModalListPanel(movie) {
@@ -10861,10 +11308,10 @@ body.pack-opening-focus .pull-center-stage {
   function openCollectionModal(movie) {
     if (movie.cardType === 'person') {
       modalBody.innerHTML = '<div class="modal-grid">'
-        + '<div><img class="modal-poster" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
-        + '<div class="modal-meta"><div class="modal-title">' + escapeHtml(movie.title) + '</div>'
+        + '<div class="modal-media"><img class="modal-poster" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
+        + '<div class="modal-meta"><div><div class="modal-kicker">' + escapeHtml(roleLabelForDisplay(movie)) + ' Card</div><div class="modal-title">' + escapeHtml(movie.title) + '</div></div>'
       + '<div class="chips"><div class="chip">' + escapeHtml(movie.rarity) + '</div><div class="chip">' + escapeHtml(roleLabelForDisplay(movie)) + '</div></div>'
-      + '<div class="modal-sub">' + escapeHtml(movie.desc) + '</div>'
+      + '<div class="modal-panel"><div class="modal-sub">' + escapeHtml(movie.desc) + '</div></div>'
       + buildModalActionsMarkup(movie) + '</div></div>';
       addImageFallbacks(modalBody);
       bindModalShowcaseButton(movie);
@@ -10876,11 +11323,12 @@ body.pack-opening-focus .pull-center-stage {
 
     const quote = QUOTES[movie.title] || '';
     modalBody.innerHTML = '<div class="modal-grid">'
-      + '<div><img class="modal-poster" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' artwork" data-poster="' + escapeHtml(movie.poster || '') + '" data-still="' + escapeHtml(movie.still || '') + '" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre) + '"></div>'
-      + '<div class="modal-meta"><div class="modal-title">' + escapeHtml(movie.title) + '</div>'
+      + '<div class="modal-media"><img class="modal-poster" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' artwork" data-poster="' + escapeHtml(movie.poster || '') + '" data-still="' + escapeHtml(movie.still || '') + '" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre) + '"></div>'
+      + '<div class="modal-meta"><div><div class="modal-kicker">Film Card</div><div class="modal-title">' + escapeHtml(movie.title) + '</div></div>'
       + '<div class="chips"><div class="chip">' + escapeHtml(movie.rarity) + '</div><div class="chip">' + escapeHtml(movie.genre) + '</div>' + (movie.year ? '<div class="chip">' + escapeHtml(movie.year) + '</div>' : '') + (movie.directorName ? '<div class="chip is-director">Dir. ' + escapeHtml(movie.directorName) + '</div>' : '') + '</div>'
-      + '<div class="modal-sub">' + escapeHtml(movie.desc) + '</div>'
+      + '<div class="modal-panel"><div class="modal-sub">' + escapeHtml(movie.desc) + '</div>'
       + (quote ? '<div class="quote">“' + escapeHtml(quote) + '”</div>' : '')
+      + '</div>'
       + buildModalActionsMarkup(movie) + '</div></div>';
     addImageFallbacks(modalBody);
     bindModalShowcaseButton(movie);
@@ -10898,7 +11346,7 @@ body.pack-opening-focus .pull-center-stage {
         showToast('Showcase is full. Make a lil room on your shelf!');
         return;
       }
-      button.textContent = result.active ? 'Remove From Top 4' : 'Add To Top 4';
+      button.textContent = result.active ? 'Remove Top 4' : 'Add Top 4';
       renderShowcase();
       if (collectionPage.classList.contains('active')) {
         renderCollection();
@@ -10933,6 +11381,7 @@ body.pack-opening-focus .pull-center-stage {
     renderCollectionTradeRow();
 
     if (collectionMode === 'lists') {
+      if (showcasePanel) showcasePanel.hidden = true;
       const entryMap = new Map();
       grouped.forEach(function (entry) {
         if (entry && entry.key) entryMap.set(entry.key, entry);
@@ -10940,10 +11389,14 @@ body.pack-opening-focus .pull-center-stage {
       renderCollectionListsView(entryMap);
       return;
     }
+    if (showcasePanel) showcasePanel.hidden = false;
 
     if (!filtered.length) {
       collectionGrid.classList.remove('collection-lists-grid');
+      collectionGrid.classList.remove('collection-lists-text');
+      collectionGrid.classList.remove('collection-list-create');
       collectionGrid.classList.remove('collection-list-detail');
+      collectionGrid.classList.remove('collection-list-add');
       collectionGrid.innerHTML = '<div class="empty-state">No matching cards yet. Open a pack or change your filter.</div>';
       renderShowcase();
       return;
@@ -10952,7 +11405,10 @@ body.pack-opening-focus .pull-center-stage {
     if (collectionView === 'list') {
       collectionGrid.classList.remove('collection-grid');
       collectionGrid.classList.remove('collection-lists-grid');
+      collectionGrid.classList.remove('collection-lists-text');
+      collectionGrid.classList.remove('collection-list-create');
       collectionGrid.classList.remove('collection-list-detail');
+      collectionGrid.classList.remove('collection-list-add');
       collectionGrid.classList.add('collection-list');
       collectionGrid.innerHTML = filtered.map(function (entry, filteredIndex) {
         const movie = entry.card;
@@ -10978,7 +11434,10 @@ body.pack-opening-focus .pull-center-stage {
       collectionGrid.classList.add('collection-grid');
       collectionGrid.classList.remove('collection-list');
       collectionGrid.classList.remove('collection-lists-grid');
+      collectionGrid.classList.remove('collection-lists-text');
+      collectionGrid.classList.remove('collection-list-create');
       collectionGrid.classList.remove('collection-list-detail');
+      collectionGrid.classList.remove('collection-list-add');
       collectionGrid.innerHTML = filtered.map(function (entry, filteredIndex) {
         const movie = entry.card;
         return '<div class="collection-card" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
