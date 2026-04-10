@@ -3227,6 +3227,203 @@ body.pack-opening-focus .pull-center-stage {
   align-items: center;
 }
 
+.collection-lists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+.collection-list-tile,
+.collection-list-detail {
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.025));
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 16px 32px rgba(0,0,0,.16);
+}
+
+.collection-list-tile {
+  min-height: 184px;
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+  align-content: space-between;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.collection-list-tile:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,255,255,.18);
+  box-shadow: 0 18px 34px rgba(0,0,0,.24), 0 0 0 1px rgba(255,255,255,.08);
+}
+
+.collection-list-cover-stack {
+  position: relative;
+  min-height: 86px;
+}
+
+.collection-list-mini-card {
+  position: absolute;
+  width: 62px;
+  height: 86px;
+  border-radius: 10px;
+  background: linear-gradient(160deg, rgba(255,255,255,.13), rgba(255,255,255,.035));
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 12px 22px rgba(0,0,0,.24);
+  overflow: hidden;
+}
+
+.collection-list-mini-card:nth-child(1) { left: 0; top: 0; transform: rotate(-6deg); }
+.collection-list-mini-card:nth-child(2) { left: 46px; top: 4px; transform: rotate(1deg); }
+.collection-list-mini-card:nth-child(3) { left: 92px; top: 9px; transform: rotate(7deg); }
+
+.collection-list-mini-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.88;
+}
+
+.collection-list-tile-title {
+  color: #fff;
+  font-size: 1.02rem;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+}
+
+.collection-list-tile-meta,
+.collection-list-detail-meta {
+  color: rgba(255,255,255,.58);
+  font-size: 0.8rem;
+}
+
+.collection-list-tile-actions,
+.collection-list-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.collection-list-detail {
+  padding: 18px;
+  display: grid;
+  gap: 16px;
+}
+
+.collection-list-detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.collection-list-detail-title {
+  color: #fff;
+  font-size: 1.18rem;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.collection-list-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(156px, 1fr));
+  gap: 16px;
+  justify-items: center;
+}
+
+.collection-list-card {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  color: inherit;
+  font: inherit;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.collection-list-card-remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(9,11,16,.82);
+  color: rgba(255,255,255,.82);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 8;
+}
+
+.collection-list-card-remove:hover {
+  background: rgba(220,38,38,.28);
+  color: #fff;
+}
+
+.modal-list-panel {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.1);
+  display: grid;
+  gap: 10px;
+}
+
+.modal-list-panel[hidden] {
+  display: none;
+}
+
+.modal-list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.modal-list-row:first-of-type {
+  border-top: none;
+}
+
+.modal-list-name {
+  min-width: 0;
+  color: #fff;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-list-form {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-list-input {
+  min-width: 0;
+  flex: 1;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.18);
+  color: #fff;
+  font: inherit;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -4328,7 +4525,7 @@ body.pack-opening-focus .pull-center-stage {
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-164</div>
+  <div class="sub">Build: logic-sync-165</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -4392,9 +4589,14 @@ body.pack-opening-focus .pull-center-stage {
       </div>
       <div class="collection-controls">
         <div class="view-toggle">
+          <button id="collectionModeCards" type="button">Cards</button>
+          <button id="collectionModeLists" type="button">Lists</button>
+        </div>
+        <div class="view-toggle" id="collectionCardViewToggle">
           <button id="collectionViewList" type="button">List</button>
           <button id="collectionViewGrid" type="button">Grid</button>
         </div>
+        <button id="collectionNewListButton" class="showcase-edit-btn" type="button" hidden>New List</button>
         <select id="collectionSort" class="filter-select">
           <option value="recent">Sort: Newest</option>
           <option value="rarity">Sort: Rarity</option>
@@ -4895,7 +5097,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-164';
+  const BUILD_ID = 'logic-sync-165';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -5114,16 +5316,19 @@ body.pack-opening-focus .pull-center-stage {
   let dailyHuntsState = loadDailyHuntsState();
   let bookmarks = loadBookmarks();
   let showcase = loadShowcase();
+  let collectionLists = loadCollectionLists();
   let pack = [];
   let index = 0;
   let artworkStatus = 'Trying backend for live poster/still metadata.';
   let selectedPackMode = 'all-packs';
   let currentPackTheme = 'all';
   let selectedOwnedPackId = '';
+  let collectionMode = loadCollectionMode();
   let collectionSort = loadCollectionSort();
   let collectionFilter = 'all';
   let collectionView = loadCollectionView();
   let collectionSearch = '';
+  let activeCollectionListId = '';
   let freshCollectionKeys = loadFreshCollectionKeys();
   let isAnimatingPeel = false;
   let isOpeningPack = false;
@@ -5392,6 +5597,149 @@ body.pack-opening-focus .pull-center-stage {
       localStorage.setItem('filmtcg.showcase', JSON.stringify(showcase));
     } catch (error) {
     }
+  }
+
+  function collectionListId() {
+    return 'list-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+  }
+
+  function normalizeCollectionListName(value) {
+    return String(value || '').trim().replace(/\s+/g, ' ').slice(0, 42);
+  }
+
+  function normalizeCollectionList(list) {
+    const now = Date.now();
+    const source = list && typeof list === 'object' ? list : {};
+    const seen = new Set();
+    const cardKeys = (Array.isArray(source.cardKeys) ? source.cardKeys : []).map(function (key) {
+      return String(key || '').trim().toLowerCase();
+    }).filter(function (key) {
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    return {
+      id: String(source.id || collectionListId()),
+      name: normalizeCollectionListName(source.name) || 'Untitled List',
+      cardKeys: cardKeys,
+      manualOrder: Array.isArray(source.manualOrder) ? source.manualOrder.map(function (key) {
+        return String(key || '').trim().toLowerCase();
+      }).filter(Boolean) : cardKeys.slice(),
+      coverKey: String(source.coverKey || cardKeys[0] || '').trim().toLowerCase(),
+      sortMode: ['manual', 'recent', 'rarity', 'title'].indexOf(String(source.sortMode || '').toLowerCase()) !== -1
+        ? String(source.sortMode).toLowerCase()
+        : 'manual',
+      createdAt: Number(source.createdAt) || now,
+      updatedAt: Number(source.updatedAt) || now
+    };
+  }
+
+  function loadCollectionLists() {
+    try {
+      const stored = JSON.parse(localStorage.getItem('filmtcg.collectionLists') || '[]');
+      return Array.isArray(stored) ? stored.map(normalizeCollectionList) : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveCollectionLists() {
+    try {
+      localStorage.setItem('filmtcg.collectionLists', JSON.stringify(collectionLists.map(normalizeCollectionList)));
+    } catch (error) {
+    }
+  }
+
+  function loadCollectionMode() {
+    try {
+      const stored = String(localStorage.getItem('filmtcg.collectionMode') || '').toLowerCase();
+      return stored === 'lists' ? 'lists' : 'cards';
+    } catch (error) {
+      return 'cards';
+    }
+  }
+
+  function saveCollectionMode() {
+    try {
+      localStorage.setItem('filmtcg.collectionMode', collectionMode);
+    } catch (error) {
+    }
+  }
+
+  function collectionCardMap() {
+    const map = new Map();
+    aggregateCollectionEntries(collection).forEach(function (entry) {
+      if (entry && entry.key) map.set(entry.key, entry);
+    });
+    return map;
+  }
+
+  function listById(listId) {
+    const id = String(listId || '');
+    return collectionLists.find(function (list) { return list && list.id === id; }) || null;
+  }
+
+  function createCollectionList(name) {
+    const cleanName = normalizeCollectionListName(name);
+    if (!cleanName) return null;
+    const now = Date.now();
+    const list = normalizeCollectionList({
+      id: collectionListId(),
+      name: cleanName,
+      cardKeys: [],
+      manualOrder: [],
+      createdAt: now,
+      updatedAt: now
+    });
+    collectionLists.unshift(list);
+    activeCollectionListId = list.id;
+    saveCollectionLists();
+    return list;
+  }
+
+  function promptForCollectionListName(defaultName) {
+    const value = window.prompt('Name this list', defaultName || '');
+    return normalizeCollectionListName(value);
+  }
+
+  function addCardToCollectionList(card, listId) {
+    const key = cardKey(card);
+    const list = listById(listId);
+    if (!key || !list) return false;
+    if (list.cardKeys.indexOf(key) === -1) {
+      list.cardKeys.unshift(key);
+    }
+    if (list.manualOrder.indexOf(key) === -1) {
+      list.manualOrder.unshift(key);
+    }
+    if (!list.coverKey) list.coverKey = key;
+    list.updatedAt = Date.now();
+    saveCollectionLists();
+    return true;
+  }
+
+  function removeCardFromCollectionList(cardKeyValue, listId) {
+    const key = String(cardKeyValue || '').trim().toLowerCase();
+    const list = listById(listId);
+    if (!key || !list) return false;
+    list.cardKeys = list.cardKeys.filter(function (item) { return item !== key; });
+    list.manualOrder = list.manualOrder.filter(function (item) { return item !== key; });
+    if (list.coverKey === key) list.coverKey = list.cardKeys[0] || '';
+    list.updatedAt = Date.now();
+    saveCollectionLists();
+    return true;
+  }
+
+  function deleteCollectionList(listId) {
+    const id = String(listId || '');
+    const before = collectionLists.length;
+    collectionLists = collectionLists.filter(function (list) { return list && list.id !== id; });
+    if (activeCollectionListId === id) activeCollectionListId = '';
+    if (collectionLists.length !== before) {
+      saveCollectionLists();
+      return true;
+    }
+    return false;
   }
 
   function loadCollectionView() {
@@ -7546,6 +7894,208 @@ body.pack-opening-focus .pull-center-stage {
     return haystack.indexOf(query) !== -1;
   }
 
+  function collectionListCards(list, entryMap) {
+    const map = entryMap || collectionCardMap();
+    const normalized = normalizeCollectionList(list);
+    const orderedKeys = normalized.sortMode === 'manual'
+      ? normalized.manualOrder.concat(normalized.cardKeys.filter(function (key) {
+        return normalized.manualOrder.indexOf(key) === -1;
+      }))
+      : normalized.cardKeys.slice();
+    const seen = new Set();
+    const entries = orderedKeys.map(function (key) {
+      const normalizedKey = String(key || '').trim().toLowerCase();
+      if (!normalizedKey || seen.has(normalizedKey)) return null;
+      seen.add(normalizedKey);
+      return map.get(normalizedKey) || null;
+    }).filter(Boolean);
+
+    if (normalized.sortMode === 'title') {
+      entries.sort(function (a, b) { return a.card.title.localeCompare(b.card.title); });
+    } else if (normalized.sortMode === 'rarity') {
+      entries.sort(function (a, b) {
+        return rarityRank(b.card.rarity) - rarityRank(a.card.rarity) || a.card.title.localeCompare(b.card.title);
+      });
+    } else if (normalized.sortMode === 'recent') {
+      entries.sort(function (a, b) { return a.rawIndex - b.rawIndex; });
+    }
+
+    return entries;
+  }
+
+  function collectionListSearchMatch(list, entries) {
+    const query = String(collectionSearch || '').trim().toLowerCase();
+    if (!query) return true;
+    const cardText = (Array.isArray(entries) ? entries : []).map(function (entry) {
+      return entry && entry.card ? [entry.card.title, collectionSecondaryLabel(entry.card), entry.card.rarity, entry.card.genre].filter(Boolean).join(' ') : '';
+    }).join(' ');
+    return (String(list && list.name || '') + ' ' + cardText).toLowerCase().indexOf(query) !== -1;
+  }
+
+  function collectionListDateLabel(timestamp) {
+    const value = Number(timestamp) || 0;
+    if (!value) return 'Recently updated';
+    try {
+      return 'Updated ' + new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    } catch (error) {
+      return 'Recently updated';
+    }
+  }
+
+  function buildCollectionListCoverMarkup(entries) {
+    const cards = (Array.isArray(entries) ? entries : []).slice(0, 3);
+    if (!cards.length) {
+      return '<div class="collection-list-cover-stack"><div class="collection-list-mini-card"></div><div class="collection-list-mini-card"></div><div class="collection-list-mini-card"></div></div>';
+    }
+    return '<div class="collection-list-cover-stack">' + cards.map(function (entry) {
+      const card = entry.card;
+      return '<div class="collection-list-mini-card" style="' + escapeHtml(collectionShellStyle(card)) + '"><img src="' + escapeHtml(resolveArt(card)) + '" alt="" aria-hidden="true" data-poster="' + escapeHtml(card.poster || '') + '" data-still="' + escapeHtml(card.still || '') + '" data-title="' + escapeHtml(card.title) + '" data-rarity="' + escapeHtml(card.rarity) + '" data-genre="' + escapeHtml(card.genre || roleLabelForDisplay(card)) + '"></div>';
+    }).join('') + '</div>';
+  }
+
+  function renderCollectionListsView(entryMap) {
+    const map = entryMap || collectionCardMap();
+    renderCollectionViewToggle();
+    renderCollectionTradeRow();
+
+    if (activeCollectionListId) {
+      renderCollectionListDetail(activeCollectionListId, map);
+      return;
+    }
+
+    collectionGrid.classList.remove('collection-grid');
+    collectionGrid.classList.remove('collection-list');
+    collectionGrid.classList.remove('collection-list-detail');
+    collectionGrid.classList.add('collection-lists-grid');
+
+    const visibleLists = collectionLists.filter(function (list) {
+      return collectionListSearchMatch(list, collectionListCards(list, map));
+    });
+
+    if (!visibleLists.length) {
+      collectionGrid.innerHTML = '<div class="empty-state">No lists yet. Make one for favorites, themes, directors, or whatever shelf you want.</div>';
+      renderShowcase();
+      return;
+    }
+
+    collectionGrid.innerHTML = visibleLists.map(function (list) {
+      const entries = collectionListCards(list, map);
+      return '<div class="collection-list-tile" role="button" tabindex="0" data-list-id="' + escapeHtml(list.id) + '">'
+        + buildCollectionListCoverMarkup(entries)
+        + '<div><div class="collection-list-tile-title">' + escapeHtml(list.name) + '</div><div class="collection-list-tile-meta">' + String(entries.length) + ' cards · ' + escapeHtml(collectionListDateLabel(list.updatedAt)) + '</div></div>'
+        + '<div class="collection-list-tile-actions"><span class="pack-hook">Open List</span><button class="showcase-edit-btn" type="button" data-list-delete="' + escapeHtml(list.id) + '">Delete</button></div>'
+        + '</div>';
+    }).join('');
+
+    addImageFallbacks(collectionGrid);
+    renderShowcase();
+    collectionGrid.querySelectorAll('[data-list-id]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        activeCollectionListId = button.getAttribute('data-list-id') || '';
+        renderCollection();
+      });
+      button.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          activeCollectionListId = button.getAttribute('data-list-id') || '';
+          renderCollection();
+        }
+      });
+    });
+    collectionGrid.querySelectorAll('[data-list-delete]').forEach(function (button) {
+      button.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const list = listById(button.getAttribute('data-list-delete'));
+        if (!list) return;
+        if (window.confirm('Delete "' + list.name + '"? Cards stay in your collection.')) {
+          deleteCollectionList(list.id);
+          renderCollection();
+        }
+      });
+    });
+  }
+
+  function renderCollectionListDetail(listId, entryMap) {
+    const map = entryMap || collectionCardMap();
+    const list = listById(listId);
+    if (!list) {
+      activeCollectionListId = '';
+      renderCollectionListsView(map);
+      return;
+    }
+
+    collectionGrid.classList.remove('collection-grid');
+    collectionGrid.classList.remove('collection-list');
+    collectionGrid.classList.remove('collection-lists-grid');
+    collectionGrid.classList.add('collection-list-detail');
+
+    const entries = collectionListCards(list, map);
+    collectionGrid.innerHTML = '<div class="collection-list-detail-head">'
+      + '<div><button id="collectionListBackButton" class="showcase-edit-btn" type="button">Back To Lists</button><div class="collection-list-detail-title">' + escapeHtml(list.name) + '</div><div class="collection-list-detail-meta">' + String(entries.length) + ' cards · Cards can live in multiple lists.</div></div>'
+      + '<div class="collection-list-detail-actions"><select id="collectionListSortSelect" class="filter-select"><option value="manual">Manual</option><option value="recent">Newest Added</option><option value="rarity">Rarity</option><option value="title">A-Z</option></select><button id="collectionListDeleteButton" class="showcase-edit-btn" type="button">Delete List</button></div>'
+      + '</div>'
+      + (entries.length
+        ? '<div class="collection-list-card-grid">' + entries.map(function (entry, index) {
+          const card = entry.card;
+          return '<div class="collection-list-card" role="button" tabindex="0" data-list-card-index="' + String(index) + '" style="' + escapeHtml(collectionShellStyle(card)) + '">'
+            + '<button class="collection-list-card-remove" type="button" aria-label="Remove from list" data-list-remove-key="' + escapeHtml(entry.key) + '">&#10005;</button>'
+            + '<div class="collection-card-preview">' + buildShelfCardMarkup(card) + buildCollectionPreviewFlags(card, entry.count) + '</div>'
+            + '<div class="collection-card-actions"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(card.rarity)) + '; border-color:' + escapeHtml(rarityColor(card.rarity)) + ';">' + escapeHtml(rarityShortLabel(card.rarity)) + '</span>' + buildDuplicateCountMarkup(entry.count) + '</div>'
+            + '</div>';
+        }).join('') + '</div>'
+        : '<div class="empty-state">This list is empty. Open a card and hit Add To List.</div>');
+
+    addImageFallbacks(collectionGrid);
+    const backButton = document.getElementById('collectionListBackButton');
+    if (backButton) {
+      backButton.addEventListener('click', function () {
+        activeCollectionListId = '';
+        renderCollection();
+      });
+    }
+    const sortSelect = document.getElementById('collectionListSortSelect');
+    if (sortSelect) {
+      sortSelect.value = list.sortMode || 'manual';
+      sortSelect.addEventListener('change', function (event) {
+        list.sortMode = event.target.value || 'manual';
+        list.updatedAt = Date.now();
+        saveCollectionLists();
+        renderCollection();
+      });
+    }
+    const deleteButton = document.getElementById('collectionListDeleteButton');
+    if (deleteButton) {
+      deleteButton.addEventListener('click', function () {
+        if (window.confirm('Delete "' + list.name + '"? Cards stay in your collection.')) {
+          deleteCollectionList(list.id);
+          renderCollection();
+        }
+      });
+    }
+    collectionGrid.querySelectorAll('[data-list-remove-key]').forEach(function (button) {
+      button.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        removeCardFromCollectionList(button.getAttribute('data-list-remove-key'), list.id);
+        renderCollection();
+      });
+    });
+    collectionGrid.querySelectorAll('[data-list-card-index]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        const entry = entries[Number(button.dataset.listCardIndex)];
+        if (entry && entry.card) openCollectionModal(entry.card);
+      });
+      button.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          const entry = entries[Number(button.dataset.listCardIndex)];
+          if (entry && entry.card) openCollectionModal(entry.card);
+        }
+      });
+    });
+  }
+
   function buildPersonRoleWeights(themeKey) {
     const weights = Object.assign({}, PERSON_ROLE_WEIGHTS);
     const bonus = PERSON_ROLE_THEME_BONUS[themeKey] || {};
@@ -8641,11 +9191,29 @@ body.pack-opening-focus .pull-center-stage {
   }
 
   function renderCollectionViewToggle() {
+    const cardsModeButton = document.getElementById('collectionModeCards');
+    const listsModeButton = document.getElementById('collectionModeLists');
+    const cardViewToggle = document.getElementById('collectionCardViewToggle');
     const listButton = document.getElementById('collectionViewList');
     const gridButton = document.getElementById('collectionViewGrid');
+    const sortEl = document.getElementById('collectionSort');
+    const filterEl = document.getElementById('collectionFilter');
+    const newListButton = document.getElementById('collectionNewListButton');
+    const isListsMode = collectionMode === 'lists';
+    if (cardsModeButton) cardsModeButton.classList.toggle('is-active', !isListsMode);
+    if (listsModeButton) listsModeButton.classList.toggle('is-active', isListsMode);
+    if (cardViewToggle) cardViewToggle.hidden = isListsMode;
+    if (sortEl) sortEl.hidden = isListsMode;
+    if (filterEl) filterEl.hidden = isListsMode;
+    if (newListButton) newListButton.hidden = !isListsMode;
+    if (collectionSearchEl) {
+      collectionSearchEl.placeholder = isListsMode
+        ? 'Search lists or saved cards'
+        : 'Search title, director, role, or year';
+    }
     if (!listButton || !gridButton) return;
-    listButton.classList.toggle('is-active', collectionView === 'list');
-    gridButton.classList.toggle('is-active', collectionView === 'grid');
+    listButton.classList.toggle('is-active', !isListsMode && collectionView === 'list');
+    gridButton.classList.toggle('is-active', !isListsMode && collectionView === 'grid');
   }
 
   function buildPackMarkup() {
@@ -9821,6 +10389,97 @@ body.pack-opening-focus .pull-center-stage {
   function nextCard() { animateToCard('next'); }
   function prevCard() { animateToCard('prev'); }
 
+  function buildModalActionsMarkup(movie) {
+    return '<div class="modal-actions">'
+      + '<button class="modal-button" type="button" id="modalShowcaseButton">' + (isInShowcase(movie) ? 'Remove From Top 4' : 'Add To Top 4') + '</button>'
+      + '<button class="modal-button" type="button" id="modalListButton">Add To List</button>'
+      + '<a class="modal-button" href="' + escapeHtml(resolveCardLink(movie)) + '" target="_blank" rel="noopener noreferrer">Open on Letterboxd</a>'
+      + '</div>'
+      + '<div id="modalListPanel" class="modal-list-panel" hidden></div>';
+  }
+
+  function renderModalListPanel(movie) {
+    const panel = document.getElementById('modalListPanel');
+    if (!panel) return;
+    const key = cardKey(movie);
+    const rows = collectionLists.length
+      ? collectionLists.map(function (list) {
+        const isAdded = list.cardKeys.indexOf(key) !== -1;
+        return '<div class="modal-list-row">'
+          + '<div class="modal-list-name">' + escapeHtml(list.name) + '</div>'
+          + '<button class="showcase-edit-btn" type="button" data-modal-list-toggle="' + escapeHtml(list.id) + '">' + (isAdded ? 'Remove' : 'Add') + '</button>'
+          + '</div>';
+      }).join('')
+      : '<div class="modal-list-row"><div class="modal-list-name">No lists yet. Make the first one here.</div></div>';
+
+    panel.innerHTML = rows
+      + '<div class="modal-list-form">'
+      + '<input id="modalNewListName" class="modal-list-input" type="text" maxlength="42" placeholder="New list name">'
+      + '<button id="modalCreateListButton" class="showcase-edit-btn" type="button">Create + Add</button>'
+      + '</div>';
+
+    panel.querySelectorAll('[data-modal-list-toggle]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        const listId = button.getAttribute('data-modal-list-toggle');
+        const list = listById(listId);
+        if (!list || !key) return;
+        if (list.cardKeys.indexOf(key) !== -1) {
+          removeCardFromCollectionList(key, list.id);
+          showToast('Removed from ' + list.name + '.');
+        } else {
+          addCardToCollectionList(movie, list.id);
+          showToast('Added to ' + list.name + '.');
+        }
+        renderModalListPanel(movie);
+        if (collectionPage.classList.contains('active')) {
+          renderCollection();
+        }
+      });
+    });
+
+    const createButton = document.getElementById('modalCreateListButton');
+    const nameInput = document.getElementById('modalNewListName');
+    function createAndAdd() {
+      const name = normalizeCollectionListName(nameInput && nameInput.value);
+      if (!name) {
+        showToast('Give the list a name first.');
+        return;
+      }
+      const list = createCollectionList(name);
+      if (!list) return;
+      addCardToCollectionList(movie, list.id);
+      collectionMode = 'lists';
+      saveCollectionMode();
+      showToast('Added to ' + list.name + '.');
+      renderModalListPanel(movie);
+      if (collectionPage.classList.contains('active')) {
+        renderCollection();
+      }
+    }
+    if (createButton) createButton.addEventListener('click', createAndAdd);
+    if (nameInput) {
+      nameInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          createAndAdd();
+        }
+      });
+    }
+  }
+
+  function bindModalListButton(movie) {
+    const button = document.getElementById('modalListButton');
+    const panel = document.getElementById('modalListPanel');
+    if (!button || !panel) return;
+    button.addEventListener('click', function () {
+      panel.hidden = !panel.hidden;
+      button.classList.toggle('is-active', !panel.hidden);
+      if (!panel.hidden) {
+        renderModalListPanel(movie);
+      }
+    });
+  }
+
   function openCollectionModal(movie) {
     if (movie.cardType === 'person') {
       modalBody.innerHTML = '<div class="modal-grid">'
@@ -9828,9 +10487,10 @@ body.pack-opening-focus .pull-center-stage {
         + '<div class="modal-meta"><div class="modal-title">' + escapeHtml(movie.title) + '</div>'
       + '<div class="chips"><div class="chip">' + escapeHtml(movie.rarity) + '</div><div class="chip">' + escapeHtml(roleLabelForDisplay(movie)) + '</div></div>'
       + '<div class="modal-sub">' + escapeHtml(movie.desc) + '</div>'
-      + '<div class="modal-actions"><button class="modal-button" type="button" id="modalShowcaseButton">' + (isInShowcase(movie) ? 'Remove From Top 4' : 'Add To Top 4') + '</button><a class="modal-button" href="' + escapeHtml(resolveCardLink(movie)) + '" target="_blank" rel="noopener noreferrer">Open on Letterboxd</a></div></div></div>';
+      + buildModalActionsMarkup(movie) + '</div></div>';
       addImageFallbacks(modalBody);
       bindModalShowcaseButton(movie);
+      bindModalListButton(movie);
       cardModal.classList.add('open');
       cardModal.setAttribute('aria-hidden', 'false');
       return;
@@ -9843,9 +10503,10 @@ body.pack-opening-focus .pull-center-stage {
       + '<div class="chips"><div class="chip">' + escapeHtml(movie.rarity) + '</div><div class="chip">' + escapeHtml(movie.genre) + '</div>' + (movie.year ? '<div class="chip">' + escapeHtml(movie.year) + '</div>' : '') + (movie.directorName ? '<div class="chip is-director">Dir. ' + escapeHtml(movie.directorName) + '</div>' : '') + '</div>'
       + '<div class="modal-sub">' + escapeHtml(movie.desc) + '</div>'
       + (quote ? '<div class="quote">“' + escapeHtml(quote) + '”</div>' : '')
-      + '<div class="modal-actions"><button class="modal-button" type="button" id="modalShowcaseButton">' + (isInShowcase(movie) ? 'Remove From Top 4' : 'Add To Top 4') + '</button><a class="modal-button" href="' + escapeHtml(resolveCardLink(movie)) + '" target="_blank" rel="noopener noreferrer">Open on Letterboxd</a></div></div></div>';
+      + buildModalActionsMarkup(movie) + '</div></div>';
     addImageFallbacks(modalBody);
     bindModalShowcaseButton(movie);
+    bindModalListButton(movie);
     cardModal.classList.add('open');
     cardModal.setAttribute('aria-hidden', 'false');
   }
@@ -9893,7 +10554,18 @@ body.pack-opening-focus .pull-center-stage {
     renderCollectionViewToggle();
     renderCollectionTradeRow();
 
+    if (collectionMode === 'lists') {
+      const entryMap = new Map();
+      grouped.forEach(function (entry) {
+        if (entry && entry.key) entryMap.set(entry.key, entry);
+      });
+      renderCollectionListsView(entryMap);
+      return;
+    }
+
     if (!filtered.length) {
+      collectionGrid.classList.remove('collection-lists-grid');
+      collectionGrid.classList.remove('collection-list-detail');
       collectionGrid.innerHTML = '<div class="empty-state">No matching cards yet. Open a pack or change your filter.</div>';
       renderShowcase();
       return;
@@ -9901,6 +10573,8 @@ body.pack-opening-focus .pull-center-stage {
 
     if (collectionView === 'list') {
       collectionGrid.classList.remove('collection-grid');
+      collectionGrid.classList.remove('collection-lists-grid');
+      collectionGrid.classList.remove('collection-list-detail');
       collectionGrid.classList.add('collection-list');
       collectionGrid.innerHTML = filtered.map(function (entry, filteredIndex) {
         const movie = entry.card;
@@ -9925,6 +10599,8 @@ body.pack-opening-focus .pull-center-stage {
     } else {
       collectionGrid.classList.add('collection-grid');
       collectionGrid.classList.remove('collection-list');
+      collectionGrid.classList.remove('collection-lists-grid');
+      collectionGrid.classList.remove('collection-list-detail');
       collectionGrid.innerHTML = filtered.map(function (entry, filteredIndex) {
         const movie = entry.card;
         return '<div class="collection-card" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
@@ -9995,8 +10671,11 @@ body.pack-opening-focus .pull-center-stage {
     const packThemeEl = document.getElementById('packTheme');
     const sortEl = document.getElementById('collectionSort');
     const filterEl = document.getElementById('collectionFilter');
+    const collectionModeCardsEl = document.getElementById('collectionModeCards');
+    const collectionModeListsEl = document.getElementById('collectionModeLists');
     const collectionViewListEl = document.getElementById('collectionViewList');
     const collectionViewGridEl = document.getElementById('collectionViewGrid');
+    const collectionNewListButton = document.getElementById('collectionNewListButton');
 
     modalClose.addEventListener('click', closeCollectionModal);
     cardModal.addEventListener('click', function (event) {
@@ -10048,16 +10727,45 @@ body.pack-opening-focus .pull-center-stage {
     });
 
     renderCollectionViewToggle();
-    collectionViewListEl.addEventListener('click', function () {
-      collectionView = 'list';
-      saveCollectionView();
-      renderCollection();
-    });
-    collectionViewGridEl.addEventListener('click', function () {
-      collectionView = 'grid';
-      saveCollectionView();
-      renderCollection();
-    });
+    if (collectionModeCardsEl) {
+      collectionModeCardsEl.addEventListener('click', function () {
+        collectionMode = 'cards';
+        activeCollectionListId = '';
+        saveCollectionMode();
+        renderCollection();
+      });
+    }
+    if (collectionModeListsEl) {
+      collectionModeListsEl.addEventListener('click', function () {
+        collectionMode = 'lists';
+        saveCollectionMode();
+        renderCollection();
+      });
+    }
+    if (collectionNewListButton) {
+      collectionNewListButton.addEventListener('click', function () {
+        const name = promptForCollectionListName('Weekend watchlist');
+        if (!name) return;
+        createCollectionList(name);
+        collectionMode = 'lists';
+        saveCollectionMode();
+        renderCollection();
+      });
+    }
+    if (collectionViewListEl) {
+      collectionViewListEl.addEventListener('click', function () {
+        collectionView = 'list';
+        saveCollectionView();
+        renderCollection();
+      });
+    }
+    if (collectionViewGridEl) {
+      collectionViewGridEl.addEventListener('click', function () {
+        collectionView = 'grid';
+        saveCollectionView();
+        renderCollection();
+      });
+    }
   }
 
   let didFinalizeStartupUi = false;
