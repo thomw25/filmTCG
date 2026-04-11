@@ -3835,6 +3835,8 @@ body.pack-opening-focus .pull-center-stage {
   border: none;
   cursor: pointer;
   opacity: 0.88;
+  content-visibility: auto;
+  contain-intrinsic-size: 240px;
   transition: transform 180ms ease, opacity 180ms ease, filter 180ms ease;
 }
 
@@ -3848,11 +3850,63 @@ body.pack-opening-focus .pull-center-stage {
   filter: saturate(1.08) brightness(1.04);
 }
 
-.collection-list-add-card.is-selected .collection-card-preview::after {
+.collection-list-add-preview {
+  position: relative;
+  width: 152px;
+  height: 214px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collection-list-add-preview .collection-list-mini-card {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none !important;
+  width: 152px;
+  height: 214px;
+  padding: 10px;
+  border-radius: 16px;
+  gap: 8px;
+  box-shadow: 0 16px 30px rgba(0,0,0,.26);
+}
+
+.collection-list-add-preview .collection-list-mini-head {
+  gap: 6px;
+}
+
+.collection-list-add-preview .collection-list-mini-title {
+  font-size: 0.76rem;
+  line-height: 1.06;
+}
+
+.collection-list-add-preview .collection-list-mini-rarity {
+  min-width: 22px;
+  height: 22px;
+  font-size: 0.54rem;
+}
+
+.collection-list-add-preview .collection-list-mini-art {
+  border-radius: 12px;
+}
+
+.collection-list-add-preview .collection-list-mini-mark {
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  font-size: 0.56rem;
+}
+
+.collection-list-add-preview .collection-list-mini-meta {
+  font-size: 0.56rem;
+}
+
+.collection-list-add-card.is-selected .collection-list-add-preview::after {
   content: "";
   position: absolute;
   inset: -5px;
-  border-radius: 18px;
+  border-radius: 22px;
   border: 2px solid rgba(147,197,253,.92);
   box-shadow: 0 0 0 4px rgba(96,165,250,.18), 0 18px 34px rgba(37,99,235,.24);
   pointer-events: none;
@@ -5147,7 +5201,7 @@ body.pack-opening-focus .pull-center-stage {
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-174</div>
+  <div class="sub">Build: logic-sync-175</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -5720,7 +5774,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-174';
+  const BUILD_ID = 'logic-sync-175';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -8666,6 +8720,10 @@ body.pack-opening-focus .pull-center-stage {
       + '</div>';
   }
 
+  function buildCollectionListAddPreviewMarkup(card) {
+    return '<div class="collection-list-add-preview">' + buildCollectionListMiniCardMarkup(card) + '</div>';
+  }
+
   function openCollectionListMenu() {
     activeCollectionListId = '';
     collectionListWindow = 'menu';
@@ -8907,7 +8965,7 @@ body.pack-opening-focus .pull-center-stage {
           const card = entry.card;
           return '<div class="collection-list-add-card" role="button" tabindex="0" aria-pressed="false" data-list-add-key="' + escapeHtml(entry.key) + '" data-add-search="' + escapeHtml(collectionListAddSearchText(entry)) + '" data-add-card-type="' + escapeHtml(card.cardType || 'film') + '" data-add-role="' + escapeHtml(card.roleKey || '') + '" data-add-rarity="' + escapeHtml(normalizeRarityLabel(card.rarity).toLowerCase()) + '" data-add-bookmarked="' + (isBookmarked(card) ? 'true' : 'false') + '" style="' + escapeHtml(collectionShellStyle(card)) + '">'
             + '<span class="collection-list-add-check" aria-hidden="true">+</span>'
-            + '<div class="collection-card-preview">' + buildShelfCardMarkup(card) + buildCollectionPreviewFlags(card, entry.count) + '</div>'
+            + buildCollectionListAddPreviewMarkup(card)
             + '<div class="collection-card-actions"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(card.rarity)) + '; border-color:' + escapeHtml(rarityColor(card.rarity)) + ';">' + escapeHtml(rarityShortLabel(card.rarity)) + '</span>' + buildDuplicateCountMarkup(entry.count) + '</div>'
             + '</div>';
         }).join('') + '</div><div id="collectionListAddNoResults" class="empty-state" hidden>No cards match those add filters.</div>'
