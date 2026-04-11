@@ -3872,6 +3872,28 @@ body.pack-opening-focus .pull-center-stage {
   box-shadow: 0 16px 30px rgba(0,0,0,.26);
 }
 
+.collection-list-add-preview .collection-list-mini-art {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.collection-list-add-preview .collection-list-mini-art::before {
+  background:
+    linear-gradient(128deg, rgba(255,255,255,.16), transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.12));
+  z-index: 2;
+}
+
+.collection-list-add-preview .collection-list-mini-art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0.94;
+}
+
 .collection-list-add-preview .collection-list-mini-head {
   gap: 6px;
 }
@@ -3887,15 +3909,13 @@ body.pack-opening-focus .pull-center-stage {
   font-size: 0.54rem;
 }
 
-.collection-list-add-preview .collection-list-mini-art {
-  border-radius: 12px;
-}
-
 .collection-list-add-preview .collection-list-mini-mark {
   left: 10px;
   right: 10px;
   bottom: 10px;
   font-size: 0.56rem;
+  text-shadow: 0 2px 10px rgba(0,0,0,.42);
+  z-index: 3;
 }
 
 .collection-list-add-preview .collection-list-mini-meta {
@@ -5201,7 +5221,7 @@ body.pack-opening-focus .pull-center-stage {
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-175</div>
+  <div class="sub">Build: logic-sync-176</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -5774,7 +5794,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-175';
+  const BUILD_ID = 'logic-sync-176';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -8721,7 +8741,20 @@ body.pack-opening-focus .pull-center-stage {
   }
 
   function buildCollectionListAddPreviewMarkup(card) {
-    return '<div class="collection-list-add-preview">' + buildCollectionListMiniCardMarkup(card) + '</div>';
+    const meta = card && card.cardType === 'person'
+      ? roleLabelForDisplay(card)
+      : (card && card.year ? String(card.year) : String(card && card.genre || 'Film'));
+    const mark = card && card.cardType === 'person'
+      ? roleLabelForDisplay(card)
+      : String(card && card.genre || 'Film');
+    const genreLabel = card && card.cardType === 'person'
+      ? roleLabelForDisplay(card)
+      : String(card && card.genre || 'Film');
+    return '<div class="collection-list-add-preview"><div class="collection-list-mini-card">'
+      + '<div class="collection-list-mini-head"><div class="collection-list-mini-title">' + escapeHtml(card && card.title || 'Unknown') + '</div><span class="collection-list-mini-rarity" style="background:' + escapeHtml(rarityColor(card && card.rarity)) + ';">' + escapeHtml(rarityShortLabel(card && card.rarity)) + '</span></div>'
+      + '<div class="collection-list-mini-art"><img src="' + escapeHtml(resolveArt(card)) + '" alt="' + escapeHtml(card && card.title || 'Card') + ' preview"' + cardImageAttrs('low') + ' data-poster="' + escapeHtml(card && card.poster || '') + '" data-still="' + escapeHtml(card && card.still || '') + '" data-title="' + escapeHtml(card && card.title || 'Unknown') + '" data-rarity="' + escapeHtml(card && card.rarity || 'Base') + '" data-genre="' + escapeHtml(genreLabel) + '"><span class="collection-list-mini-mark">' + escapeHtml(mark) + '</span></div>'
+      + '<div class="collection-list-mini-meta">' + escapeHtml(meta) + '</div>'
+      + '</div></div>';
   }
 
   function openCollectionListMenu() {
