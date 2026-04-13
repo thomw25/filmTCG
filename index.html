@@ -3440,47 +3440,50 @@ body.pack-opening-focus .pull-center-stage {
 
 .collection-list-cover-stack {
   position: relative;
-  min-height: 108px;
+  min-height: 122px;
 }
 
 .collection-list-mini-card {
   position: absolute;
-  width: 66px;
-  height: 92px;
-  border-radius: 10px;
-  padding: 5px;
-  box-sizing: border-box;
-  background:
-    linear-gradient(180deg, var(--shell-bg-top, rgba(255,255,255,.14)), var(--shell-bg-bottom, rgba(255,255,255,.04))),
-    rgba(15,23,42,.98);
-  border: 1px solid var(--shell-border-soft, rgba(255,255,255,.12));
-  box-shadow: 0 12px 22px rgba(0,0,0,.24);
+  width: 72px;
+  height: 104px;
   overflow: hidden;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 4px;
-  isolation: isolate;
+  border-radius: 12px;
+  background: transparent;
 }
 
 .collection-list-mini-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(118deg, transparent 0 24%, rgba(255,255,255,.12) 34%, rgba(255,255,255,.03) 46%, transparent 62%),
-    radial-gradient(circle at top left, rgba(255,255,255,.1), transparent 34%);
-  pointer-events: none;
-  z-index: 0;
+  content: none;
 }
 
-.collection-list-mini-card:nth-child(1) { left: 0; top: 4px; transform: rotate(-7deg); }
-.collection-list-mini-card:nth-child(2) { left: 44px; top: 0; transform: rotate(-1deg); }
-.collection-list-mini-card:nth-child(3) { left: 88px; top: 5px; transform: rotate(5deg); }
-.collection-list-mini-card:nth-child(4) { left: 132px; top: 12px; transform: rotate(10deg); }
+.collection-list-mini-card:nth-child(1) { left: 0; top: 6px; transform: rotate(-8deg); }
+.collection-list-mini-card:nth-child(2) { left: 46px; top: 0; transform: rotate(-2deg); }
+.collection-list-mini-card:nth-child(3) { left: 92px; top: 6px; transform: rotate(4deg); }
+.collection-list-mini-card:nth-child(4) { left: 138px; top: 14px; transform: rotate(9deg); }
 
 .collection-list-mini-card > * {
   position: relative;
   z-index: 1;
+}
+
+.collection-list-mini-card.is-placeholder {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03)),
+    rgba(15,23,42,.92);
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 10px 18px rgba(0,0,0,.2);
+}
+
+.collection-list-mini-preview {
+  --preview-scale: 0.24;
+  width: calc(300px * var(--preview-scale));
+  height: calc(430px * var(--preview-scale));
+  overflow: visible;
+  border-radius: 0;
+}
+
+.collection-list-mini-preview .card {
+  box-shadow: 0 10px 18px rgba(0,0,0,.24);
 }
 
 .collection-list-mini-head {
@@ -3855,7 +3858,7 @@ body.pack-opening-focus .pull-center-stage {
 
 .collection-list-add-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(156px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(164px, 1fr));
   gap: 16px;
   justify-items: center;
 }
@@ -3887,7 +3890,7 @@ body.pack-opening-focus .pull-center-stage {
   cursor: pointer;
   opacity: 0.88;
   content-visibility: auto;
-  contain-intrinsic-size: 240px;
+  contain-intrinsic-size: 268px;
   transition: transform 180ms ease, opacity 180ms ease, filter 180ms ease;
 }
 
@@ -3903,74 +3906,23 @@ body.pack-opening-focus .pull-center-stage {
 
 .collection-list-add-preview {
   position: relative;
-  width: 152px;
-  height: 214px;
+  width: 156px;
+  height: 224px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.collection-list-add-preview .collection-list-mini-card {
-  position: relative;
-  left: auto;
-  top: auto;
-  transform: none !important;
-  width: 152px;
-  height: 214px;
-  padding: 10px;
-  border-radius: 16px;
-  gap: 8px;
-  box-shadow: 0 16px 30px rgba(0,0,0,.26);
+.collection-list-add-card-preview {
+  --preview-scale: 0.52;
+  width: calc(300px * var(--preview-scale));
+  height: calc(430px * var(--preview-scale));
+  overflow: visible;
+  border-radius: 0;
 }
 
-.collection-list-add-preview .collection-list-mini-art {
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.collection-list-add-preview .collection-list-mini-art::before {
-  background:
-    linear-gradient(128deg, rgba(255,255,255,.16), transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.12));
-  z-index: 2;
-}
-
-.collection-list-add-preview .collection-list-mini-art img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  opacity: 0.94;
-}
-
-.collection-list-add-preview .collection-list-mini-head {
-  gap: 6px;
-}
-
-.collection-list-add-preview .collection-list-mini-title {
-  font-size: 0.76rem;
-  line-height: 1.06;
-}
-
-.collection-list-add-preview .collection-list-mini-rarity {
-  min-width: 22px;
-  height: 22px;
-  font-size: 0.54rem;
-}
-
-.collection-list-add-preview .collection-list-mini-mark {
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
-  font-size: 0.56rem;
-  text-shadow: 0 2px 10px rgba(0,0,0,.42);
-  z-index: 3;
-}
-
-.collection-list-add-preview .collection-list-mini-meta {
-  font-size: 0.56rem;
+.collection-list-add-card-preview .card {
+  box-shadow: 0 18px 34px rgba(0,0,0,.28);
 }
 
 .collection-list-add-card.is-selected .collection-list-add-preview::after {
@@ -5282,7 +5234,7 @@ body.pack-opening-focus .pull-center-stage {
   <div class="title">filmTCG</div>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-178</div>
+  <div class="sub">Build: logic-sync-179</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -5855,7 +5807,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-178';
+  const BUILD_ID = 'logic-sync-179';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -8787,7 +8739,7 @@ body.pack-opening-focus .pull-center-stage {
   function buildCollectionListCoverMarkup(entries) {
     const cards = (Array.isArray(entries) ? entries : []).slice(0, 4);
     if (!cards.length) {
-      return '<div class="collection-list-cover-stack"><div class="collection-list-mini-card"></div><div class="collection-list-mini-card"></div><div class="collection-list-mini-card"></div><div class="collection-list-mini-card"></div></div>';
+      return '<div class="collection-list-cover-stack"><div class="collection-list-mini-card is-placeholder"></div><div class="collection-list-mini-card is-placeholder"></div><div class="collection-list-mini-card is-placeholder"></div><div class="collection-list-mini-card is-placeholder"></div></div>';
     }
     return '<div class="collection-list-cover-stack">' + cards.map(function (entry) {
       const card = entry.card;
@@ -8796,37 +8748,13 @@ body.pack-opening-focus .pull-center-stage {
   }
 
   function buildCollectionListMiniCardMarkup(card) {
-    const meta = card && card.cardType === 'person'
-      ? roleLabelForDisplay(card)
-      : (card && card.year ? String(card.year) : String(card && card.genre || 'Film'));
-    const mark = card && card.cardType === 'person'
-      ? roleLabelForDisplay(card)
-      : String(card && card.genre || 'Film');
-    const genreLabel = card && card.cardType === 'person'
-      ? roleLabelForDisplay(card)
-      : String(card && card.genre || 'Film');
-    return '<div class="collection-list-mini-card" style="' + escapeHtml(collectionShellStyle(card)) + '">'
-      + '<div class="collection-list-mini-head"><div class="collection-list-mini-title">' + escapeHtml(card && card.title || 'Unknown') + '</div><span class="collection-list-mini-rarity" style="background:' + escapeHtml(rarityColor(card && card.rarity)) + ';">' + escapeHtml(rarityShortLabel(card && card.rarity)) + '</span></div>'
-      + '<div class="collection-list-mini-art"><img src="' + escapeHtml(resolveArt(card)) + '" alt="' + escapeHtml(card && card.title || 'Card') + ' preview"' + cardImageAttrs('low') + ' data-poster="' + escapeHtml(card && card.poster || '') + '" data-still="' + escapeHtml(card && card.still || '') + '" data-title="' + escapeHtml(card && card.title || 'Unknown') + '" data-rarity="' + escapeHtml(card && card.rarity || 'Base') + '" data-genre="' + escapeHtml(genreLabel) + '"><span class="collection-list-mini-mark">' + escapeHtml(mark) + '</span></div>'
-      + '<div class="collection-list-mini-meta">' + escapeHtml(meta) + '</div>'
+    return '<div class="collection-list-mini-card">'
+      + '<div class="collection-card-preview collection-list-mini-preview">' + buildShelfCardMarkup(card) + '</div>'
       + '</div>';
   }
 
   function buildCollectionListAddPreviewMarkup(card) {
-    const meta = card && card.cardType === 'person'
-      ? roleLabelForDisplay(card)
-      : (card && card.year ? String(card.year) : String(card && card.genre || 'Film'));
-    const mark = card && card.cardType === 'person'
-      ? roleLabelForDisplay(card)
-      : String(card && card.genre || 'Film');
-    const genreLabel = card && card.cardType === 'person'
-      ? roleLabelForDisplay(card)
-      : String(card && card.genre || 'Film');
-    return '<div class="collection-list-add-preview"><div class="collection-list-mini-card">'
-      + '<div class="collection-list-mini-head"><div class="collection-list-mini-title">' + escapeHtml(card && card.title || 'Unknown') + '</div><span class="collection-list-mini-rarity" style="background:' + escapeHtml(rarityColor(card && card.rarity)) + ';">' + escapeHtml(rarityShortLabel(card && card.rarity)) + '</span></div>'
-      + '<div class="collection-list-mini-art"><img src="' + escapeHtml(resolveArt(card)) + '" alt="' + escapeHtml(card && card.title || 'Card') + ' preview"' + cardImageAttrs('low') + ' data-poster="' + escapeHtml(card && card.poster || '') + '" data-still="' + escapeHtml(card && card.still || '') + '" data-title="' + escapeHtml(card && card.title || 'Unknown') + '" data-rarity="' + escapeHtml(card && card.rarity || 'Base') + '" data-genre="' + escapeHtml(genreLabel) + '"><span class="collection-list-mini-mark">' + escapeHtml(mark) + '</span></div>'
-      + '<div class="collection-list-mini-meta">' + escapeHtml(meta) + '</div>'
-      + '</div></div>';
+    return '<div class="collection-list-add-preview"><div class="collection-card-preview collection-list-add-card-preview">' + buildShelfCardMarkup(card) + '</div></div>';
   }
 
   function collectionListAddMatches(entry, query, filter) {
