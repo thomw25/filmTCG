@@ -87,6 +87,21 @@ button, a, select { font: inherit; }
   letter-spacing: -0.04em;
 }
 
+.brand-home {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.brand-home:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
 .sub {
   color: var(--muted);
   font-size: 0.92rem;
@@ -5231,10 +5246,10 @@ body.pack-opening-focus .pull-center-stage {
 </head>
 <body>
 <div class="header">
-  <div class="title">filmTCG</div>
+  <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-179</div>
+  <div class="sub">Build: logic-sync-180</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -5807,7 +5822,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-179';
+  const BUILD_ID = 'logic-sync-180';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6080,6 +6095,7 @@ body.pack-opening-focus .pull-center-stage {
   const dailyPage = document.getElementById('daily');
   const shopPage = document.getElementById('shop');
   const collectionPage = document.getElementById('collection');
+  const homeLogo = document.getElementById('homeLogo');
   const pullArea = document.getElementById('pullArea');
   const dailyHuntsPanel = document.getElementById('dailyHuntsPanel');
   const shopPanel = document.getElementById('shopPanel');
@@ -10455,17 +10471,105 @@ body.pack-opening-focus .pull-center-stage {
     return lines.slice(0, maxLines);
   }
 
-  function drawShowcaseStoryCard(ctx, card, x, y, width, height, slotIndex) {
+  function storyArtCandidates(card) {
+    if (!card) return [];
+    const genreLabel = card.cardType === 'person'
+      ? roleLabelForDisplay(card)
+      : (card.genre || 'Film');
+    const candidates = [
+      resolveArt(card),
+      card && card.poster ? proxied(card.poster) : '',
+      card && card.still ? proxied(card.still) : '',
+      makePosterDataUri({
+        title: card.title || 'Unknown',
+        rarity: card.rarity || 'Base',
+        genre: genreLabel
+      })
+    ].filter(Boolean);
+    return candidates.filter(function (src, index) {
+      return candidates.indexOf(src) === index;
+    });
+  }
+
+  function loadCanvasImageSource(src) {
+    return new Promise(function (resolve) {
+      const source = String(src || '').trim();
+      if (!source) {
+        resolve(null);
+        return;
+      }
+      const img = new Image();
+      img.decoding = 'async';
+      img.crossOrigin = 'anonymous';
+      img.referrerPolicy = 'no-referrer';
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { resolve(null); };
+      img.src = source;
+    });
+  }
+
+  async function loadStoryCardArtwork(card) {
+    const candidates = storyArtCandidates(card);
+    for (let i = 0; i < candidates.length; i += 1) {
+      const image = await loadCanvasImageSource(candidates[i]);
+      if (image) return image;
+    }
+    return null;
+  }
+
+  function drawCanvasImageCover(ctx, image, x, y, width, height) {
+    if (!image) return;
+    const sourceWidth = image.naturalWidth || image.width || width;
+    const sourceHeight = image.naturalHeight || image.height || height;
+    if (!sourceWidth || !sourceHeight) return;
+    const scale = Math.max(width / sourceWidth, height / sourceHeight);
+    const drawWidth = sourceWidth * scale;
+    const drawHeight = sourceHeight * scale;
+    const drawX = x + ((width - drawWidth) / 2);
+    const drawY = y + ((height - drawHeight) / 2);
+    ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+  }
+
+  function drawCanvasPill(ctx, label, x, y, bgColor, textColor, borderColor) {
+    ctx.save();
+    ctx.font = '800 20px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    const padX = 18;
+    const padY = 10;
+    const width = Math.max(74, ctx.measureText(label).width + (padX * 2));
+    const height = 38;
+    drawRoundedRectPath(ctx, x, y, width, height, 19);
+    ctx.fillStyle = bgColor;
+    ctx.fill();
+    if (borderColor) {
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    ctx.fillStyle = textColor;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, x + (width / 2), y + (height / 2) + 1);
+    ctx.restore();
+    return width;
+  }
+
+  function drawShowcaseStoryCard(ctx, card, artImage, x, y, width, height, slotIndex) {
     const accent = rarityColor(card && card.rarity);
     const isEmpty = !card;
-    const topColor = isEmpty ? 'rgba(255,255,255,0.06)' : hexToRgba(accent, 0.26);
+    const topColor = isEmpty ? 'rgba(255,255,255,0.06)' : hexToRgba(accent, 0.22);
     const bottomColor = isEmpty ? 'rgba(255,255,255,0.02)' : 'rgba(15,23,42,0.98)';
     const bg = ctx.createLinearGradient(x, y, x, y + height);
     bg.addColorStop(0, topColor);
+    bg.addColorStop(0.42, 'rgba(17,24,39,0.96)');
     bg.addColorStop(1, bottomColor);
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.26)';
+    ctx.shadowBlur = 28;
+    ctx.shadowOffsetY = 20;
     drawRoundedRectPath(ctx, x, y, width, height, 34);
     ctx.fillStyle = bg;
     ctx.fill();
+    ctx.restore();
     ctx.lineWidth = 4;
     ctx.strokeStyle = isEmpty ? 'rgba(255,255,255,0.08)' : hexToRgba(accent, 0.7);
     ctx.stroke();
@@ -10476,20 +10580,31 @@ body.pack-opening-focus .pull-center-stage {
     ctx.stroke();
 
     const innerX = x + 28;
-    const innerY = y + 26;
     const innerWidth = width - 56;
-    const artY = y + 118;
-    const artHeight = height - 250;
+    const titleY = y + 28;
+    const artY = y + 106;
+    const artHeight = height - 238;
 
     if (card) {
-      ctx.fillStyle = hexToRgba(accent, 0.98);
-      drawRoundedRectPath(ctx, x + width - 112, y + 28, 64, 36, 18);
-      ctx.fill();
+      const rarityLabel = normalizeRarityLabel(card.rarity);
+      const pillWidth = drawCanvasPill(
+        ctx,
+        rarityLabel,
+        x + width - 170,
+        y + 30,
+        hexToRgba(accent, 0.94),
+        '#ffffff',
+        hexToRgba('#ffffff', 0.18)
+      );
+
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(rarityShortLabel(card.rarity), x + width - 80, y + 47);
+      ctx.font = '900 38px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      const titleLines = wrapCanvasTextLines(ctx, card.title, innerWidth - pillWidth - 22, 2);
+      titleLines.forEach(function (line, index) {
+        ctx.fillText(line, innerX + 4, titleY + (index * 38));
+      });
     } else {
       ctx.fillStyle = 'rgba(255,255,255,0.24)';
       ctx.font = '800 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
@@ -10505,35 +10620,68 @@ body.pack-opening-focus .pull-center-stage {
     ctx.fillStyle = artBg;
     ctx.fill();
 
-    ctx.save();
-    drawRoundedRectPath(ctx, innerX, artY, innerWidth, artHeight, 24);
-    ctx.clip();
-    const sheen = ctx.createLinearGradient(innerX - 30, artY, innerX + innerWidth * 0.6, artY + artHeight);
-    sheen.addColorStop(0, 'rgba(255,255,255,0.18)');
-    sheen.addColorStop(0.3, 'rgba(255,255,255,0.03)');
-    sheen.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = sheen;
-    ctx.fillRect(innerX, artY, innerWidth, artHeight);
-    ctx.restore();
+    if (artImage) {
+      ctx.save();
+      drawRoundedRectPath(ctx, innerX, artY, innerWidth, artHeight, 24);
+      ctx.clip();
+      drawCanvasImageCover(ctx, artImage, innerX, artY, innerWidth, artHeight);
+      const artFade = ctx.createLinearGradient(0, artY, 0, artY + artHeight);
+      artFade.addColorStop(0, 'rgba(255,255,255,0.08)');
+      artFade.addColorStop(0.38, 'rgba(255,255,255,0)');
+      artFade.addColorStop(0.76, 'rgba(9,12,18,0.12)');
+      artFade.addColorStop(1, 'rgba(9,12,18,0.48)');
+      ctx.fillStyle = artFade;
+      ctx.fillRect(innerX, artY, innerWidth, artHeight);
+      const sheen = ctx.createLinearGradient(innerX - 30, artY, innerX + innerWidth * 0.56, artY + artHeight);
+      sheen.addColorStop(0, 'rgba(255,255,255,0.2)');
+      sheen.addColorStop(0.28, 'rgba(255,255,255,0.04)');
+      sheen.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = sheen;
+      ctx.fillRect(innerX, artY, innerWidth, artHeight);
+      ctx.restore();
+    } else {
+      ctx.save();
+      drawRoundedRectPath(ctx, innerX, artY, innerWidth, artHeight, 24);
+      ctx.clip();
+      const sheen = ctx.createLinearGradient(innerX - 30, artY, innerX + innerWidth * 0.6, artY + artHeight);
+      sheen.addColorStop(0, 'rgba(255,255,255,0.18)');
+      sheen.addColorStop(0.3, 'rgba(255,255,255,0.03)');
+      sheen.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = sheen;
+      ctx.fillRect(innerX, artY, innerWidth, artHeight);
+      ctx.restore();
+    }
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     if (card) {
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '900 40px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-      const titleLines = wrapCanvasTextLines(ctx, card.title, innerWidth - 8, 3);
-      titleLines.forEach(function (line, index) {
-        ctx.fillText(line, innerX + 4, y + 34 + (index * 42));
-      });
-
+      const metaPillY = y + height - 106;
+      const leftMeta = card.cardType === 'person'
+        ? roleLabelForDisplay(card)
+        : (card.genre || 'Film');
+      const rightMeta = card.cardType === 'person'
+        ? normalizeRarityLabel(card.rarity)
+        : (card.year ? String(card.year) : normalizeRarityLabel(card.rarity));
+      const metaPillWidth = drawCanvasPill(
+        ctx,
+        String(leftMeta || 'Film').toUpperCase(),
+        innerX,
+        metaPillY,
+        'rgba(9,12,18,0.56)',
+        '#ffffff',
+        'rgba(255,255,255,0.12)'
+      );
       ctx.fillStyle = 'rgba(255,255,255,0.72)';
       ctx.font = '800 22px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-      ctx.fillText(card.cardType === 'person' ? roleLabelForDisplay(card) : (card.year || card.genre || 'Film'), innerX, y + height - 72);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(rightMeta || ''), innerX + metaPillWidth + 16, metaPillY + 20);
 
-      ctx.fillStyle = hexToRgba(accent, 0.92);
-      ctx.font = '900 20px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText((card.cardType === 'person' ? roleLabelForDisplay(card) : (card.genre || 'Film')).toUpperCase(), innerX + (innerWidth / 2), artY + artHeight - 26);
+      ctx.fillStyle = 'rgba(255,255,255,0.58)';
+      ctx.font = '700 18px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      const footerLine = collectionSecondaryLabel(card) || 'filmTCG';
+      const footerLines = wrapCanvasTextLines(ctx, footerLine, innerWidth, 1);
+      ctx.fillText(footerLines[0] || footerLine, innerX, y + height - 48);
     } else {
       ctx.fillStyle = 'rgba(255,255,255,0.46)';
       ctx.font = '800 26px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
@@ -10543,9 +10691,13 @@ body.pack-opening-focus .pull-center-stage {
 
   function canvasToBlob(canvas) {
     return new Promise(function (resolve) {
-      canvas.toBlob(function (blob) {
-        resolve(blob || null);
-      }, 'image/png');
+      try {
+        canvas.toBlob(function (blob) {
+          resolve(blob || null);
+        }, 'image/png');
+      } catch (error) {
+        resolve(null);
+      }
     });
   }
 
@@ -10585,23 +10737,45 @@ body.pack-opening-focus .pull-center-stage {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    const auraColors = cards.slice(0, 4).map(function (card) {
+      return card ? rarityColor(card.rarity) : null;
+    }).filter(Boolean);
+    auraColors.forEach(function (color, index) {
+      const aura = ctx.createRadialGradient(
+        220 + (index % 2) * 520,
+        340 + Math.floor(index / 2) * 760,
+        10,
+        220 + (index % 2) * 520,
+        340 + Math.floor(index / 2) * 760,
+        420
+      );
+      aura.addColorStop(0, hexToRgba(color, 0.18));
+      aura.addColorStop(1, hexToRgba(color, 0));
+      ctx.fillStyle = aura;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    });
+
     ctx.fillStyle = 'rgba(255,255,255,0.04)';
     drawRoundedRectPath(ctx, 48, 48, canvas.width - 96, canvas.height - 96, 46);
     ctx.fill();
 
     ctx.fillStyle = 'rgba(191,219,254,0.9)';
-    ctx.font = '800 40px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = '800 38px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     ctx.fillText('filmTCG', 96, 96);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 112px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = '900 108px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.fillText('My Top 4', 96, 148);
 
     ctx.fillStyle = 'rgba(255,255,255,0.62)';
     ctx.font = '700 30px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.fillText('How would you rank yours?', 100, 280);
+
+    const artImages = await Promise.all(cards.slice(0, MAX_SHOWCASE_SIZE).map(function (card) {
+      return loadStoryCardArtwork(card).catch(function () { return null; });
+    }));
 
     const cardWidth = 410;
     const cardHeight = 560;
@@ -10615,6 +10789,7 @@ body.pack-opening-focus .pull-center-stage {
       drawShowcaseStoryCard(
         ctx,
         cards[i] || null,
+        artImages[i] || null,
         startX + col * (cardWidth + gapX),
         startY + row * (cardHeight + gapY),
         cardWidth,
@@ -10626,7 +10801,7 @@ body.pack-opening-focus .pull-center-stage {
     ctx.fillStyle = 'rgba(255,255,255,0.46)';
     ctx.font = '700 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('filmtcg', canvas.width / 2, 1820);
+    ctx.fillText('filmTCG · My Top 4', canvas.width / 2, 1820);
 
     const blob = await canvasToBlob(canvas);
     if (!blob) {
@@ -10711,7 +10886,7 @@ body.pack-opening-focus .pull-center-stage {
     }
 
     showcasePanel.classList.toggle('is-editing', showcaseEditMode);
-    showcasePanel.innerHTML = '<div class="showcase-head"><div><div class="showcase-title"><span class="showcase-title-icon" aria-hidden="true">&#127942;</span>Top 4 Showcase</div><div class="showcase-sub">Flex your favorite pulls.</div></div><div class="showcase-head-actions"><button id="showcaseShareButton" class="showcase-edit-btn" type="button">Share Story</button><button id="showcaseEditButton" class="showcase-edit-btn' + (showcaseEditMode ? ' is-active' : '') + '" type="button">' + (showcaseEditMode ? 'Done' : 'Edit Showcase') + '</button><div class="pack-hook">Pinned ' + String(cards.length) + ' / ' + String(MAX_SHOWCASE_SIZE) + '</div></div></div>'
+    showcasePanel.innerHTML = '<div class="showcase-head"><div><div class="showcase-title"><span class="showcase-title-icon" aria-hidden="true">&#127942;</span>Top 4 Showcase</div><div class="showcase-sub">Flex your favorite pulls.</div></div><div class="showcase-head-actions"><button id="showcaseShareButton" class="showcase-edit-btn" type="button">Share IG Story</button><button id="showcaseEditButton" class="showcase-edit-btn' + (showcaseEditMode ? ' is-active' : '') + '" type="button">' + (showcaseEditMode ? 'Done' : 'Edit Showcase') + '</button><div class="pack-hook">Pinned ' + String(cards.length) + ' / ' + String(MAX_SHOWCASE_SIZE) + '</div></div></div>'
       + '<div class="showcase-grid">' + slots.join('') + '</div>';
 
     addImageFallbacks(showcasePanel);
@@ -12332,6 +12507,11 @@ body.pack-opening-focus .pull-center-stage {
   function bindPrimaryTabs() {
     if (didBindPrimaryTabs) return;
     didBindPrimaryTabs = true;
+    if (homeLogo) {
+      homeLogo.addEventListener('click', function () {
+        showPage('pull');
+      });
+    }
     pullTab.addEventListener('click', function () { showPage('pull'); });
     dailyTab.addEventListener('click', function () { showPage('daily'); });
     shopTab.addEventListener('click', function () { showPage('shop'); });
