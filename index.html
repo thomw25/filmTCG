@@ -406,6 +406,61 @@ button, a, select { font: inherit; }
   gap: 14px;
 }
 
+.shop-about-panel {
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  padding: 14px 16px 15px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012)),
+    linear-gradient(90deg, rgba(143,134,233,.06), rgba(251,191,36,.045));
+  display: grid;
+  gap: 6px;
+}
+
+.shop-about-kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.48);
+  font-weight: 800;
+}
+
+.shop-about-copy {
+  font-size: 0.92rem;
+  line-height: 1.52;
+  color: rgba(255,255,255,.82);
+  max-width: 72ch;
+}
+
+.shop-about-tiers {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.shop-about-tier {
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px;
+  padding: 10px 10px 11px;
+  background: rgba(255,255,255,.025);
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+
+.shop-about-tier-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shop-about-tier-copy {
+  font-size: 0.77rem;
+  line-height: 1.35;
+  color: rgba(255,255,255,.68);
+}
+
 .shop-grid {
   display: grid;
   gap: 18px;
@@ -4655,6 +4710,9 @@ body.pack-opening-focus .pull-center-stage {
     padding: 12px;
     align-items: stretch;
   }
+  .shop-about-tiers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .collection-stats,
   .collection-controls {
     width: 100%;
@@ -5185,6 +5243,9 @@ body.pack-opening-focus .pull-center-stage {
     height: 18px;
     font-size: 0.72rem;
   }
+  .shop-about-tiers {
+    grid-template-columns: 1fr;
+  }
   .collection-search {
     width: 100%;
   }
@@ -5249,7 +5310,7 @@ body.pack-opening-focus .pull-center-stage {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-184</div>
+  <div class="sub">Build: logic-sync-188</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -5822,7 +5883,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-184';
+  const BUILD_ID = 'logic-sync-188';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -8433,6 +8494,13 @@ body.pack-opening-focus .pull-center-stage {
     const renderVersion = ++shopRenderVersion;
     const tickets = Math.max(0, Number(progress.tickets) || 0);
     const tradeSummary = duplicateTradeSummary();
+    const shopAboutCopy = 'A film collecting game built around discovery, taste, and the thrill of the pull. Tiers weigh recognition, acclaim, influence, awards visibility, and cult reputation, so the mix includes both iconic favorites and deeper cuts worth hunting for.';
+    const shopAboutTiers = [
+      { label: 'Base', color: '#94a3b8', copy: 'Deeper catalog pulls and lesser-known finds.' },
+      { label: 'Select', color: '#60a5fa', copy: 'Notable work with broader recognition.' },
+      { label: 'Epic', color: '#c084fc', copy: 'Major standouts, favorites, and high-regard pulls.' },
+      { label: 'Legendary', color: '#fbbf24', copy: 'Iconic, canon-level, and hardest-to-hit cards.' }
+    ];
     const tradeBreakdown = 'B:' + String(tradeSummary.byRarity.Base || 0)
       + ' · S:' + String(tradeSummary.byRarity.Select || 0)
       + ' · E:' + String(tradeSummary.byRarity.Epic || 0)
@@ -8441,6 +8509,18 @@ body.pack-opening-focus .pull-center-stage {
       + '<div class="collection-stats">'
       + '<div class="collection-stat"><div class="collection-stat-label">Tickets</div><div class="collection-stat-value">' + formatTickets(tickets) + '</div></div>'
       + '<div class="collection-stat"><div class="collection-stat-label">Tip</div><div class="collection-stat-value">Every purchase opens instantly</div></div>'
+      + '</div>'
+      + '</div>'
+      + '<div class="shop-about-panel">'
+      + '<div class="shop-about-kicker">About filmTCG</div>'
+      + '<div class="shop-about-copy">' + escapeHtml(shopAboutCopy) + '</div>'
+      + '<div class="shop-about-tiers">'
+      + shopAboutTiers.map(function (tier) {
+        return '<div class="shop-about-tier">'
+          + '<div class="shop-about-tier-label" style="color:' + escapeHtml(tier.color) + ';">' + escapeHtml(tier.label) + '</div>'
+          + '<div class="shop-about-tier-copy">' + escapeHtml(tier.copy) + '</div>'
+          + '</div>';
+      }).join('')
       + '</div>'
       + '</div>'
       + '<div class="shop-trade-row">'
@@ -8624,6 +8704,14 @@ body.pack-opening-focus .pull-center-stage {
     if (!normalizedName) return '';
     const role = String(cardOrCandidate.roleKey || cardOrCandidate.personType || 'person').toLowerCase();
     return 'person:' + normalizedName + ':' + role;
+  }
+
+  function pickStableVariant(options, key) {
+    const items = Array.isArray(options) ? options.filter(Boolean) : [];
+    if (!items.length) return '';
+    if (items.length === 1) return items[0];
+    const seed = hashStringSeed(String(key || items.join('|')));
+    return items[seed % items.length];
   }
 
   function collectionMetaLabel(card) {
@@ -10009,23 +10097,37 @@ body.pack-opening-focus .pull-center-stage {
     const depth = Number(movie.knownForDepth) || 0;
     const popularity = Number(movie.popularity) || 0;
     const role = String(movie.roleKey || movie.personType || '').toLowerCase();
-    const identityTag = role === 'director'
-      ? 'Director'
-      : (role === 'actor' ? 'Actor' : (roleLabelForDisplay(movie) || 'Film Figure'));
-
-    tags.push(identityTag);
+    const seedKey = personIdentityKey(movie) || personKey(movie.title || movie.name);
     if (awardTag) tags.push(awardTag);
 
+    let descriptivePool = [];
     if (role === 'director') {
-      if (rarityRank(movie.rarity) >= 4 || peak >= 4) tags.push('Auteur');
-      else if (depth >= 3 || popularity >= 18) tags.push('Film Visionary');
+      if (rarityRank(movie.rarity) >= 4 || peak >= 4) {
+        descriptivePool = ['Auteur', 'Visionary Director', 'Cinema Architect', 'Master Stylist'];
+      } else if (depth >= 3 || popularity >= 18) {
+        descriptivePool = ['Film Visionary', 'Distinct Voice', 'Craft Director', 'Studio Stylist'];
+      } else if (depth >= 2 || popularity >= 10) {
+        descriptivePool = ['Cult Architect', 'Indie Voice', 'Formal Stylist', 'Sharp Direction'];
+      } else {
+        descriptivePool = ['Working Auteur', 'Emerging Voice', 'Director to Watch', 'Craft First'];
+      }
     } else if (role === 'actor') {
-      if (rarityRank(movie.rarity) >= 4 || peak >= 4 || popularity >= 34) tags.push('Screen Icon');
-      else if (depth >= 3) tags.push('Character Actor');
-      else if (peak >= 2 || popularity >= 14) tags.push('Scene Stealer');
+      if (rarityRank(movie.rarity) >= 4 || peak >= 4 || popularity >= 34) {
+        descriptivePool = ['Screen Icon', 'Leading Presence', 'Movie Star', 'Generational Face'];
+      } else if (depth >= 3) {
+        descriptivePool = ['Character Actor', 'Scene Stealer', 'Reliable Presence', 'Standout Support'];
+      } else if (peak >= 2 || popularity >= 14) {
+        descriptivePool = ['Scene Stealer', 'Screen Presence', 'Standout Turn', 'Ensemble Favorite'];
+      } else {
+        descriptivePool = ['Screen Presence', 'Understated Presence', 'Working Actor', 'Fresh Face'];
+      }
     } else if (peak >= 4) {
-      tags.push('Film Figure');
+      descriptivePool = ['Film Figure', 'Known Face', 'Screen Presence', 'Recognizable Name'];
+    } else {
+      descriptivePool = ['Screen Presence', 'Known Face', 'Working Talent', 'On the Rise'];
     }
+
+    tags.push(pickStableVariant(descriptivePool, seedKey + ':descriptor'));
 
     return tags.filter(function (tag, index, items) {
       return tag && items.indexOf(tag) === index;
