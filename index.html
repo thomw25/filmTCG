@@ -121,22 +121,20 @@ button, a, select { font: inherit; }
   padding: 0;
   border: none;
   background: transparent;
-  color: rgba(255,255,255,.7);
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  color: rgba(255,255,255,.52);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
   transition: color 160ms ease, opacity 160ms ease, transform 160ms ease;
 }
 
 .header-about-link:hover {
-  color: rgba(255,255,255,.92);
-  transform: translateY(-1px);
+  color: rgba(255,255,255,.72);
 }
 
 .header-about-link.is-active {
-  color: #f8fbff;
+  color: rgba(255,255,255,.82);
 }
 
 .ticket-badge {
@@ -3133,21 +3131,21 @@ body.pack-opening-focus .pull-center-stage {
 .story-export-brand {
   margin: 48px 0 0 48px;
   color: rgba(191,219,254,0.9);
-  font-family: "Fahkwang", sans-serif;
-  font-size: 54px;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 38px;
   line-height: 1;
-  font-weight: 700;
-  letter-spacing: -0.045em;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
 .story-export-heading {
   margin: 18px 0 0 48px;
   color: #fff;
-  font-family: "Fahkwang", sans-serif;
-  font-size: 146px;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 108px;
   line-height: .92;
-  font-weight: 700;
-  letter-spacing: -0.085em;
+  font-weight: 900;
+  letter-spacing: -0.06em;
 }
 
 .story-export-grid {
@@ -5522,7 +5520,7 @@ body.pack-opening-focus .pull-center-stage {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-193</div>
+  <div class="sub">Build: logic-sync-194</div>
   <div class="header-side">
     <button id="aboutLink" class="header-about-link" type="button">About filmTCG</button>
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
@@ -5652,15 +5650,15 @@ body.pack-opening-focus .pull-center-stage {
     <div class="about-hero">
       <div class="about-kicker">About filmTCG</div>
       <div class="about-title-row">
-        <h2>Built for film discovery, taste, and the thrill of the pull.</h2>
+        <h2>filmTCG is a collecting game built around movies, actors, and directors.</h2>
       </div>
-      <div class="about-sub">filmTCG pulls from across the full shelf of movies, actors, and directors. The idea is to make collecting feel like a mix of discovery and recognition, where iconic favorites, canon staples, cult objects, and deeper cuts can all be worth hunting for.</div>
+      <div class="about-sub">Open packs from a large film pool, build a collection over time, and organize favorites into lists and a Top 4. The goal is to make discovery feel rewarding without losing the appeal of recognizable pulls.</div>
     </div>
     <div class="about-grid">
       <div class="about-panel">
         <h3>How Rarity Works</h3>
-        <div class="about-copy">Tiers are not based on popularity alone. filmTCG weighs recognition, acclaim, influence, awards visibility, cult reputation, and overall film significance, so the highest rarity cards can come from broad cultural impact, film canon status, or a strong taste-driven legacy.</div>
-        <div class="about-note">That means the game can reward both household-name favorites and the kinds of standout pulls that feel a little more personal to film people.</div>
+        <div class="about-copy">Rarity is not based on popularity alone. filmTCG weighs recognition, acclaim, influence, awards visibility, cult reputation, and overall film significance, so the highest tiers can include both iconic titles and strong taste-driven standouts.</div>
+        <div class="about-note">The system is meant to leave room for both broad cultural recognition and more film-specific value.</div>
       </div>
       <div class="about-panel">
         <h3>Tier Breakdown</h3>
@@ -5686,7 +5684,7 @@ body.pack-opening-focus .pull-center-stage {
     </div>
     <div class="about-panel">
       <h3>Collect Your Taste</h3>
-      <div class="about-copy">Over time, the collection becomes the point. Trade duplicates for Tickets, chase reward packs, build custom lists, and lock in a Top 4 that says something about your taste. The goal is a collecting game that feels fun to open, but also satisfying to live with.</div>
+      <div class="about-copy">Cards stay in your collection. Duplicates can be traded for Tickets, reward packs open up different lanes to pull from, and lists plus a Top 4 give you a simple way to organize and share what you are finding.</div>
     </div>
   </div>
 </div>
@@ -6142,7 +6140,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-193';
+  const BUILD_ID = 'logic-sync-194';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -11026,6 +11024,20 @@ body.pack-opening-focus .pull-center-stage {
     return 422 / 300;
   }
 
+  function storyExportPreviewMarkup(slotIndex, card, scale) {
+    if (showcasePanel) {
+      const livePreview = showcasePanel.querySelector('.showcase-card[data-showcase-index="' + String(slotIndex) + '"] .showcase-card-preview');
+      if (livePreview) {
+        const clone = livePreview.cloneNode(true);
+        clone.classList.add('story-export-preview');
+        clone.style.setProperty('--preview-scale', String(scale));
+        return clone.outerHTML;
+      }
+    }
+    if (!card) return '';
+    return '<div class="showcase-card-preview story-export-preview" style="--preview-scale:' + escapeHtmlAttribute(String(scale)) + ';">' + buildShelfCardMarkup(card) + '</div>';
+  }
+
   function buildStoryExportShellMarkup(cards) {
     const scale = storyExportScale();
     const auraMarkup = cards.slice(0, 4).map(function (card, index) {
@@ -11039,7 +11051,7 @@ body.pack-opening-focus .pull-center-stage {
       if (!card) {
         return '<div class="story-export-slot"></div>';
       }
-      return '<div class="story-export-slot"><div class="showcase-card-preview story-export-preview" style="--preview-scale:' + escapeHtmlAttribute(String(scale)) + ';">' + buildShelfCardMarkup(card) + '</div></div>';
+      return '<div class="story-export-slot">' + storyExportPreviewMarkup(index, card, scale) + '</div>';
     }).join('');
     return '<div class="story-export-shell">'
       + auraMarkup
@@ -11123,16 +11135,16 @@ body.pack-opening-focus .pull-center-stage {
         lineHeight: 31
       }),
       storyBrand: {
-        family: '"Fahkwang", sans-serif',
-        weight: 700,
-        size: 36,
+        family: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        weight: 800,
+        size: 38,
         lineHeight: 40
       },
       storyHeading: {
-        family: '"Fahkwang", sans-serif',
-        weight: 700,
-        size: 98,
-        lineHeight: 102
+        family: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        weight: 900,
+        size: 108,
+        lineHeight: 110
       },
       showcase: getComputedFontPreset('.showcase-title', {
         family: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
