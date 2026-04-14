@@ -5520,7 +5520,7 @@ body.pack-opening-focus .pull-center-stage {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-194</div>
+  <div class="sub">Build: logic-sync-195</div>
   <div class="header-side">
     <button id="aboutLink" class="header-about-link" type="button">About filmTCG</button>
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
@@ -6140,7 +6140,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-194';
+  const BUILD_ID = 'logic-sync-195';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -11024,6 +11024,307 @@ body.pack-opening-focus .pull-center-stage {
     return 422 / 300;
   }
 
+  function storyCardExportCssText() {
+    return `
+      :root {
+        --border: rgba(255,255,255,.12);
+        --shadow: 0 20px 40px rgba(0,0,0,.4);
+        --card-shell: #0f1218;
+        --card-base: #171b24;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        color: #fff;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .showcase-card-preview {
+        position: relative;
+        overflow: hidden;
+        border-radius: calc(20px * var(--preview-scale, 1));
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: calc(300px * var(--preview-scale, 1));
+        height: calc(430px * var(--preview-scale, 1));
+        aspect-ratio: auto;
+        flex: 0 0 auto;
+      }
+      .showcase-card-preview .card {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 300px;
+        height: 430px;
+        transform-origin: top left;
+        transform: scale(var(--preview-scale, 1));
+        pointer-events: none;
+        box-shadow: 0 14px 26px rgba(0,0,0,.26);
+        border-radius: 20px;
+      }
+      .bookmark-btn,
+      .showcase-btn {
+        display: none !important;
+      }
+      .card {
+        padding: 10px;
+        background:
+          linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015)),
+          linear-gradient(180deg, var(--card-base), var(--card-shell));
+        border: 3px solid #6b7280;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: auto 232px 1fr;
+        isolation: isolate;
+        color: #fff;
+      }
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(118deg, transparent 0 24%, rgba(255,255,255,.14) 32%, rgba(255,255,255,.04) 42%, transparent 56%),
+          radial-gradient(circle at top left, rgba(255,255,255,.14), transparent 34%),
+          linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+        z-index: 0;
+      }
+      .card.legendary::before,
+      .card.canon::before {
+        background:
+          radial-gradient(circle at 50% 18%, rgba(253,224,71,.2), transparent 28%),
+          radial-gradient(circle at 50% 84%, rgba(245,158,11,.16), transparent 38%),
+          linear-gradient(118deg, transparent 0 24%, rgba(255,255,255,.14) 32%, rgba(255,255,255,.04) 42%, transparent 56%),
+          radial-gradient(circle at top left, rgba(255,255,255,.14), transparent 34%),
+          linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      }
+      .card > * {
+        position: relative;
+        z-index: 1;
+      }
+      .card-frame {
+        position: absolute;
+        inset: 8px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,.12);
+        pointer-events: none;
+        z-index: 2;
+      }
+      .card.epic .card-frame,
+      .card.iconic .card-frame {
+        border-color: rgba(216,180,254,.34);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+      }
+      .card.legendary .card-frame,
+      .card.canon .card-frame {
+        border-color: rgba(252,211,77,.4);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), 0 0 0 1px rgba(252,211,77,.1);
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: stretch;
+        gap: 10px;
+        margin-bottom: 8px;
+        padding: 10px 10px 6px;
+        font-weight: 800;
+        min-height: 58px;
+      }
+      .card-title {
+        line-height: 1.16;
+        font-size: 1.02rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-height: 2.32em;
+        width: 100%;
+      }
+      .card-title-meta {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        flex: 1 1 auto;
+        min-height: 2.32em;
+        overflow: hidden;
+      }
+      .card-side-meta {
+        display: grid;
+        align-content: center;
+        justify-items: end;
+        gap: 3px;
+        flex: 0 0 68px;
+        width: 68px;
+        text-align: right;
+      }
+      .card-year {
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,.66);
+      }
+      .card-rarity {
+        font-size: 0.82rem;
+        opacity: 0.9;
+        white-space: nowrap;
+        padding-top: 2px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+      .card.epic .card-rarity,
+      .card.iconic .card-rarity {
+        color: #efe2ff;
+        text-shadow: 0 0 12px rgba(192,132,252,.24);
+      }
+      .card.legendary .card-rarity,
+      .card.canon .card-rarity {
+        color: #fff2bf;
+        text-shadow: 0 0 14px rgba(251,191,36,.28);
+      }
+      .card-img-wrap {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #000;
+        border: 1px solid rgba(255,255,255,.1);
+        height: 232px;
+      }
+      .card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .card-director-overlay {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        max-width: calc(100% - 20px);
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.68rem;
+        line-height: 1;
+        color: #fff;
+        background: rgba(10,12,18,.72);
+        border: 1px solid rgba(255,255,255,.16);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .card-body {
+        display: grid;
+        grid-template-rows: auto auto auto;
+        gap: 6px;
+        margin-top: 6px;
+        padding: 0 10px 12px;
+        align-content: start;
+        min-width: 0;
+      }
+      .card-body > * {
+        min-width: 0;
+      }
+      .chips {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        max-height: 46px;
+        overflow: hidden;
+        align-items: flex-start;
+      }
+      .chip {
+        font-size: 0.68rem;
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #222;
+        border: 1px solid var(--border);
+      }
+      .chip.is-director {
+        background: rgba(255,255,255,.09);
+        border-color: rgba(255,255,255,.18);
+        color: #f8fafc;
+        font-weight: 700;
+      }
+      .desc {
+        font-size: 0.8rem;
+        color: #ddd;
+        line-height: 1.32;
+        width: 100%;
+        max-width: 100%;
+        padding: 0 4px 2px 0;
+        min-height: 0;
+        max-height: 4em;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow-wrap: break-word;
+        word-break: break-word;
+      }
+      .quote {
+        font-size: 0.74rem;
+        line-height: 1.3;
+        color: rgba(255,255,255,0.72);
+        font-style: italic;
+        padding: 0 4px 2px 0;
+        min-height: 0;
+        max-height: 2.6em;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+    `;
+  }
+
+  function buildStoryCardExportMarkup(slotIndex, card, scale) {
+    let previewNode = null;
+    if (showcasePanel) {
+      const livePreview = showcasePanel.querySelector('.showcase-card[data-showcase-index="' + String(slotIndex) + '"] .showcase-card-preview');
+      if (livePreview) {
+        previewNode = livePreview.cloneNode(true);
+      }
+    }
+    if (!previewNode && card) {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = '<div class="showcase-card-preview">' + buildShelfCardMarkup(card) + '</div>';
+      previewNode = wrap.firstElementChild;
+    }
+    if (!previewNode) return '';
+    previewNode.classList.add('story-export-preview');
+    previewNode.style.setProperty('--preview-scale', String(scale));
+    previewNode.querySelectorAll('img').forEach(function (img) {
+      const fallbackSrc = card ? storyCanvasFriendlySrc(resolveArt(card)) : '';
+      const src = storyCanvasFriendlySrc(img.currentSrc || img.getAttribute('src') || img.src || fallbackSrc);
+      if (src) img.setAttribute('src', src);
+      const poster = img.getAttribute('data-poster');
+      const still = img.getAttribute('data-still');
+      if (poster) img.setAttribute('data-poster', storyCanvasFriendlySrc(poster));
+      if (still) img.setAttribute('data-still', storyCanvasFriendlySrc(still));
+    });
+    return previewNode.outerHTML;
+  }
+
+  async function renderStoryCardImageFromDom(slotIndex, card, width, height) {
+    if (!card) return null;
+    const markup = buildStoryCardExportMarkup(slotIndex, card, width / 300);
+    if (!markup) return null;
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + String(width) + '" height="' + String(height) + '" viewBox="0 0 ' + String(width) + ' ' + String(height) + '">'
+      + '<foreignObject width="100%" height="100%">'
+      + '<div xmlns="http://www.w3.org/1999/xhtml">'
+      + '<style>' + storyCardExportCssText() + '</style>'
+      + markup
+      + '</div>'
+      + '</foreignObject>'
+      + '</svg>';
+    return loadCanvasImageSource('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg));
+  }
+
   function storyExportPreviewMarkup(slotIndex, card, scale) {
     if (showcasePanel) {
       const livePreview = showcasePanel.querySelector('.showcase-card[data-showcase-index="' + String(slotIndex) + '"] .showcase-card-preview');
@@ -11648,6 +11949,10 @@ body.pack-opening-focus .pull-center-stage {
     ctx.font = canvasFontFromPreset(typography.storyHeading, 96, 700);
     drawTrackedText(ctx, 'My Top 4', 96, 146, -2.1);
 
+    const cardImages = await Promise.all(cards.slice(0, MAX_SHOWCASE_SIZE).map(function (card, index) {
+      return renderStoryCardImageFromDom(index, card, 422, Math.round(422 * (430 / 300))).catch(function () { return null; });
+    }));
+
     const artImages = await Promise.all(cards.slice(0, MAX_SHOWCASE_SIZE).map(function (card, index) {
       return loadStoryCardArtwork(card, renderedShowcaseArtSource(index)).catch(function () { return null; });
     }));
@@ -11661,17 +11966,23 @@ body.pack-opening-focus .pull-center-stage {
     for (let i = 0; i < MAX_SHOWCASE_SIZE; i += 1) {
       const col = i % 2;
       const row = Math.floor(i / 2);
-      drawShowcaseStoryCard(
-        ctx,
-        cards[i] || null,
-        artImages[i] || null,
-        startX + col * (cardWidth + gapX),
-        startY + row * (cardHeight + gapY),
-        cardWidth,
-        cardHeight,
-        i,
-        typography
-      );
+      const drawX = startX + col * (cardWidth + gapX);
+      const drawY = startY + row * (cardHeight + gapY);
+      if (cardImages[i]) {
+        ctx.drawImage(cardImages[i], drawX, drawY, cardWidth, cardHeight);
+      } else {
+        drawShowcaseStoryCard(
+          ctx,
+          cards[i] || null,
+          artImages[i] || null,
+          drawX,
+          drawY,
+          cardWidth,
+          cardHeight,
+          i,
+          typography
+        );
+      }
     }
 
     ctx.fillStyle = 'rgba(255,255,255,0.46)';
