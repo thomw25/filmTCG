@@ -108,10 +108,38 @@ button, a, select { font: inherit; }
   margin-top: 4px;
 }
 
-.ticket-badge {
+.header-side {
   position: absolute;
-  top: 16px;
+  top: 14px;
   right: 20px;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.header-about-link {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,.7);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 160ms ease, opacity 160ms ease, transform 160ms ease;
+}
+
+.header-about-link:hover {
+  color: rgba(255,255,255,.92);
+  transform: translateY(-1px);
+}
+
+.header-about-link.is-active {
+  color: #f8fbff;
+}
+
+.ticket-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -459,6 +487,89 @@ button, a, select { font: inherit; }
   font-size: 0.77rem;
   line-height: 1.35;
   color: rgba(255,255,255,.68);
+}
+
+.about-page {
+  display: grid;
+  gap: 22px;
+}
+
+.about-hero {
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  padding: 22px 22px 20px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015)),
+    linear-gradient(120deg, rgba(143,134,233,.06), rgba(251,191,36,.045));
+}
+
+.about-kicker {
+  color: rgba(191,219,254,.88);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.about-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.about-page h2 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  line-height: .96;
+  letter-spacing: -0.05em;
+}
+
+.about-sub {
+  color: rgba(255,255,255,.72);
+  max-width: 680px;
+  line-height: 1.55;
+  font-size: 0.98rem;
+  margin-top: 14px;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.9fr);
+  gap: 18px;
+}
+
+.about-panel {
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px;
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+}
+
+.about-panel h3 {
+  margin: 0 0 10px;
+  font-size: 1.02rem;
+  letter-spacing: -0.02em;
+}
+
+.about-copy {
+  color: rgba(255,255,255,.78);
+  line-height: 1.58;
+  font-size: 0.94rem;
+}
+
+.about-tier-list {
+  display: grid;
+  gap: 10px;
+}
+
+.about-note {
+  color: rgba(255,255,255,.64);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin-top: 10px;
 }
 
 .shop-grid {
@@ -2981,6 +3092,98 @@ body.pack-opening-focus .pull-center-stage {
   flex: 0 0 auto;
 }
 
+.story-export-shell {
+  position: relative;
+  width: 1080px;
+  height: 1920px;
+  padding: 48px;
+  overflow: hidden;
+  border-radius: 46px;
+  background: linear-gradient(180deg, #090b10 0%, #101522 55%, #1b1228 100%);
+  color: #fff;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.story-export-shell::before {
+  content: "";
+  position: absolute;
+  inset: 48px;
+  border-radius: 46px;
+  background: rgba(255,255,255,.04);
+}
+
+.story-export-aura {
+  position: absolute;
+  width: 840px;
+  height: 840px;
+  border-radius: 999px;
+  filter: blur(16px);
+  opacity: .62;
+  pointer-events: none;
+}
+
+.story-export-brand,
+.story-export-heading,
+.story-export-grid,
+.story-export-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.story-export-brand {
+  margin: 48px 0 0 48px;
+  color: rgba(191,219,254,0.9);
+  font-family: "Fahkwang", sans-serif;
+  font-size: 54px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+}
+
+.story-export-heading {
+  margin: 18px 0 0 48px;
+  color: #fff;
+  font-family: "Fahkwang", sans-serif;
+  font-size: 146px;
+  line-height: .92;
+  font-weight: 700;
+  letter-spacing: -0.085em;
+}
+
+.story-export-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 422px);
+  justify-content: center;
+  gap: 60px 44px;
+  margin-top: 74px;
+}
+
+.story-export-slot {
+  width: 422px;
+  height: calc(430px * 1.4066666667);
+}
+
+.story-export-preview {
+  --preview-scale: 1.4066666667;
+  width: calc(300px * var(--preview-scale));
+  height: calc(430px * var(--preview-scale));
+}
+
+.story-export-preview .card {
+  box-shadow: 0 22px 44px rgba(0,0,0,.34);
+}
+
+.story-export-footer {
+  position: absolute;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  color: rgba(255,255,255,.46);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
 .collection-card-preview .card,
 .showcase-card-preview .card {
   position: absolute;
@@ -4713,6 +4916,9 @@ body.pack-opening-focus .pull-center-stage {
   .shop-about-tiers {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
   .collection-stats,
   .collection-controls {
     width: 100%;
@@ -5231,9 +5437,15 @@ body.pack-opening-focus .pull-center-stage {
   .sub {
     font-size: 0.84rem;
   }
-  .ticket-badge {
+  .header-side {
     top: 10px;
     right: 12px;
+    gap: 6px;
+  }
+  .header-about-link {
+    font-size: 0.7rem;
+  }
+  .ticket-badge {
     padding: 6px 9px;
     gap: 6px;
     font-size: 0.82rem;
@@ -5310,8 +5522,11 @@ body.pack-opening-focus .pull-center-stage {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-191</div>
-  <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
+  <div class="sub">Build: logic-sync-193</div>
+  <div class="header-side">
+    <button id="aboutLink" class="header-about-link" type="button">About filmTCG</button>
+    <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
+  </div>
 </div>
 
 <div class="nav">
@@ -5429,6 +5644,50 @@ body.pack-opening-focus .pull-center-stage {
   <div class="collection-shell">
     <h2>Shop</h2>
     <div id="shopPanel" class="shop-panel"></div>
+  </div>
+</div>
+
+<div id="about" class="page">
+  <div class="collection-shell about-page">
+    <div class="about-hero">
+      <div class="about-kicker">About filmTCG</div>
+      <div class="about-title-row">
+        <h2>Built for film discovery, taste, and the thrill of the pull.</h2>
+      </div>
+      <div class="about-sub">filmTCG pulls from across the full shelf of movies, actors, and directors. The idea is to make collecting feel like a mix of discovery and recognition, where iconic favorites, canon staples, cult objects, and deeper cuts can all be worth hunting for.</div>
+    </div>
+    <div class="about-grid">
+      <div class="about-panel">
+        <h3>How Rarity Works</h3>
+        <div class="about-copy">Tiers are not based on popularity alone. filmTCG weighs recognition, acclaim, influence, awards visibility, cult reputation, and overall film significance, so the highest rarity cards can come from broad cultural impact, film canon status, or a strong taste-driven legacy.</div>
+        <div class="about-note">That means the game can reward both household-name favorites and the kinds of standout pulls that feel a little more personal to film people.</div>
+      </div>
+      <div class="about-panel">
+        <h3>Tier Breakdown</h3>
+        <div class="about-tier-list">
+          <div class="shop-about-tier">
+            <div class="shop-about-tier-label" style="color:#94a3b8;">Base</div>
+            <div class="shop-about-tier-copy">Deeper catalog pulls and lesser-known finds.</div>
+          </div>
+          <div class="shop-about-tier">
+            <div class="shop-about-tier-label" style="color:#60a5fa;">Select</div>
+            <div class="shop-about-tier-copy">Notable work with broader recognition.</div>
+          </div>
+          <div class="shop-about-tier">
+            <div class="shop-about-tier-label" style="color:#c084fc;">Epic</div>
+            <div class="shop-about-tier-copy">Major standouts, favorites, and high-regard pulls.</div>
+          </div>
+          <div class="shop-about-tier">
+            <div class="shop-about-tier-label" style="color:#fbbf24;">Legendary</div>
+            <div class="shop-about-tier-copy">Iconic, canon-level, and hardest-to-hit cards.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="about-panel">
+      <h3>Collect Your Taste</h3>
+      <div class="about-copy">Over time, the collection becomes the point. Trade duplicates for Tickets, chase reward packs, build custom lists, and lock in a Top 4 that says something about your taste. The goal is a collecting game that feels fun to open, but also satisfying to live with.</div>
+    </div>
   </div>
 </div>
 
@@ -5883,7 +6142,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-191';
+  const BUILD_ID = 'logic-sync-193';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6155,8 +6414,10 @@ body.pack-opening-focus .pull-center-stage {
   const pullPage = document.getElementById('pull');
   const dailyPage = document.getElementById('daily');
   const shopPage = document.getElementById('shop');
+  const aboutPage = document.getElementById('about');
   const collectionPage = document.getElementById('collection');
   const homeLogo = document.getElementById('homeLogo');
+  const aboutLink = document.getElementById('aboutLink');
   const pullArea = document.getElementById('pullArea');
   const dailyHuntsPanel = document.getElementById('dailyHuntsPanel');
   const shopPanel = document.getElementById('shopPanel');
@@ -8494,13 +8755,6 @@ body.pack-opening-focus .pull-center-stage {
     const renderVersion = ++shopRenderVersion;
     const tickets = Math.max(0, Number(progress.tickets) || 0);
     const tradeSummary = duplicateTradeSummary();
-    const shopAboutCopy = 'A film collecting game built around discovery, taste, and the thrill of the pull. Tiers weigh recognition, acclaim, influence, awards visibility, and cult reputation, so the mix includes both iconic favorites and deeper cuts worth hunting for.';
-    const shopAboutTiers = [
-      { label: 'Base', color: '#94a3b8', copy: 'Deeper catalog pulls and lesser-known finds.' },
-      { label: 'Select', color: '#60a5fa', copy: 'Notable work with broader recognition.' },
-      { label: 'Epic', color: '#c084fc', copy: 'Major standouts, favorites, and high-regard pulls.' },
-      { label: 'Legendary', color: '#fbbf24', copy: 'Iconic, canon-level, and hardest-to-hit cards.' }
-    ];
     const tradeBreakdown = 'B:' + String(tradeSummary.byRarity.Base || 0)
       + ' · S:' + String(tradeSummary.byRarity.Select || 0)
       + ' · E:' + String(tradeSummary.byRarity.Epic || 0)
@@ -8509,18 +8763,6 @@ body.pack-opening-focus .pull-center-stage {
       + '<div class="collection-stats">'
       + '<div class="collection-stat"><div class="collection-stat-label">Tickets</div><div class="collection-stat-value">' + formatTickets(tickets) + '</div></div>'
       + '<div class="collection-stat"><div class="collection-stat-label">Tip</div><div class="collection-stat-value">Every purchase opens instantly</div></div>'
-      + '</div>'
-      + '</div>'
-      + '<div class="shop-about-panel">'
-      + '<div class="shop-about-kicker">About filmTCG</div>'
-      + '<div class="shop-about-copy">' + escapeHtml(shopAboutCopy) + '</div>'
-      + '<div class="shop-about-tiers">'
-      + shopAboutTiers.map(function (tier) {
-        return '<div class="shop-about-tier">'
-          + '<div class="shop-about-tier-label" style="color:' + escapeHtml(tier.color) + ';">' + escapeHtml(tier.label) + '</div>'
-          + '<div class="shop-about-tier-copy">' + escapeHtml(tier.copy) + '</div>'
-          + '</div>';
-      }).join('')
       + '</div>'
       + '</div>'
       + '<div class="shop-trade-row">'
@@ -10745,6 +10987,133 @@ body.pack-opening-focus .pull-center-stage {
     return cursorX - x;
   }
 
+  function waitForImagesInRoot(root, timeoutMs) {
+    const scope = root || document;
+    const images = Array.from(scope.querySelectorAll('img'));
+    if (!images.length) return Promise.resolve();
+    return Promise.race([
+      Promise.all(images.map(function (img) {
+        return new Promise(function (resolve) {
+          if ((img.complete && img.naturalWidth) || /^data:/i.test(img.currentSrc || img.src || '')) {
+            resolve();
+            return;
+          }
+          let settled = false;
+          const finish = function () {
+            if (settled) return;
+            settled = true;
+            img.removeEventListener('load', finish);
+            img.removeEventListener('error', finish);
+            resolve();
+          };
+          img.addEventListener('load', finish, { once: true });
+          img.addEventListener('error', finish, { once: true });
+        });
+      })),
+      new Promise(function (resolve) { setTimeout(resolve, timeoutMs || 2200); })
+    ]);
+  }
+
+  function escapeHtmlAttribute(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function storyExportScale() {
+    return 422 / 300;
+  }
+
+  function buildStoryExportShellMarkup(cards) {
+    const scale = storyExportScale();
+    const auraMarkup = cards.slice(0, 4).map(function (card, index) {
+      const color = card ? rarityColor(card.rarity) : 'rgba(255,255,255,0)';
+      const left = 120 + ((index % 2) * 420);
+      const top = 210 + (Math.floor(index / 2) * 690);
+      return '<div class="story-export-aura" style="left:' + String(left) + 'px; top:' + String(top) + 'px; background:radial-gradient(circle, ' + escapeHtmlAttribute(hexToRgba(color, 0.22)) + ' 0%, ' + escapeHtmlAttribute(hexToRgba(color, 0)) + ' 68%);"></div>';
+    }).join('');
+    const slotsMarkup = new Array(MAX_SHOWCASE_SIZE).fill(null).map(function (_, index) {
+      const card = cards[index] || null;
+      if (!card) {
+        return '<div class="story-export-slot"></div>';
+      }
+      return '<div class="story-export-slot"><div class="showcase-card-preview story-export-preview" style="--preview-scale:' + escapeHtmlAttribute(String(scale)) + ';">' + buildShelfCardMarkup(card) + '</div></div>';
+    }).join('');
+    return '<div class="story-export-shell">'
+      + auraMarkup
+      + '<div class="story-export-brand">filmTCG</div>'
+      + '<div class="story-export-heading">My Top 4</div>'
+      + '<div class="story-export-grid">' + slotsMarkup + '</div>'
+      + '<div class="story-export-footer">filmTCG · My Top 4</div>'
+      + '</div>';
+  }
+
+  function storyExportStyleSheetText() {
+    const styleBlocks = Array.from(document.querySelectorAll('style')).map(function (node) {
+      return node.textContent || '';
+    }).join('\n');
+    const fontImports = Array.from(document.querySelectorAll('link[href*="fonts.googleapis.com"]')).map(function (link) {
+      return '@import url("' + String(link.href || '') + '");';
+    }).join('\n');
+    return fontImports + '\n' + styleBlocks;
+  }
+
+  async function renderStoryExportFromDom(cards) {
+    const host = document.createElement('div');
+    host.setAttribute('aria-hidden', 'true');
+    host.style.position = 'fixed';
+    host.style.left = '-20000px';
+    host.style.top = '0';
+    host.style.width = '1080px';
+    host.style.height = '1920px';
+    host.style.opacity = '1';
+    host.style.pointerEvents = 'none';
+    host.style.zIndex = '-1';
+    host.style.contain = 'layout paint style';
+    host.innerHTML = buildStoryExportShellMarkup(cards);
+    document.body.appendChild(host);
+    try {
+      host.querySelectorAll('.card-img').forEach(function (img) {
+        const proxiedSrc = storyCanvasFriendlySrc(img.getAttribute('src') || img.currentSrc || img.src || '');
+        if (proxiedSrc) img.setAttribute('src', proxiedSrc);
+        const poster = img.getAttribute('data-poster');
+        const still = img.getAttribute('data-still');
+        if (poster) img.setAttribute('data-poster', storyCanvasFriendlySrc(poster));
+        if (still) img.setAttribute('data-still', storyCanvasFriendlySrc(still));
+      });
+      addImageFallbacks(host);
+      await ensureStoryFontsReady();
+      await waitForImagesInRoot(host, 2600);
+      const shell = host.firstElementChild;
+      if (!shell) return null;
+      const markup = shell.outerHTML;
+      const stylesheet = storyExportStyleSheetText();
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">'
+        + '<foreignObject width="100%" height="100%">'
+        + '<div xmlns="http://www.w3.org/1999/xhtml">'
+        + '<style>' + stylesheet + '</style>'
+        + markup
+        + '</div>'
+        + '</foreignObject>'
+        + '</svg>';
+      const image = await loadCanvasImageSource('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg));
+      if (!image) return null;
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1920;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+      ctx.drawImage(image, 0, 0);
+      return canvasToBlob(canvas);
+    } catch (error) {
+      return null;
+    } finally {
+      host.remove();
+    }
+  }
+
   function getStoryTypography() {
     return {
       brand: getComputedFontPreset('.title', {
@@ -11192,6 +11561,28 @@ body.pack-opening-focus .pull-center-stage {
     const cards = getShowcaseCards();
     if (!cards.length) {
       showToast('Add a few favorites to Top 4 first.');
+      return;
+    }
+    const domBlob = await renderStoryExportFromDom(cards);
+    if (domBlob) {
+      const domFile = typeof File === 'function'
+        ? new File([domBlob], 'filmtcg-top-4-story.png', { type: 'image/png' })
+        : null;
+      if (domFile && navigator.share && navigator.canShare && navigator.canShare({ files: [domFile] })) {
+        try {
+          await navigator.share({
+            title: 'filmTCG My Top 4',
+            text: 'filmTCG My Top 4',
+            files: [domFile]
+          });
+          showToast('Story ready to share.');
+          return;
+        } catch (error) {
+          if (error && error.name === 'AbortError') return;
+        }
+      }
+      downloadBlob(domBlob, 'filmtcg-top-4-story.png');
+      showToast('Story saved. Open Instagram and grab it from Recents.');
       return;
     }
     await ensureStoryFontsReady();
@@ -12966,11 +13357,13 @@ body.pack-opening-focus .pull-center-stage {
     pullPage.classList.toggle('active', id === 'pull');
     dailyPage.classList.toggle('active', id === 'daily');
     shopPage.classList.toggle('active', id === 'shop');
+    if (aboutPage) aboutPage.classList.toggle('active', id === 'about');
     collectionPage.classList.toggle('active', id === 'collection');
     pullTab.classList.toggle('active', id === 'pull');
     dailyTab.classList.toggle('active', id === 'daily');
     shopTab.classList.toggle('active', id === 'shop');
     collectionTab.classList.toggle('active', id === 'collection');
+    if (aboutLink) aboutLink.classList.toggle('is-active', id === 'about');
     if (id === 'collection') renderCollection();
     if (id === 'daily') renderDailyHunts();
     if (id === 'shop') renderShop();
@@ -12983,6 +13376,11 @@ body.pack-opening-focus .pull-center-stage {
     if (homeLogo) {
       homeLogo.addEventListener('click', function () {
         showPage('pull');
+      });
+    }
+    if (aboutLink) {
+      aboutLink.addEventListener('click', function () {
+        showPage('about');
       });
     }
     pullTab.addEventListener('click', function () { showPage('pull'); });
