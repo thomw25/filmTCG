@@ -535,8 +535,14 @@ button, a, select { font: inherit; }
 
 .about-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.9fr);
+  grid-template-columns: minmax(340px, 1.02fr) minmax(280px, 0.98fr);
   gap: 18px;
+}
+
+.about-side-stack {
+  display: grid;
+  gap: 18px;
+  align-content: start;
 }
 
 .about-panel {
@@ -4917,6 +4923,9 @@ body.pack-opening-focus .pull-center-stage {
   .about-grid {
     grid-template-columns: 1fr;
   }
+  .about-side-stack {
+    grid-template-columns: 1fr;
+  }
   .collection-stats,
   .collection-controls {
     width: 100%;
@@ -5520,7 +5529,7 @@ body.pack-opening-focus .pull-center-stage {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-196</div>
+  <div class="sub">Build: logic-sync-197</div>
   <div class="header-side">
     <button id="aboutLink" class="header-about-link" type="button">About filmTCG</button>
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
@@ -5650,17 +5659,12 @@ body.pack-opening-focus .pull-center-stage {
     <div class="about-hero">
       <div class="about-kicker">About filmTCG</div>
       <div class="about-title-row">
-        <h2>filmTCG is a collecting game built around movies, actors, and directors.</h2>
+        <h2>filmTCG is a movie trading card game.</h2>
       </div>
-      <div class="about-sub">Open packs from a large film pool, build a collection over time, and organize favorites into lists and a Top 4. The goal is to make discovery feel rewarding without losing the appeal of recognizable pulls.</div>
+      <div class="about-sub">Open packs from a large film pool spanning movies, actors, and directors. The goal is to make discovery feel rewarding without losing the appeal of recognizable pulls.</div>
     </div>
     <div class="about-grid">
-      <div class="about-panel">
-        <h3>How Rarity Works</h3>
-        <div class="about-copy">Rarity is not based on popularity alone. filmTCG weighs recognition, acclaim, influence, awards visibility, cult reputation, and overall film significance, so the highest tiers can include both iconic titles and strong taste-driven standouts.</div>
-        <div class="about-note">The system is meant to leave room for both broad cultural recognition and more film-specific value.</div>
-      </div>
-      <div class="about-panel">
+      <div class="about-panel about-tier-panel">
         <h3>Tier Breakdown</h3>
         <div class="about-tier-list">
           <div class="shop-about-tier">
@@ -5681,10 +5685,17 @@ body.pack-opening-focus .pull-center-stage {
           </div>
         </div>
       </div>
-    </div>
-    <div class="about-panel">
-      <h3>Collect Your Taste</h3>
-      <div class="about-copy">Cards stay in your collection. Duplicates can be traded for Tickets, reward packs open up different lanes to pull from, and lists plus a Top 4 give you a simple way to organize and share what you are finding.</div>
+      <div class="about-side-stack">
+        <div class="about-panel">
+          <h3>Rarity</h3>
+          <div class="about-copy">Rarity is not based on popularity alone. filmTCG weighs recognition, acclaim, influence, awards visibility, cult reputation, and overall film significance, so the highest tiers can include both iconic titles and strong taste-driven standouts.</div>
+          <div class="about-note">The system leaves room for both broad recognition and more film-specific value.</div>
+        </div>
+        <div class="about-panel">
+          <h3>Collect Your Taste</h3>
+          <div class="about-copy">Cards stay in your collection. Duplicates can be traded for Tickets, and lists plus a Top 4 give you a simple way to organize favorites and share what you are into.</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -6140,7 +6151,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-196';
+  const BUILD_ID = 'logic-sync-197';
   const PAGE_PARAMS = new URLSearchParams(window.location.search);
   const DEBUG_STORY_PREVIEW = PAGE_PARAMS.get('debugStoryPreview') === '1';
   const DEBUG_STORY_SEED = PAGE_PARAMS.get('debugStorySeed') === '1';
@@ -12365,15 +12376,17 @@ body.pack-opening-focus .pull-center-stage {
     const file = typeof File === 'function'
       ? new File([blob], 'filmtcg-top-4-story.png', { type: 'image/png' })
       : null;
+    const shareTitle = 'filmTCG Top 4';
+    const shareText = 'Check out my filmTCG Top 4 pulls!';
 
     if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({
-          title: 'filmTCG My Top 4',
-          text: 'filmTCG My Top 4',
+          title: shareTitle,
+          text: shareText,
           files: [file]
         });
-        showToast('Story ready to share.');
+        showToast('Top 4 ready to share.');
         return;
       } catch (error) {
         if (error && error.name === 'AbortError') return;
@@ -12439,7 +12452,7 @@ body.pack-opening-focus .pull-center-stage {
     }
 
     showcasePanel.classList.toggle('is-editing', showcaseEditMode);
-    showcasePanel.innerHTML = '<div class="showcase-head"><div><div class="showcase-title"><span class="showcase-title-icon" aria-hidden="true">&#127942;</span>Top 4 Showcase</div><div class="showcase-sub">Flex your favorite pulls.</div></div><div class="showcase-head-actions"><button id="showcaseShareButton" class="showcase-edit-btn" type="button">Share IG Story</button><button id="showcaseEditButton" class="showcase-edit-btn' + (showcaseEditMode ? ' is-active' : '') + '" type="button">' + (showcaseEditMode ? 'Done' : 'Edit Showcase') + '</button><div class="pack-hook">Pinned ' + String(cards.length) + ' / ' + String(MAX_SHOWCASE_SIZE) + '</div></div></div>'
+    showcasePanel.innerHTML = '<div class="showcase-head"><div><div class="showcase-title"><span class="showcase-title-icon" aria-hidden="true">&#127942;</span>Top 4 Showcase</div><div class="showcase-sub">Flex your favorite pulls.</div></div><div class="showcase-head-actions"><button id="showcaseShareButton" class="showcase-edit-btn" type="button">Share Top 4</button><button id="showcaseEditButton" class="showcase-edit-btn' + (showcaseEditMode ? ' is-active' : '') + '" type="button">' + (showcaseEditMode ? 'Done' : 'Edit Showcase') + '</button><div class="pack-hook">Pinned ' + String(cards.length) + ' / ' + String(MAX_SHOWCASE_SIZE) + '</div></div></div>'
       + '<div class="showcase-grid">' + slots.join('') + '</div>';
 
     addImageFallbacks(showcasePanel);
