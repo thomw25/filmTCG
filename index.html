@@ -5249,7 +5249,7 @@ body.pack-opening-focus .pull-center-stage {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-182</div>
+  <div class="sub">Build: logic-sync-183</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -5822,7 +5822,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-182';
+  const BUILD_ID = 'logic-sync-183';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -10001,12 +10001,37 @@ body.pack-opening-focus .pull-center-stage {
     return '';
   }
 
-  function buildCardChips(movie) {
+  function buildPersonFlavorTags(movie) {
+    if (!movie || movie.cardType !== 'person') return [];
+    const tags = [];
+    const awardTag = buildPersonAwardTag(movie);
+    const peak = Number(movie.knownForPeakRank) || 0;
+    const depth = Number(movie.knownForDepth) || 0;
+    const popularity = Number(movie.popularity) || 0;
+    const role = String(movie.roleKey || movie.personType || '').toLowerCase();
+
+    if (awardTag) tags.push(awardTag);
+
+    if (role === 'director') {
+      if (rarityRank(movie.rarity) >= 4 || peak >= 4) tags.push('Auteur');
+      else if (depth >= 3 || popularity >= 18) tags.push('Film Visionary');
+      else if (depth >= 2) tags.push('Director');
+    } else if (role === 'actor') {
+      if (rarityRank(movie.rarity) >= 4 || peak >= 4 || popularity >= 34) tags.push('Screen Icon');
+      else if (depth >= 3) tags.push('Character Actor');
+      else if (peak >= 2 || popularity >= 14) tags.push('Scene Stealer');
+    } else if (peak >= 4) {
+      tags.push('Film Figure');
+    }
+
+    return tags.filter(function (tag, index, items) {
+      return tag && items.indexOf(tag) === index;
+    }).slice(0, 2);
+  }
+
+  function cardChipLabels(movie) {
     if (movie.cardType === 'person') {
-      const personTag = buildPersonAwardTag(movie);
-      return personTag
-        ? ['<div class="chip">' + escapeHtml(personTag) + '</div>']
-        : [];
+      return buildPersonFlavorTags(movie);
     }
 
     const chips = [];
@@ -10014,18 +10039,24 @@ body.pack-opening-focus .pull-center-stage {
     const flavorTags = buildFlavorTags(movie);
 
     if (flavorTags.length) {
-      chips.push('<div class="chip">' + escapeHtml(flavorTags[0]) + '</div>');
+      chips.push(flavorTags[0]);
     } else {
-      chips.push('<div class="chip">' + escapeHtml(movie.genre) + '</div>');
+      chips.push(movie.genre);
     }
     if (flavorTags.length > 1) {
-      chips.push('<div class="chip">' + escapeHtml(flavorTags[1]) + '</div>');
+      chips.push(flavorTags[1]);
     }
     if (!flavorTags.length && artChip) {
-      chips.push('<div class="chip">' + escapeHtml(artChip) + '</div>');
+      chips.push(artChip);
     }
 
-    return chips;
+    return chips.filter(Boolean).slice(0, 2);
+  }
+
+  function buildCardChips(movie) {
+    return cardChipLabels(movie).map(function (label) {
+      return '<div class="chip">' + escapeHtml(label) + '</div>';
+    });
   }
 
   function buildGhostMarkup(positionClass, movie) {
@@ -10608,25 +10639,7 @@ body.pack-opening-focus .pull-center-stage {
 
   function storyCardChipLabels(card) {
     if (!card) return [];
-    if (card.cardType === 'person') {
-      const personTag = buildPersonAwardTag(card);
-      return personTag ? [personTag] : [];
-    }
-
-    const chips = [];
-    const flavorTags = buildFlavorTags(card);
-    const artChip = artLabel(card);
-    if (flavorTags.length) {
-      chips.push(flavorTags[0]);
-    } else if (card.genre) {
-      chips.push(card.genre);
-    }
-    if (flavorTags.length > 1) {
-      chips.push(flavorTags[1]);
-    } else if (!flavorTags.length && artChip) {
-      chips.push(artChip);
-    }
-    return chips.filter(Boolean).slice(0, 2);
+    return cardChipLabels(card).slice(0, 2);
   }
 
   function storyCardTheme(rarity) {
@@ -10695,12 +10708,6 @@ body.pack-opening-focus .pull-center-stage {
     const frameInset = 8 * scale;
     const innerPad = 14 * scale;
     const headerTop = 14 * scale;
-    const headerReserve = 82 * scale;
-    const imageHeight = 232 * scale;
-    const imageY = y + headerReserve;
-    const imageX = x + innerPad;
-    const imageWidth = width - (innerPad * 2);
-    const bodyY = imageY + imageHeight + (14 * scale);
 
     if (isEmpty) {
       const emptyBg = ctx.createLinearGradient(x, y, x, y + height);
@@ -10780,27 +10787,58 @@ body.pack-opening-focus .pull-center-stage {
     ctx.stroke();
 
     const sideMetaInset = 14 * scale;
-    const sideMetaReserve = 78 * scale;
-    const titleMaxWidth = width - (innerPad * 2) - sideMetaReserve;
-    const titleLines = wrapCanvasTextLines(ctx, card.title || 'Unknown', titleMaxWidth, 2);
+    const sideMeta = card.cardType === 'person'
+      ? roleLabelForDisplay(card)
+      : (card.year ? String(card.year) : '');
+    const rarityLabel = normalizeRarityLabel(card.rarity);
+    const rarityFontSize = 11.2 * scale;
+    const sideMetaFontSize = 9.4 * scale;
+    ctx.font = '800 ' + String(rarityFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    const rarityWidth = ctx.measureText(rarityLabel).width;
+    ctx.font = '700 ' + String(sideMetaFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    const sideMetaWidth = sideMeta ? ctx.measureText(String(sideMeta).toUpperCase()).width : 0;
+    const sideMetaReserve = Math.min(88 * scale, Math.max(56 * scale, Math.max(rarityWidth, sideMetaWidth) + (8 * scale)));
+    const titleMaxWidth = width - (innerPad * 2) - sideMetaReserve - (6 * scale);
+    const cardTitle = card.title || 'Unknown';
+    let titleFontSize = 15.4 * scale;
+    ctx.font = '900 ' + String(titleFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    while (titleFontSize > (13.1 * scale) && ctx.measureText(cardTitle).width > titleMaxWidth) {
+      titleFontSize -= 0.5;
+      ctx.font = '900 ' + String(titleFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    }
+    let titleLines;
+    let titleLineHeight;
+    if (ctx.measureText(cardTitle).width <= titleMaxWidth) {
+      titleLines = [cardTitle];
+      titleLineHeight = 18.2 * scale;
+    } else {
+      titleFontSize = 14.2 * scale;
+      titleLineHeight = 16.8 * scale;
+      ctx.font = '900 ' + String(titleFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      titleLines = wrapCanvasTextLines(ctx, cardTitle, titleMaxWidth, 2);
+    }
+    const headerReserve = titleLines.length > 1 ? (90 * scale) : (82 * scale);
+    const imageHeight = 232 * scale;
+    const imageY = y + headerReserve;
+    const imageX = x + innerPad;
+    const imageWidth = width - (innerPad * 2);
+    const bodyY = imageY + imageHeight + (14 * scale);
+
     ctx.fillStyle = theme.title;
-    ctx.font = '900 ' + String(15.8 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = '900 ' + String(titleFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     titleLines.forEach(function (line, index) {
-      ctx.fillText(line, x + innerPad, y + headerTop + (index * (19.2 * scale)));
+      ctx.fillText(line, x + innerPad, y + headerTop + (index * titleLineHeight));
     });
 
     const sideMetaX = x + width - sideMetaInset;
     ctx.textAlign = 'right';
     ctx.fillStyle = theme.rarity;
-    ctx.font = '800 ' + String(11.8 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.fillText(normalizeRarityLabel(card.rarity), sideMetaX, y + (15 * scale));
+    ctx.font = '800 ' + String(rarityFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(rarityLabel, sideMetaX, y + (15 * scale));
     ctx.fillStyle = theme.meta;
-    ctx.font = '700 ' + String(10 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-    const sideMeta = card.cardType === 'person'
-      ? roleLabelForDisplay(card)
-      : (card.year ? String(card.year) : '');
+    ctx.font = '700 ' + String(sideMetaFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     if (sideMeta) {
       ctx.fillText(String(sideMeta).toUpperCase(), sideMetaX, y + (31 * scale));
     }
