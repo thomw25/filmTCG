@@ -5310,7 +5310,7 @@ body.pack-opening-focus .pull-center-stage {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-188</div>
+  <div class="sub">Build: logic-sync-189</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -5883,7 +5883,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-188';
+  const BUILD_ID = 'logic-sync-189';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -10698,6 +10698,98 @@ body.pack-opening-focus .pull-center-stage {
     ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
   }
 
+  function parseCssNumber(value, fallback) {
+    const parsed = parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  function getComputedFontPreset(selector, fallback) {
+    const defaults = fallback || {};
+    const node = selector ? document.querySelector(selector) : null;
+    if (!node) {
+      return {
+        family: defaults.family || 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+        weight: String(defaults.weight || 700),
+        size: defaults.size || 16,
+        lineHeight: defaults.lineHeight || ((defaults.size || 16) * 1.18)
+      };
+    }
+    const style = window.getComputedStyle(node);
+    const baseSize = parseCssNumber(style.fontSize, defaults.size || 16);
+    return {
+      family: style.fontFamily || defaults.family || 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+      weight: String(style.fontWeight || defaults.weight || 700),
+      size: baseSize,
+      lineHeight: parseCssNumber(style.lineHeight, defaults.lineHeight || (baseSize * 1.18))
+    };
+  }
+
+  function canvasFontFromPreset(preset, size, weightOverride) {
+    const config = preset || {};
+    const resolvedWeight = String(weightOverride || config.weight || 700);
+    const resolvedSize = Number(size || config.size || 16).toFixed(2).replace(/\.00$/, '');
+    const resolvedFamily = config.family || 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    return resolvedWeight + ' ' + resolvedSize + 'px ' + resolvedFamily;
+  }
+
+  function getStoryTypography() {
+    return {
+      brand: getComputedFontPreset('.title', {
+        family: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        weight: 900,
+        size: 27.2,
+        lineHeight: 31
+      }),
+      showcase: getComputedFontPreset('.showcase-title', {
+        family: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        weight: 800,
+        size: 16.32,
+        lineHeight: 19
+      }),
+      cardTitle: getComputedFontPreset('.card-title', {
+        family: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        weight: 800,
+        size: 16.32,
+        lineHeight: 18.9
+      }),
+      rarity: getComputedFontPreset('.card-rarity', {
+        family: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        weight: 800,
+        size: 13.12,
+        lineHeight: 14.8
+      }),
+      meta: getComputedFontPreset('.card-year', {
+        family: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        weight: 700,
+        size: 11.52,
+        lineHeight: 13.4
+      }),
+      chip: getComputedFontPreset('.chip', {
+        family: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        weight: 700,
+        size: 12.4,
+        lineHeight: 14.2
+      }),
+      desc: getComputedFontPreset('.desc', {
+        family: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        weight: 400,
+        size: 12.6,
+        lineHeight: 15.2
+      })
+    };
+  }
+
+  async function ensureStoryFontsReady() {
+    if (!document.fonts || !document.fonts.ready) return;
+    try {
+      await Promise.race([
+        document.fonts.ready,
+        new Promise(function (resolve) { setTimeout(resolve, 1200); })
+      ]);
+    } catch (error) {
+    }
+  }
+
   function drawCanvasPill(ctx, label, x, y, bgColor, textColor, borderColor) {
     ctx.save();
     ctx.font = '800 20px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
@@ -10721,10 +10813,17 @@ body.pack-opening-focus .pull-center-stage {
     return width;
   }
 
-  function drawStoryChip(ctx, label, x, y, scale, options) {
+  function drawStoryChip(ctx, label, x, y, scale, options, typography) {
     const config = options || {};
+    const chipPreset = typography && typography.chip ? typography.chip : getComputedFontPreset('.chip', {
+      family: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      weight: 700,
+      size: 12.4,
+      lineHeight: 14.2
+    });
     ctx.save();
-    ctx.font = '800 ' + String(10.5 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    const chipFontSize = Math.max(9.8 * scale, chipPreset.size * scale * 0.9);
+    ctx.font = canvasFontFromPreset(chipPreset, chipFontSize, config.weight || chipPreset.weight || 800);
     const padX = 8 * scale;
     const width = Math.max(50 * scale, ctx.measureText(label).width + (padX * 2));
     const height = 22 * scale;
@@ -10805,14 +10904,15 @@ body.pack-opening-focus .pull-center-stage {
     };
   }
 
-  function drawShowcaseStoryCard(ctx, card, artImage, x, y, width, height, slotIndex) {
+  function drawShowcaseStoryCard(ctx, card, artImage, x, y, width, height, slotIndex, typography) {
     const isEmpty = !card;
     const theme = storyCardTheme(card && card.rarity);
+    const type = typography || getStoryTypography();
     const scale = height / 430;
     const radius = 20 * scale;
     const frameInset = 8 * scale;
-    const innerPad = 14 * scale;
-    const headerTop = 14 * scale;
+    const innerPad = 16 * scale;
+    const headerTop = 16 * scale;
 
     if (isEmpty) {
       const emptyBg = ctx.createLinearGradient(x, y, x, y + height);
@@ -10891,38 +10991,40 @@ body.pack-opening-focus .pull-center-stage {
     ctx.strokeStyle = theme.frame;
     ctx.stroke();
 
-    const sideMetaInset = 14 * scale;
+    const sideMetaInset = 16 * scale;
     const sideMeta = card.cardType === 'person'
       ? roleLabelForDisplay(card)
       : (card.year ? String(card.year) : '');
     const rarityLabel = normalizeRarityLabel(card.rarity);
-    const rarityFontSize = 11.2 * scale;
-    const sideMetaFontSize = 9.4 * scale;
-    ctx.font = '800 ' + String(rarityFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    const rarityFontSize = Math.max(10.8 * scale, type.rarity.size * scale * 0.9);
+    const sideMetaFontSize = Math.max(8.8 * scale, type.meta.size * scale * 0.88);
+    ctx.font = canvasFontFromPreset(type.rarity, rarityFontSize, type.rarity.weight || 800);
     const rarityWidth = ctx.measureText(rarityLabel).width;
-    ctx.font = '700 ' + String(sideMetaFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = canvasFontFromPreset(type.meta, sideMetaFontSize, type.meta.weight || 700);
     const sideMetaWidth = sideMeta ? ctx.measureText(String(sideMeta).toUpperCase()).width : 0;
     const sideMetaReserve = Math.min(88 * scale, Math.max(56 * scale, Math.max(rarityWidth, sideMetaWidth) + (8 * scale)));
     const titleMaxWidth = width - (innerPad * 2) - sideMetaReserve - (6 * scale);
     const cardTitle = card.title || 'Unknown';
-    let titleFontSize = 15.4 * scale;
-    ctx.font = '900 ' + String(titleFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-    while (titleFontSize > (13.1 * scale) && ctx.measureText(cardTitle).width > titleMaxWidth) {
+    const baseTitleSize = Math.max(13.4 * scale, type.cardTitle.size * scale * 0.92);
+    let titleFontSize = baseTitleSize;
+    ctx.font = canvasFontFromPreset(type.cardTitle, titleFontSize, 800);
+    while (titleFontSize > (11.8 * scale) && ctx.measureText(cardTitle).width > titleMaxWidth) {
       titleFontSize -= 0.5;
-      ctx.font = '900 ' + String(titleFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.font = canvasFontFromPreset(type.cardTitle, titleFontSize, 800);
     }
     let titleLines;
     let titleLineHeight;
     if (ctx.measureText(cardTitle).width <= titleMaxWidth) {
       titleLines = [cardTitle];
-      titleLineHeight = 18.2 * scale;
+      titleLineHeight = Math.max(16.2 * scale, titleFontSize * 1.16);
     } else {
-      titleFontSize = 14.2 * scale;
-      titleLineHeight = 16.8 * scale;
-      ctx.font = '900 ' + String(titleFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      titleFontSize = Math.max(12.2 * scale, baseTitleSize * 0.91);
+      titleLineHeight = Math.max(14.8 * scale, titleFontSize * 1.14);
+      ctx.font = canvasFontFromPreset(type.cardTitle, titleFontSize, 800);
       titleLines = wrapCanvasTextLines(ctx, cardTitle, titleMaxWidth, 2);
     }
-    const headerReserve = titleLines.length > 1 ? (90 * scale) : (82 * scale);
+    const titleBlockHeight = titleLines.length * titleLineHeight;
+    const headerReserve = Math.max(84 * scale, headerTop + titleBlockHeight + (16 * scale));
     const imageHeight = 232 * scale;
     const imageY = y + headerReserve;
     const imageX = x + innerPad;
@@ -10930,7 +11032,7 @@ body.pack-opening-focus .pull-center-stage {
     const bodyY = imageY + imageHeight + (14 * scale);
 
     ctx.fillStyle = theme.title;
-    ctx.font = '900 ' + String(titleFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = canvasFontFromPreset(type.cardTitle, titleFontSize, 800);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     titleLines.forEach(function (line, index) {
@@ -10940,12 +11042,12 @@ body.pack-opening-focus .pull-center-stage {
     const sideMetaX = x + width - sideMetaInset;
     ctx.textAlign = 'right';
     ctx.fillStyle = theme.rarity;
-    ctx.font = '800 ' + String(rarityFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.fillText(rarityLabel, sideMetaX, y + (15 * scale));
+    ctx.font = canvasFontFromPreset(type.rarity, rarityFontSize, type.rarity.weight || 800);
+    ctx.fillText(rarityLabel, sideMetaX, y + (16 * scale));
     ctx.fillStyle = theme.meta;
-    ctx.font = '700 ' + String(sideMetaFontSize) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = canvasFontFromPreset(type.meta, sideMetaFontSize, type.meta.weight || 700);
     if (sideMeta) {
-      ctx.fillText(String(sideMeta).toUpperCase(), sideMetaX, y + (31 * scale));
+      ctx.fillText(String(sideMeta).toUpperCase(), sideMetaX, y + (32 * scale));
     }
 
     const artBg = ctx.createLinearGradient(imageX, imageY, imageX, imageY + imageHeight);
@@ -11008,7 +11110,7 @@ body.pack-opening-focus .pull-center-stage {
             : '#222222',
           borderColor: 'rgba(255,255,255,.12)',
           textColor: '#ffffff'
-        });
+        }, type);
         chipX += chipWidth + (6 * scale);
       }
       nextY += 32 * scale;
@@ -11016,7 +11118,7 @@ body.pack-opening-focus .pull-center-stage {
 
     const descText = String(card.desc || '').trim() || 'No synopsis available yet.';
     ctx.fillStyle = '#dddddd';
-    ctx.font = '400 ' + String(11.3 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = canvasFontFromPreset(type.desc, Math.max(10.6 * scale, type.desc.size * scale * 0.9), type.desc.weight || 400);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     const descLines = wrapCanvasTextLines(ctx, descText, width - (innerPad * 2), 3);
@@ -11065,6 +11167,8 @@ body.pack-opening-focus .pull-center-stage {
       showToast('Add a few favorites to Top 4 first.');
       return;
     }
+    await ensureStoryFontsReady();
+    const typography = getStoryTypography();
 
     const canvas = document.createElement('canvas');
     canvas.width = 1080;
@@ -11105,13 +11209,13 @@ body.pack-opening-focus .pull-center-stage {
     ctx.fill();
 
     ctx.fillStyle = 'rgba(191,219,254,0.9)';
-    ctx.font = '800 38px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = canvasFontFromPreset(typography.brand, 38, 800);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     ctx.fillText('filmTCG', 96, 96);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 108px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = canvasFontFromPreset(typography.brand, 108, 900);
     ctx.fillText('My Top 4', 96, 148);
 
     const artImages = await Promise.all(cards.slice(0, MAX_SHOWCASE_SIZE).map(function (card, index) {
@@ -11135,12 +11239,13 @@ body.pack-opening-focus .pull-center-stage {
         startY + row * (cardHeight + gapY),
         cardWidth,
         cardHeight,
-        i
+        i,
+        typography
       );
     }
 
     ctx.fillStyle = 'rgba(255,255,255,0.46)';
-    ctx.font = '700 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = canvasFontFromPreset(typography.showcase, 24, 700);
     ctx.textAlign = 'center';
     ctx.fillText('filmTCG · My Top 4', canvas.width / 2, 1820);
 
