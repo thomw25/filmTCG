@@ -5310,7 +5310,7 @@ body.pack-opening-focus .pull-center-stage {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-189</div>
+  <div class="sub">Build: logic-sync-191</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -5883,7 +5883,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-189';
+  const BUILD_ID = 'logic-sync-191';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -10732,6 +10732,19 @@ body.pack-opening-focus .pull-center-stage {
     return resolvedWeight + ' ' + resolvedSize + 'px ' + resolvedFamily;
   }
 
+  function drawTrackedText(ctx, text, x, y, tracking) {
+    const content = String(text || '');
+    const chars = Array.from(content);
+    let cursorX = x;
+    chars.forEach(function (char, index) {
+      ctx.fillText(char, cursorX, y);
+      if (index < chars.length - 1) {
+        cursorX += ctx.measureText(char).width + (tracking || 0);
+      }
+    });
+    return cursorX - x;
+  }
+
   function getStoryTypography() {
     return {
       brand: getComputedFontPreset('.title', {
@@ -10740,6 +10753,18 @@ body.pack-opening-focus .pull-center-stage {
         size: 27.2,
         lineHeight: 31
       }),
+      storyBrand: {
+        family: '"Fahkwang", sans-serif',
+        weight: 700,
+        size: 36,
+        lineHeight: 40
+      },
+      storyHeading: {
+        family: '"Fahkwang", sans-serif',
+        weight: 700,
+        size: 98,
+        lineHeight: 102
+      },
       showcase: getComputedFontPreset('.showcase-title', {
         family: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         weight: 800,
@@ -10908,11 +10933,11 @@ body.pack-opening-focus .pull-center-stage {
     const isEmpty = !card;
     const theme = storyCardTheme(card && card.rarity);
     const type = typography || getStoryTypography();
-    const scale = height / 430;
+    const scale = width / 300;
     const radius = 20 * scale;
     const frameInset = 8 * scale;
-    const innerPad = 16 * scale;
-    const headerTop = 16 * scale;
+    const innerPad = 10 * scale;
+    const headerTop = 10 * scale;
 
     if (isEmpty) {
       const emptyBg = ctx.createLinearGradient(x, y, x, y + height);
@@ -11005,7 +11030,7 @@ body.pack-opening-focus .pull-center-stage {
     const sideMetaReserve = Math.min(88 * scale, Math.max(56 * scale, Math.max(rarityWidth, sideMetaWidth) + (8 * scale)));
     const titleMaxWidth = width - (innerPad * 2) - sideMetaReserve - (6 * scale);
     const cardTitle = card.title || 'Unknown';
-    const baseTitleSize = Math.max(13.4 * scale, type.cardTitle.size * scale * 0.92);
+    const baseTitleSize = Math.max(13.2 * scale, type.cardTitle.size * scale * 0.92);
     let titleFontSize = baseTitleSize;
     ctx.font = canvasFontFromPreset(type.cardTitle, titleFontSize, 800);
     while (titleFontSize > (11.8 * scale) && ctx.measureText(cardTitle).width > titleMaxWidth) {
@@ -11024,12 +11049,12 @@ body.pack-opening-focus .pull-center-stage {
       titleLines = wrapCanvasTextLines(ctx, cardTitle, titleMaxWidth, 2);
     }
     const titleBlockHeight = titleLines.length * titleLineHeight;
-    const headerReserve = Math.max(84 * scale, headerTop + titleBlockHeight + (16 * scale));
+    const headerBlockHeight = Math.max(58 * scale, headerTop + titleBlockHeight + (6 * scale));
     const imageHeight = 232 * scale;
-    const imageY = y + headerReserve;
+    const imageY = y + headerBlockHeight + (8 * scale);
     const imageX = x + innerPad;
     const imageWidth = width - (innerPad * 2);
-    const bodyY = imageY + imageHeight + (14 * scale);
+    const bodyY = imageY + imageHeight + (6 * scale);
 
     ctx.fillStyle = theme.title;
     ctx.font = canvasFontFromPreset(type.cardTitle, titleFontSize, 800);
@@ -11113,22 +11138,24 @@ body.pack-opening-focus .pull-center-stage {
         }, type);
         chipX += chipWidth + (6 * scale);
       }
-      nextY += 32 * scale;
+      nextY += 28 * scale;
     }
 
     const descText = String(card.desc || '').trim() || 'No synopsis available yet.';
     ctx.fillStyle = '#dddddd';
-    ctx.font = canvasFontFromPreset(type.desc, Math.max(10.6 * scale, type.desc.size * scale * 0.9), type.desc.weight || 400);
+    const descFontSize = Math.max(10.6 * scale, type.desc.size * scale);
+    const descLineHeight = Math.max(14.8 * scale, descFontSize * 1.32);
+    ctx.font = canvasFontFromPreset(type.desc, descFontSize, type.desc.weight || 400);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     const descLines = wrapCanvasTextLines(ctx, descText, width - (innerPad * 2), 3);
     descLines.forEach(function (line, index) {
-      ctx.fillText(line, x + innerPad, nextY + (index * (14.8 * scale)));
+      ctx.fillText(line, x + innerPad, nextY + (index * descLineHeight));
     });
 
     const quote = card.cardType === 'person' ? '' : (QUOTES[card.title] || '');
     if (quote) {
-      const quoteY = nextY + (descLines.length * (14.8 * scale)) + (8 * scale);
+      const quoteY = nextY + (descLines.length * descLineHeight) + (8 * scale);
       ctx.fillStyle = 'rgba(255,255,255,0.72)';
       ctx.font = 'italic 400 ' + String(10 * scale) + 'px Georgia, serif';
       const quoteLine = wrapCanvasTextLines(ctx, '“' + quote + '”', width - (innerPad * 2), 1)[0] || '';
@@ -11209,14 +11236,14 @@ body.pack-opening-focus .pull-center-stage {
     ctx.fill();
 
     ctx.fillStyle = 'rgba(191,219,254,0.9)';
-    ctx.font = canvasFontFromPreset(typography.brand, 38, 800);
+    ctx.font = canvasFontFromPreset(typography.storyBrand, 35, 700);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('filmTCG', 96, 96);
+    drawTrackedText(ctx, 'filmTCG', 96, 98, -0.6);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = canvasFontFromPreset(typography.brand, 108, 900);
-    ctx.fillText('My Top 4', 96, 148);
+    ctx.font = canvasFontFromPreset(typography.storyHeading, 96, 700);
+    drawTrackedText(ctx, 'My Top 4', 96, 146, -2.1);
 
     const artImages = await Promise.all(cards.slice(0, MAX_SHOWCASE_SIZE).map(function (card, index) {
       return loadStoryCardArtwork(card, renderedShowcaseArtSource(index)).catch(function () { return null; });
