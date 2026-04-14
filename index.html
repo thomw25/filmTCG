@@ -5520,7 +5520,7 @@ body.pack-opening-focus .pull-center-stage {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-195</div>
+  <div class="sub">Build: logic-sync-196</div>
   <div class="header-side">
     <button id="aboutLink" class="header-about-link" type="button">About filmTCG</button>
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
@@ -6140,7 +6140,10 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-195';
+  const BUILD_ID = 'logic-sync-196';
+  const PAGE_PARAMS = new URLSearchParams(window.location.search);
+  const DEBUG_STORY_PREVIEW = PAGE_PARAMS.get('debugStoryPreview') === '1';
+  const DEBUG_STORY_SEED = PAGE_PARAMS.get('debugStorySeed') === '1';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -6658,6 +6661,21 @@ body.pack-opening-focus .pull-center-stage {
       localStorage.setItem('filmtcg.showcase', JSON.stringify(showcase));
     } catch (error) {
     }
+  }
+
+  function maybeSeedDebugShowcase() {
+    if (!DEBUG_STORY_SEED) return false;
+    if (collection.length || showcase.length) return false;
+    const sourceCards = Array.isArray(movies) && movies.length ? movies : SAMPLE_MOVIES;
+    const seedCards = sourceCards.filter(Boolean).slice(0, MAX_SHOWCASE_SIZE).map(function (card) {
+      return normalizeMovieRecord(Object.assign({}, card));
+    });
+    if (!seedCards.length) return false;
+    collection = seedCards.slice();
+    showcase = seedCards.map(function (card) { return cardKey(card); }).filter(Boolean).slice(0, MAX_SHOWCASE_SIZE);
+    saveCollection();
+    saveShowcase();
+    return true;
   }
 
   function collectionListId() {
@@ -10925,6 +10943,180 @@ body.pack-opening-focus .pull-center-stage {
     return null;
   }
 
+  function storyPreviewNode(slotIndex, card) {
+    if (showcasePanel) {
+      const livePreview = showcasePanel.querySelector('.showcase-card[data-showcase-index="' + String(slotIndex) + '"] .showcase-card-preview');
+      if (livePreview) return livePreview;
+    }
+    if (!card) return null;
+    const wrap = document.createElement('div');
+    wrap.style.position = 'fixed';
+    wrap.style.left = '-20000px';
+    wrap.style.top = '0';
+    wrap.style.opacity = '0';
+    wrap.style.pointerEvents = 'none';
+    wrap.innerHTML = '<div class="showcase-card-preview" style="--preview-scale:0.82;">' + buildShelfCardMarkup(card) + '</div>';
+    document.body.appendChild(wrap);
+    return wrap.firstElementChild;
+  }
+
+  function storyComputedTextStyle(node) {
+    if (!node) return null;
+    const style = window.getComputedStyle(node);
+    return {
+      family: style.fontFamily || 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      size: parseCssNumber(style.fontSize, 16),
+      weight: String(style.fontWeight || 700),
+      color: style.color || '#ffffff',
+      lineHeight: parseCssNumber(style.lineHeight, parseCssNumber(style.fontSize, 16) * 1.2),
+      letterSpacing: parseCssNumber(style.letterSpacing, 0),
+      textTransform: style.textTransform || 'none'
+    };
+  }
+
+  function storyComputedBoxStyle(node) {
+    if (!node) return null;
+    const style = window.getComputedStyle(node);
+    return {
+      bg: style.backgroundColor || 'rgba(34,34,34,1)',
+      borderColor: style.borderColor || 'rgba(255,255,255,.12)',
+      borderWidth: parseCssNumber(style.borderTopWidth, 1),
+      radius: parseCssNumber(style.borderTopLeftRadius, 999),
+      color: style.color || '#ffffff'
+    };
+  }
+
+  function storyRectInCard(node, cardRect, previewScale) {
+    if (!node || !cardRect || !previewScale) return null;
+    const rect = node.getBoundingClientRect();
+    return {
+      x: (rect.left - cardRect.left) / previewScale,
+      y: (rect.top - cardRect.top) / previewScale,
+      width: rect.width / previewScale,
+      height: rect.height / previewScale
+    };
+  }
+
+  function storyTextForStyle(text, style) {
+    const content = String(text || '');
+    if (!style || style.textTransform !== 'uppercase') return content;
+    return content.toUpperCase();
+  }
+
+  function extractStoryCardLayout(slotIndex, card) {
+    const preview = storyPreviewNode(slotIndex, card);
+    if (!preview) return null;
+    const createdTemp = !showcasePanel || !showcasePanel.contains(preview);
+    try {
+      const cardEl = preview.querySelector('.card');
+      if (!cardEl) return null;
+      const cardRect = cardEl.getBoundingClientRect();
+      const previewScale = cardRect.width / 300 || 1;
+      const titleEl = cardEl.querySelector('.card-title');
+      const rarityEl = cardEl.querySelector('.card-rarity');
+      const yearEl = cardEl.querySelector('.card-year');
+      const imageWrapEl = cardEl.querySelector('.card-img-wrap');
+      const overlayEl = cardEl.querySelector('.card-director-overlay');
+      const descEl = cardEl.querySelector('.desc');
+      const quoteEl = cardEl.querySelector('.quote');
+      const chipEls = Array.from(cardEl.querySelectorAll('.chip'));
+      return {
+        rarity: card && card.rarity ? card.rarity : 'Base',
+        cardType: card && card.cardType ? card.cardType : 'film',
+        title: {
+          text: titleEl ? titleEl.textContent || '' : String(card && card.title || ''),
+          rect: storyRectInCard(titleEl, cardRect, previewScale),
+          style: storyComputedTextStyle(titleEl),
+          maxLines: 2
+        },
+        rarityMeta: {
+          text: rarityEl ? rarityEl.textContent || '' : normalizeRarityLabel(card && card.rarity),
+          rect: storyRectInCard(rarityEl, cardRect, previewScale),
+          style: storyComputedTextStyle(rarityEl),
+          align: 'right'
+        },
+        sideMeta: yearEl ? {
+          text: yearEl.textContent || '',
+          rect: storyRectInCard(yearEl, cardRect, previewScale),
+          style: storyComputedTextStyle(yearEl),
+          align: 'right'
+        } : null,
+        imageRect: storyRectInCard(imageWrapEl, cardRect, previewScale),
+        overlay: overlayEl ? {
+          text: overlayEl.textContent || '',
+          rect: storyRectInCard(overlayEl, cardRect, previewScale),
+          textStyle: storyComputedTextStyle(overlayEl),
+          boxStyle: storyComputedBoxStyle(overlayEl)
+        } : null,
+        chips: chipEls.map(function (chipEl) {
+          return {
+            text: chipEl.textContent || '',
+            rect: storyRectInCard(chipEl, cardRect, previewScale),
+            textStyle: storyComputedTextStyle(chipEl),
+            boxStyle: storyComputedBoxStyle(chipEl)
+          };
+        }),
+        desc: descEl ? {
+          text: descEl.textContent || String(card && card.desc || ''),
+          rect: storyRectInCard(descEl, cardRect, previewScale),
+          style: storyComputedTextStyle(descEl)
+        } : null,
+        quote: quoteEl ? {
+          text: quoteEl.textContent || '',
+          rect: storyRectInCard(quoteEl, cardRect, previewScale),
+          style: storyComputedTextStyle(quoteEl)
+        } : null
+      };
+    } finally {
+      if (createdTemp && preview.parentNode) {
+        preview.parentNode.remove();
+      }
+    }
+  }
+
+  function drawStoryTextLines(ctx, text, rect, style, scale, align, maxLines) {
+    if (!text || !rect || !style) return;
+    const drawX = rect.x * scale;
+    const drawY = rect.y * scale;
+    const drawWidth = rect.width * scale;
+    const fontSize = style.size * scale;
+    const lineHeight = style.lineHeight * scale;
+    ctx.save();
+    ctx.font = canvasFontFromPreset(style, fontSize, style.weight);
+    ctx.fillStyle = style.color || '#ffffff';
+    ctx.textBaseline = 'top';
+    ctx.textAlign = align === 'right' ? 'right' : 'left';
+    const sourceText = storyTextForStyle(text, style);
+    const lines = wrapCanvasTextLines(ctx, sourceText, drawWidth, maxLines || 1);
+    const baseX = align === 'right' ? (drawX + drawWidth) : drawX;
+    lines.forEach(function (line, index) {
+      ctx.fillText(line, baseX, drawY + (index * lineHeight));
+    });
+    ctx.restore();
+  }
+
+  function drawStoryChipFromLayout(ctx, chip, scale) {
+    if (!chip || !chip.rect) return;
+    const x = chip.rect.x * scale;
+    const y = chip.rect.y * scale;
+    const width = chip.rect.width * scale;
+    const height = chip.rect.height * scale;
+    const radius = Math.min((chip.boxStyle && chip.boxStyle.radius ? chip.boxStyle.radius : 999) * scale, height / 2);
+    ctx.save();
+    drawRoundedRectPath(ctx, x, y, width, height, radius);
+    ctx.fillStyle = chip.boxStyle && chip.boxStyle.bg ? chip.boxStyle.bg : '#222';
+    ctx.fill();
+    ctx.strokeStyle = chip.boxStyle && chip.boxStyle.borderColor ? chip.boxStyle.borderColor : 'rgba(255,255,255,.12)';
+    ctx.lineWidth = Math.max(1, (chip.boxStyle && chip.boxStyle.borderWidth ? chip.boxStyle.borderWidth : 1) * scale);
+    ctx.stroke();
+    ctx.font = canvasFontFromPreset(chip.textStyle, chip.textStyle.size * scale, chip.textStyle.weight);
+    ctx.fillStyle = chip.textStyle && chip.textStyle.color ? chip.textStyle.color : '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(storyTextForStyle(chip.text, chip.textStyle), x + (width / 2), y + (height / 2));
+    ctx.restore();
+  }
+
   function drawCanvasImageCover(ctx, image, x, y, width, height) {
     if (!image) return;
     const sourceWidth = image.naturalWidth || image.width || width;
@@ -11845,70 +12037,177 @@ body.pack-opening-focus .pull-center-stage {
     }
   }
 
-  function canvasToBlob(canvas) {
-    return new Promise(function (resolve) {
-      try {
-        canvas.toBlob(function (blob) {
-          resolve(blob || null);
-        }, 'image/png');
-      } catch (error) {
-        resolve(null);
-      }
+  function drawShowcaseStoryCardFromLayout(ctx, card, artImage, x, y, width, height, slotIndex, layout) {
+    if (!layout) {
+      drawShowcaseStoryCard(ctx, card, artImage, x, y, width, height, slotIndex, getStoryTypography());
+      return;
+    }
+    const theme = storyCardTheme(card && card.rarity);
+    const scale = width / 300;
+    const radius = 20 * scale;
+    const frameInset = 8 * scale;
+
+    const baseGradient = ctx.createLinearGradient(x, y, x, y + height);
+    baseGradient.addColorStop(0, theme.baseTop);
+    baseGradient.addColorStop(1, theme.baseBottom);
+    const edgeTint = ctx.createLinearGradient(x, y, x, y + height);
+    edgeTint.addColorStop(0, hexToRgba(theme.accentTop, 0.16));
+    edgeTint.addColorStop(1, hexToRgba(theme.accentBottom, 0.04));
+
+    ctx.save();
+    ctx.shadowColor = theme.glow;
+    ctx.shadowBlur = 44;
+    ctx.shadowOffsetY = 22;
+    drawRoundedRectPath(ctx, x, y, width, height, radius);
+    ctx.fillStyle = baseGradient;
+    ctx.fill();
+    ctx.fillStyle = edgeTint;
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    drawRoundedRectPath(ctx, x, y, width, height, radius);
+    ctx.clip();
+    const gloss = ctx.createLinearGradient(x, y, x + (width * 0.64), y + height);
+    gloss.addColorStop(0, 'rgba(255,255,255,0)');
+    gloss.addColorStop(0.3, 'rgba(255,255,255,0.13)');
+    gloss.addColorStop(0.44, 'rgba(255,255,255,0.04)');
+    gloss.addColorStop(0.58, 'rgba(255,255,255,0)');
+    ctx.fillStyle = gloss;
+    ctx.fillRect(x, y, width, height);
+    ctx.restore();
+
+    drawRoundedRectPath(ctx, x, y, width, height, radius);
+    ctx.lineWidth = Math.max(2.2, 3 * scale);
+    ctx.strokeStyle = theme.border;
+    ctx.stroke();
+
+    drawRoundedRectPath(ctx, x + frameInset, y + frameInset, width - (frameInset * 2), height - (frameInset * 2), 14 * scale);
+    ctx.lineWidth = Math.max(1, 1.3 * scale);
+    ctx.strokeStyle = theme.frame;
+    ctx.stroke();
+
+    if (layout.title && layout.title.rect) {
+      drawStoryTextLines(ctx, layout.title.text, {
+        x: x / scale + layout.title.rect.x,
+        y: y / scale + layout.title.rect.y,
+        width: layout.title.rect.width,
+        height: layout.title.rect.height
+      }, layout.title.style, scale, 'left', layout.title.maxLines || 2);
+    }
+
+    if (layout.rarityMeta && layout.rarityMeta.rect) {
+      drawStoryTextLines(ctx, layout.rarityMeta.text, {
+        x: x / scale + layout.rarityMeta.rect.x,
+        y: y / scale + layout.rarityMeta.rect.y,
+        width: layout.rarityMeta.rect.width,
+        height: layout.rarityMeta.rect.height
+      }, layout.rarityMeta.style, scale, 'right', 1);
+    }
+
+    if (layout.sideMeta && layout.sideMeta.rect) {
+      drawStoryTextLines(ctx, layout.sideMeta.text, {
+        x: x / scale + layout.sideMeta.rect.x,
+        y: y / scale + layout.sideMeta.rect.y,
+        width: layout.sideMeta.rect.width,
+        height: layout.sideMeta.rect.height
+      }, layout.sideMeta.style, scale, 'right', 1);
+    }
+
+    if (layout.imageRect) {
+      const imageX = x + (layout.imageRect.x * scale);
+      const imageY = y + (layout.imageRect.y * scale);
+      const imageWidth = layout.imageRect.width * scale;
+      const imageHeight = layout.imageRect.height * scale;
+      drawRoundedRectPath(ctx, imageX, imageY, imageWidth, imageHeight, 12 * scale);
+      ctx.fillStyle = '#000';
+      ctx.fill();
+      ctx.save();
+      drawRoundedRectPath(ctx, imageX, imageY, imageWidth, imageHeight, 12 * scale);
+      ctx.clip();
+      if (artImage) drawCanvasImageCover(ctx, artImage, imageX, imageY, imageWidth, imageHeight);
+      const artFade = ctx.createLinearGradient(0, imageY, 0, imageY + imageHeight);
+      artFade.addColorStop(0, 'rgba(255,255,255,0.08)');
+      artFade.addColorStop(0.38, 'rgba(255,255,255,0)');
+      artFade.addColorStop(0.78, 'rgba(9,12,18,0.12)');
+      artFade.addColorStop(1, 'rgba(9,12,18,0.44)');
+      ctx.fillStyle = artFade;
+      ctx.fillRect(imageX, imageY, imageWidth, imageHeight);
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.lineWidth = Math.max(1, 1 * scale);
+      drawRoundedRectPath(ctx, imageX, imageY, imageWidth, imageHeight, 12 * scale);
+      ctx.stroke();
+    }
+
+    if (layout.overlay && layout.overlay.rect) {
+      const overlayX = x + (layout.overlay.rect.x * scale);
+      const overlayY = y + (layout.overlay.rect.y * scale);
+      const overlayWidth = layout.overlay.rect.width * scale;
+      const overlayHeight = layout.overlay.rect.height * scale;
+      ctx.save();
+      drawRoundedRectPath(ctx, overlayX, overlayY, overlayWidth, overlayHeight, Math.min((layout.overlay.boxStyle && layout.overlay.boxStyle.radius ? layout.overlay.boxStyle.radius : 999) * scale, overlayHeight / 2));
+      ctx.fillStyle = layout.overlay.boxStyle && layout.overlay.boxStyle.bg ? layout.overlay.boxStyle.bg : 'rgba(10,12,18,.72)';
+      ctx.fill();
+      ctx.strokeStyle = layout.overlay.boxStyle && layout.overlay.boxStyle.borderColor ? layout.overlay.boxStyle.borderColor : 'rgba(255,255,255,.16)';
+      ctx.lineWidth = Math.max(1, (layout.overlay.boxStyle && layout.overlay.boxStyle.borderWidth ? layout.overlay.boxStyle.borderWidth : 1) * scale);
+      ctx.stroke();
+      ctx.restore();
+      drawStoryTextLines(ctx, layout.overlay.text, {
+        x: x / scale + layout.overlay.rect.x + (9 / scale),
+        y: y / scale + layout.overlay.rect.y + ((layout.overlay.rect.height - layout.overlay.textStyle.lineHeight) / 2 / scale),
+        width: layout.overlay.rect.width - (18 / scale),
+        height: layout.overlay.rect.height
+      }, layout.overlay.textStyle, scale, 'left', 1);
+    }
+
+    (layout.chips || []).forEach(function (chip) {
+      if (!chip.rect) return;
+      drawStoryChipFromLayout(ctx, {
+        text: chip.text,
+        rect: {
+          x: x / scale + chip.rect.x,
+          y: y / scale + chip.rect.y,
+          width: chip.rect.width,
+          height: chip.rect.height
+        },
+        textStyle: chip.textStyle,
+        boxStyle: chip.boxStyle
+      }, scale);
     });
+
+    if (layout.desc && layout.desc.rect) {
+      const maxLines = Math.max(1, Math.floor((layout.desc.rect.height * scale) / Math.max(1, layout.desc.style.lineHeight * scale)));
+      drawStoryTextLines(ctx, layout.desc.text, {
+        x: x / scale + layout.desc.rect.x,
+        y: y / scale + layout.desc.rect.y,
+        width: layout.desc.rect.width,
+        height: layout.desc.rect.height
+      }, layout.desc.style, scale, 'left', maxLines);
+    }
+
+    if (layout.quote && layout.quote.rect) {
+      const maxLines = Math.max(1, Math.floor((layout.quote.rect.height * scale) / Math.max(1, layout.quote.style.lineHeight * scale)));
+      drawStoryTextLines(ctx, layout.quote.text, {
+        x: x / scale + layout.quote.rect.x,
+        y: y / scale + layout.quote.rect.y,
+        width: layout.quote.rect.width,
+        height: layout.quote.rect.height
+      }, layout.quote.style, scale, 'left', maxLines);
+    }
   }
 
-  function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(function () {
-      URL.revokeObjectURL(url);
-    }, 1000);
-  }
+  async function buildShowcaseStoryCanvas(cards) {
+    const storyCards = (Array.isArray(cards) ? cards : []).slice(0, MAX_SHOWCASE_SIZE);
+    if (!storyCards.length) return null;
 
-  async function shareShowcaseStory() {
-    const cards = getShowcaseCards();
-    if (!cards.length) {
-      showToast('Add a few favorites to Top 4 first.');
-      return;
-    }
-    const domBlob = await renderStoryExportFromDom(cards);
-    if (domBlob) {
-      const domFile = typeof File === 'function'
-        ? new File([domBlob], 'filmtcg-top-4-story.png', { type: 'image/png' })
-        : null;
-      if (domFile && navigator.share && navigator.canShare && navigator.canShare({ files: [domFile] })) {
-        try {
-          await navigator.share({
-            title: 'filmTCG My Top 4',
-            text: 'filmTCG My Top 4',
-            files: [domFile]
-          });
-          showToast('Story ready to share.');
-          return;
-        } catch (error) {
-          if (error && error.name === 'AbortError') return;
-        }
-      }
-      downloadBlob(domBlob, 'filmtcg-top-4-story.png');
-      showToast('Story saved. Open Instagram and grab it from Recents.');
-      return;
-    }
     await ensureStoryFontsReady();
     const typography = getStoryTypography();
-
     const canvas = document.createElement('canvas');
     canvas.width = 1080;
     canvas.height = 1920;
     const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      showToast('Could not build story image.');
-      return;
-    }
+    if (!ctx) return null;
 
     const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     bg.addColorStop(0, '#090b10');
@@ -11917,7 +12216,7 @@ body.pack-opening-focus .pull-center-stage {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const auraColors = cards.slice(0, 4).map(function (card) {
+    const auraColors = storyCards.map(function (card) {
       return card ? rarityColor(card.rarity) : null;
     }).filter(Boolean);
     auraColors.forEach(function (color, index) {
@@ -11949,11 +12248,10 @@ body.pack-opening-focus .pull-center-stage {
     ctx.font = canvasFontFromPreset(typography.storyHeading, 96, 700);
     drawTrackedText(ctx, 'My Top 4', 96, 146, -2.1);
 
-    const cardImages = await Promise.all(cards.slice(0, MAX_SHOWCASE_SIZE).map(function (card, index) {
-      return renderStoryCardImageFromDom(index, card, 422, Math.round(422 * (430 / 300))).catch(function () { return null; });
-    }));
-
-    const artImages = await Promise.all(cards.slice(0, MAX_SHOWCASE_SIZE).map(function (card, index) {
+    const cardLayouts = storyCards.map(function (card, index) {
+      return extractStoryCardLayout(index, card);
+    });
+    const artImages = await Promise.all(storyCards.map(function (card, index) {
       return loadStoryCardArtwork(card, renderedShowcaseArtSource(index)).catch(function () { return null; });
     }));
 
@@ -11963,32 +12261,100 @@ body.pack-opening-focus .pull-center-stage {
     const startY = 318;
     const gapX = 44;
     const gapY = 60;
+
     for (let i = 0; i < MAX_SHOWCASE_SIZE; i += 1) {
       const col = i % 2;
       const row = Math.floor(i / 2);
       const drawX = startX + col * (cardWidth + gapX);
       const drawY = startY + row * (cardHeight + gapY);
-      if (cardImages[i]) {
-        ctx.drawImage(cardImages[i], drawX, drawY, cardWidth, cardHeight);
-      } else {
-        drawShowcaseStoryCard(
-          ctx,
-          cards[i] || null,
-          artImages[i] || null,
-          drawX,
-          drawY,
-          cardWidth,
-          cardHeight,
-          i,
-          typography
-        );
-      }
+      drawShowcaseStoryCardFromLayout(
+        ctx,
+        storyCards[i] || null,
+        artImages[i] || null,
+        drawX,
+        drawY,
+        cardWidth,
+        cardHeight,
+        i,
+        cardLayouts[i] || null
+      );
     }
 
     ctx.fillStyle = 'rgba(255,255,255,0.46)';
     ctx.font = canvasFontFromPreset(typography.showcase, 24, 700);
     ctx.textAlign = 'center';
     ctx.fillText('filmTCG · My Top 4', canvas.width / 2, 1820);
+
+    return canvas;
+  }
+
+  function canvasToBlob(canvas) {
+    return new Promise(function (resolve) {
+      try {
+        canvas.toBlob(function (blob) {
+          resolve(blob || null);
+        }, 'image/png');
+      } catch (error) {
+        resolve(null);
+      }
+    });
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(function () {
+      URL.revokeObjectURL(url);
+    }, 1000);
+  }
+
+  async function maybeRenderStoryDebugPreview() {
+    if (!DEBUG_STORY_PREVIEW || !collectionPage || !collectionPage.classList.contains('active')) return;
+    const cards = getShowcaseCards();
+    const existingHosts = Array.from(document.querySelectorAll('#storyDebugPreviewHost'));
+    existingHosts.slice(1).forEach(function (node) { node.remove(); });
+    const existing = existingHosts[0] || null;
+    if (!cards.length) {
+      if (existing) existing.remove();
+      return;
+    }
+    const canvas = await buildShowcaseStoryCanvas(cards);
+    if (!canvas) return;
+    let host = existing;
+    if (!host) {
+      host = document.createElement('section');
+      host.id = 'storyDebugPreviewHost';
+      host.style.margin = '28px auto 0';
+      host.style.width = 'min(420px, calc(100vw - 28px))';
+      host.style.padding = '14px';
+      host.style.border = '1px solid rgba(255,255,255,.08)';
+      host.style.borderRadius = '22px';
+      host.style.background = 'rgba(255,255,255,.03)';
+      host.style.display = 'grid';
+      host.style.gap = '10px';
+      host.innerHTML = '<div style="font-size:.76rem;color:rgba(255,255,255,.56);letter-spacing:.04em;text-transform:uppercase;">Story export debug preview</div><img alt="Story debug preview" style="display:block;width:100%;height:auto;border-radius:18px;box-shadow:0 18px 36px rgba(0,0,0,.28);">';
+      collectionGrid.parentNode.insertBefore(host, collectionGrid.nextSibling);
+    }
+    const image = host.querySelector('img');
+    if (image) image.src = canvas.toDataURL('image/png');
+  }
+
+  async function shareShowcaseStory() {
+    const cards = getShowcaseCards();
+    if (!cards.length) {
+      showToast('Add a few favorites to Top 4 first.');
+      return;
+    }
+    const canvas = await buildShowcaseStoryCanvas(cards);
+    if (!canvas) {
+      showToast('Could not build story image.');
+      return;
+    }
 
     const blob = await canvasToBlob(canvas);
     if (!blob) {
@@ -12162,6 +12528,11 @@ body.pack-opening-focus .pull-center-stage {
         }
       });
     });
+    if (DEBUG_STORY_PREVIEW) {
+      requestAnimationFrame(function () {
+        maybeRenderStoryDebugPreview().catch(function () { return null; });
+      });
+    }
   }
 
   function renderCollectionViewToggle() {
@@ -13574,6 +13945,8 @@ body.pack-opening-focus .pull-center-stage {
     renderCollectionTradeRow();
 
     if (collectionMode === 'lists') {
+      const existingStoryDebugPreview = document.getElementById('storyDebugPreviewHost');
+      if (existingStoryDebugPreview) existingStoryDebugPreview.remove();
       if (showcasePanel) showcasePanel.hidden = true;
       const entryMap = new Map();
       grouped.forEach(function (entry) {
@@ -13687,6 +14060,10 @@ body.pack-opening-focus .pull-center-stage {
     shopTab.classList.toggle('active', id === 'shop');
     collectionTab.classList.toggle('active', id === 'collection');
     if (aboutLink) aboutLink.classList.toggle('is-active', id === 'about');
+    if (id !== 'collection') {
+      const existingStoryDebugPreview = document.getElementById('storyDebugPreviewHost');
+      if (existingStoryDebugPreview) existingStoryDebugPreview.remove();
+    }
     if (id === 'collection') renderCollection();
     if (id === 'daily') renderDailyHunts();
     if (id === 'shop') renderShop();
@@ -13911,6 +14288,13 @@ body.pack-opening-focus .pull-center-stage {
 
     clearTimeout(initUnlockTimer);
     finalizeStartupUi();
+    if (DEBUG_STORY_SEED) {
+      maybeSeedDebugShowcase();
+    }
+    if (DEBUG_STORY_PREVIEW) {
+      showPage('collection');
+      await maybeRenderStoryDebugPreview().catch(function () { return null; });
+    }
   }
 
   init();
