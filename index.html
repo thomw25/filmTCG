@@ -5249,7 +5249,7 @@ body.pack-opening-focus .pull-center-stage {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-181</div>
+  <div class="sub">Build: logic-sync-182</div>
   <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
 </div>
 
@@ -5822,7 +5822,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-181';
+  const BUILD_ID = 'logic-sync-182';
   console.info('[filmTCG] build', BUILD_ID);
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
@@ -10689,17 +10689,18 @@ body.pack-opening-focus .pull-center-stage {
 
   function drawShowcaseStoryCard(ctx, card, artImage, x, y, width, height, slotIndex) {
     const isEmpty = !card;
-    const accent = rarityColor(card && card.rarity);
     const theme = storyCardTheme(card && card.rarity);
     const scale = height / 430;
     const radius = 20 * scale;
     const frameInset = 8 * scale;
-    const innerPad = 10 * scale;
+    const innerPad = 14 * scale;
+    const headerTop = 14 * scale;
+    const headerReserve = 82 * scale;
     const imageHeight = 232 * scale;
-    const imageY = y + ((10 + 58 + 8) * scale);
+    const imageY = y + headerReserve;
     const imageX = x + innerPad;
     const imageWidth = width - (innerPad * 2);
-    const bodyY = imageY + imageHeight + (12 * scale);
+    const bodyY = imageY + imageHeight + (14 * scale);
 
     if (isEmpty) {
       const emptyBg = ctx.createLinearGradient(x, y, x, y + height);
@@ -10778,28 +10779,30 @@ body.pack-opening-focus .pull-center-stage {
     ctx.strokeStyle = theme.frame;
     ctx.stroke();
 
-    const titleMaxWidth = width - (innerPad * 2) - (68 * scale) - (10 * scale);
+    const sideMetaInset = 14 * scale;
+    const sideMetaReserve = 78 * scale;
+    const titleMaxWidth = width - (innerPad * 2) - sideMetaReserve;
     const titleLines = wrapCanvasTextLines(ctx, card.title || 'Unknown', titleMaxWidth, 2);
     ctx.fillStyle = theme.title;
-    ctx.font = '900 ' + String(17 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = '900 ' + String(15.8 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     titleLines.forEach(function (line, index) {
-      ctx.fillText(line, x + (10 * scale), y + ((10 + (index * 18.8)) * scale));
+      ctx.fillText(line, x + innerPad, y + headerTop + (index * (19.2 * scale)));
     });
 
-    const sideMetaX = x + width - (10 * scale);
+    const sideMetaX = x + width - sideMetaInset;
     ctx.textAlign = 'right';
     ctx.fillStyle = theme.rarity;
-    ctx.font = '800 ' + String(13 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.fillText(normalizeRarityLabel(card.rarity), sideMetaX, y + (12 * scale));
+    ctx.font = '800 ' + String(11.8 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(normalizeRarityLabel(card.rarity), sideMetaX, y + (15 * scale));
     ctx.fillStyle = theme.meta;
-    ctx.font = '700 ' + String(11 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = '700 ' + String(10 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     const sideMeta = card.cardType === 'person'
       ? roleLabelForDisplay(card)
       : (card.year ? String(card.year) : '');
     if (sideMeta) {
-      ctx.fillText(String(sideMeta).toUpperCase(), sideMetaX, y + (28 * scale));
+      ctx.fillText(String(sideMeta).toUpperCase(), sideMetaX, y + (31 * scale));
     }
 
     const artBg = ctx.createLinearGradient(imageX, imageY, imageX, imageY + imageHeight);
@@ -10836,7 +10839,7 @@ body.pack-opening-focus .pull-center-stage {
       const overlayWidth = Math.min(imageWidth - (20 * scale), ctx.measureText(overlayLabel).width + (18 * scale));
       const overlayHeight = 24 * scale;
       const overlayX = imageX + (10 * scale);
-      const overlayY = imageY + imageHeight - overlayHeight - (10 * scale);
+      const overlayY = imageY + imageHeight - overlayHeight - (12 * scale);
       drawRoundedRectPath(ctx, overlayX, overlayY, overlayWidth, overlayHeight, 999);
       ctx.fillStyle = 'rgba(10,12,18,0.72)';
       ctx.fill();
@@ -10853,7 +10856,7 @@ body.pack-opening-focus .pull-center-stage {
     const chipLabels = storyCardChipLabels(card);
     let nextY = bodyY;
     if (chipLabels.length) {
-      let chipX = x + (10 * scale);
+      let chipX = x + innerPad;
       for (let i = 0; i < chipLabels.length; i += 1) {
         const label = chipLabels[i];
         const chipWidth = drawStoryChip(ctx, label, chipX, nextY, scale, {
@@ -10865,26 +10868,26 @@ body.pack-opening-focus .pull-center-stage {
         });
         chipX += chipWidth + (6 * scale);
       }
-      nextY += 30 * scale;
+      nextY += 32 * scale;
     }
 
     const descText = String(card.desc || '').trim() || 'No synopsis available yet.';
     ctx.fillStyle = '#dddddd';
-    ctx.font = '400 ' + String(12 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.font = '400 ' + String(11.3 * scale) + 'px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    const descLines = wrapCanvasTextLines(ctx, descText, width - (24 * scale), 3);
+    const descLines = wrapCanvasTextLines(ctx, descText, width - (innerPad * 2), 3);
     descLines.forEach(function (line, index) {
-      ctx.fillText(line, x + (10 * scale), nextY + (index * (15.8 * scale)));
+      ctx.fillText(line, x + innerPad, nextY + (index * (14.8 * scale)));
     });
 
     const quote = card.cardType === 'person' ? '' : (QUOTES[card.title] || '');
     if (quote) {
-      const quoteY = nextY + (descLines.length * (15.8 * scale)) + (6 * scale);
+      const quoteY = nextY + (descLines.length * (14.8 * scale)) + (8 * scale);
       ctx.fillStyle = 'rgba(255,255,255,0.72)';
-      ctx.font = 'italic 400 ' + String(10.5 * scale) + 'px Georgia, serif';
-      const quoteLine = wrapCanvasTextLines(ctx, '“' + quote + '”', width - (24 * scale), 1)[0] || '';
-      ctx.fillText(quoteLine, x + (10 * scale), quoteY);
+      ctx.font = 'italic 400 ' + String(10 * scale) + 'px Georgia, serif';
+      const quoteLine = wrapCanvasTextLines(ctx, '“' + quote + '”', width - (innerPad * 2), 1)[0] || '';
+      ctx.fillText(quoteLine, x + innerPad, quoteY);
     }
   }
 
