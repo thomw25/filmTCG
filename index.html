@@ -564,6 +564,31 @@ button, a, select { font: inherit; }
   font-size: 0.94rem;
 }
 
+.about-toggle-btn {
+  justify-self: start;
+  padding: 10px 14px;
+  border: 1px solid rgba(175,194,236,.22);
+  border-radius: 999px;
+  background: rgba(17,22,33,.72);
+  color: rgba(232,240,255,.88);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+
+.about-toggle-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(202,218,252,.34);
+  background: rgba(24,31,46,.82);
+}
+
+.about-toggle-btn.is-active {
+  border-color: rgba(189,208,255,.52);
+  background: linear-gradient(135deg, rgba(143,134,233,.18), rgba(106,140,247,.14));
+  color: #f7fbff;
+}
+
 .about-tier-list {
   display: grid;
   gap: 10px;
@@ -1205,6 +1230,51 @@ body.pack-opening-focus .pull-center-stage {
 
 #openPackMotion:not(.is-loading):not(.is-opening):not(.is-shuffling) .pack-glow {
   animation: packIdleGlow 4.6s ease-in-out infinite;
+}
+
+body.performance-mode .pull-pack-motion {
+  transition-duration: 220ms;
+}
+
+body.performance-mode .pull-pack-motion:not(.is-opening):not(.is-shuffling) .pull-pack-idle,
+body.performance-mode #openPackMotion:not(.is-loading):not(.is-opening):not(.is-shuffling) .pack-glow,
+body.performance-mode .card.epic::after,
+body.performance-mode .card.iconic::after,
+body.performance-mode .card.legendary::after,
+body.performance-mode .card.canon::after,
+body.performance-mode .collection-card-preview .card.rare,
+body.performance-mode .showcase-card-preview .card.rare,
+body.performance-mode .collection-card-preview .card.rare::after,
+body.performance-mode .showcase-card-preview .card.rare::after {
+  animation: none !important;
+}
+
+body.performance-mode .pack-foil,
+body.performance-mode .pack-glint,
+body.performance-mode .pack-glow,
+body.performance-mode .pack-grain,
+body.performance-mode .pack-twinkle {
+  animation-duration: 18s !important;
+}
+
+body.performance-mode .pack-glint,
+body.performance-mode .pack-twinkle {
+  opacity: 0 !important;
+}
+
+body.performance-mode .pack-glow {
+  opacity: 0.1 !important;
+}
+
+body.performance-mode .pack-grain {
+  opacity: 0.04 !important;
+}
+
+body.performance-mode .peel-card-wrap .card.epic,
+body.performance-mode .peel-card-wrap .card.iconic,
+body.performance-mode .peel-card-wrap .card.legendary,
+body.performance-mode .peel-card-wrap .card.canon {
+  box-shadow: 0 18px 34px rgba(0,0,0,.34);
 }
 
 .pack-art-wrap {
@@ -2001,6 +2071,21 @@ body.pack-opening-focus .pull-center-stage {
   will-change: box-shadow, filter, border-color;
 }
 
+.carousel-open-more-btn.is-ready {
+  border-color: rgba(189,208,255,.56);
+  background: linear-gradient(135deg, rgba(143,134,233,.96), rgba(106,140,247,.95) 62%, rgba(187,208,255,.96));
+  color: #f8fbff;
+}
+
+.carousel-open-more-note {
+  margin-top: 8px;
+  color: rgba(255,255,255,.58);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: center;
+  min-height: 1.1em;
+}
+
 .carousel {
   position: relative;
   width: 100%;
@@ -2489,6 +2574,38 @@ body.pack-opening-focus .pull-center-stage {
   background: rgba(251,191,36,.2);
   border-color: rgba(251,191,36,.42);
   color: #fbbf24;
+}
+
+.card-quick-list-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 7;
+  min-width: 64px;
+  height: 30px;
+  padding: 0 11px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 999px;
+  background: rgba(9,12,18,.56);
+  color: rgba(255,255,255,.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.card-quick-list-btn:hover {
+  transform: scale(1.03);
+  color: #fff;
+  border-color: rgba(189,208,255,.26);
+  background: rgba(20,28,43,.72);
 }
 
 .card-img {
@@ -5248,11 +5365,11 @@ body.pack-opening-focus .pull-center-stage {
     --pack-cta-size: 0.62rem;
   }
   .reward-pack-option .pack.pack-theme-docs {
-    --pack-title-art-scale: 1.48;
-    --pack-title-art-y: -12px;
-    --pack-copy-offset: -4px;
-    --pack-tier-gap: 14px;
-    --pack-count-gap: 9px;
+    --pack-title-art-scale: 1.32;
+    --pack-title-art-y: -4px;
+    --pack-copy-offset: 0px;
+    --pack-tier-gap: 12px;
+    --pack-count-gap: 8px;
   }
   .reward-pack-option .pack.pack-theme-animation {
     --pack-title-art-scale: 1.34;
@@ -5413,6 +5530,16 @@ body.pack-opening-focus .pull-center-stage {
     color: #f4f8ff;
     box-shadow: 0 12px 30px rgba(0,0,0,.44), inset 0 1px 0 rgba(255,255,255,.18);
   }
+  .carousel-open-more-note {
+    position: fixed;
+    left: 20px;
+    right: 20px;
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+    z-index: 35;
+    margin: 0 auto;
+    max-width: 320px;
+    padding: 0 8px;
+  }
   .carousel-open-more-btn:active {
     filter: brightness(0.98) saturate(0.98);
   }
@@ -5529,7 +5656,7 @@ body.pack-opening-focus .pull-center-stage {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-197</div>
+  <div class="sub">Build: logic-sync-198</div>
   <div class="header-side">
     <button id="aboutLink" class="header-about-link" type="button">About filmTCG</button>
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
@@ -5661,7 +5788,7 @@ body.pack-opening-focus .pull-center-stage {
       <div class="about-title-row">
         <h2>filmTCG is a movie trading card game.</h2>
       </div>
-      <div class="about-sub">Open packs from a large film pool spanning movies, actors, and directors. The goal is to make discovery feel rewarding without losing the appeal of recognizable pulls.</div>
+      <div class="about-sub">Open packs from a large film pool spanning movies, actors, and directors. The mix includes recognizable favorites, canon staples, and deeper cuts from across film.</div>
     </div>
     <div class="about-grid">
       <div class="about-panel about-tier-panel">
@@ -5694,6 +5821,11 @@ body.pack-opening-focus .pull-center-stage {
         <div class="about-panel">
           <h3>Collect Your Taste</h3>
           <div class="about-copy">Cards stay in your collection. Duplicates can be traded for Tickets, and lists plus a Top 4 give you a simple way to organize favorites and share what you are into.</div>
+        </div>
+        <div class="about-panel">
+          <h3>Performance Mode</h3>
+          <div class="about-copy">Reduce foil motion, glow effects, and a bit of the opening overhead for smoother play on slower phones.</div>
+          <button id="performanceModeButton" class="about-toggle-btn" type="button" aria-pressed="false">Performance mode off</button>
         </div>
       </div>
     </div>
@@ -6151,7 +6283,7 @@ body.pack-opening-focus .pull-center-stage {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-197';
+  const BUILD_ID = 'logic-sync-199';
   const PAGE_PARAMS = new URLSearchParams(window.location.search);
   const DEBUG_STORY_PREVIEW = PAGE_PARAMS.get('debugStoryPreview') === '1';
   const DEBUG_STORY_SEED = PAGE_PARAMS.get('debugStorySeed') === '1';
@@ -6400,6 +6532,7 @@ body.pack-opening-focus .pull-center-stage {
   let collectionPendingScrollKey = '';
   let collectionPendingScrollFallback = null;
   let freshCollectionKeys = loadFreshCollectionKeys();
+  let performanceMode = loadPerformanceMode();
   let isAnimatingPeel = false;
   let isOpeningPack = false;
   let isPoolLoading = true;
@@ -6422,6 +6555,10 @@ body.pack-opening-focus .pull-center-stage {
   const preloadedCardArtUrls = new Set();
   const rewardThemePoolCache = new Map();
   const rewardThemePreloadPromises = new Map();
+  let queuedNextPackCards = null;
+  let queuedNextPackPromise = null;
+  let queuedNextPackContextKey = '';
+  let queuedNextPackStatus = 'idle';
 
   const pullPage = document.getElementById('pull');
   const dailyPage = document.getElementById('daily');
@@ -6442,6 +6579,7 @@ body.pack-opening-focus .pull-center-stage {
   const dailyTab = document.getElementById('dailyTab');
   const shopTab = document.getElementById('shopTab');
   const collectionTab = document.getElementById('collectionTab');
+  const performanceModeButton = document.getElementById('performanceModeButton');
   const cardModal = document.getElementById('cardModal');
   const modalBody = document.getElementById('modalBody');
   const modalClose = document.getElementById('modalClose');
@@ -6925,6 +7063,35 @@ body.pack-opening-focus .pull-center-stage {
       localStorage.setItem('filmtcg.collectionSort', collectionSort);
     } catch (error) {
     }
+  }
+
+  function loadPerformanceMode() {
+    try {
+      return localStorage.getItem('filmtcg.performanceMode') === '1';
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function savePerformanceMode() {
+    try {
+      localStorage.setItem('filmtcg.performanceMode', performanceMode ? '1' : '0');
+    } catch (error) {
+    }
+  }
+
+  function renderPerformanceModeState() {
+    if (!performanceModeButton) return;
+    performanceModeButton.textContent = performanceMode ? 'Performance mode on' : 'Performance mode off';
+    performanceModeButton.classList.toggle('is-active', performanceMode);
+    performanceModeButton.setAttribute('aria-pressed', performanceMode ? 'true' : 'false');
+  }
+
+  function applyPerformanceMode() {
+    if (document && document.body) {
+      document.body.classList.toggle('performance-mode', Boolean(performanceMode));
+    }
+    renderPerformanceModeState();
   }
 
   function loadFreshCollectionKeys() {
@@ -7683,6 +7850,190 @@ body.pack-opening-focus .pull-center-stage {
     return Math.floor(progress.standardPacksOpened / LIVE_DRAW_REFRESH_INTERVAL);
   }
 
+  function scaledDuration(baseMs, floorMs, ratio) {
+    if (!performanceMode) return baseMs;
+    return Math.max(floorMs, Math.round(baseMs * ratio));
+  }
+
+  function packOpenReelSettleMs() {
+    return scaledDuration(PACK_OPEN_REEL_SETTLE_MS, 12, 0.72);
+  }
+
+  function packOpenBurstMs() {
+    return scaledDuration(PACK_OPEN_BURST_MS, 420, 0.72);
+  }
+
+  function carouselPeelInCleanupMs() {
+    return scaledDuration(CAROUSEL_PEEL_IN_CLEANUP_MS, 160, 0.8);
+  }
+
+  function carouselPeelOutSwitchMs() {
+    return scaledDuration(CAROUSEL_PEEL_OUT_SWITCH_MS, 110, 0.78);
+  }
+
+  function carouselPeelUnlockMs() {
+    return scaledDuration(CAROUSEL_PEEL_UNLOCK_MS, 160, 0.8);
+  }
+
+  function collectionListAddInitialBatchSize() {
+    return performanceMode ? Math.max(12, Math.round(COLLECTION_LIST_ADD_INITIAL_BATCH * 0.66)) : COLLECTION_LIST_ADD_INITIAL_BATCH;
+  }
+
+  function collectionListAddBatchSize() {
+    return performanceMode ? Math.max(10, Math.round(COLLECTION_LIST_ADD_BATCH_SIZE * 0.66)) : COLLECTION_LIST_ADD_BATCH_SIZE;
+  }
+
+  function nextPackDraftContextKey(themeKey) {
+    const normalizedTheme = normalizeOwnedPackTheme(themeKey || currentPackTheme || 'all');
+    return [
+      String(selectedPackMode || 'all-packs'),
+      normalizedTheme,
+      String(currentLiveDrawCycleKey()),
+      String(activeReelThemeKey || ''),
+      String(Math.max(0, Number(progress.rewardChoicesAvailable) || 0)),
+      String(Boolean(activeRewardSelection)),
+      String(dataSourceLabel || '')
+    ].join('|');
+  }
+
+  function invalidateQueuedNextPack() {
+    queuedNextPackCards = null;
+    queuedNextPackPromise = null;
+    queuedNextPackContextKey = '';
+    queuedNextPackStatus = 'idle';
+    syncCarouselNextPackCta();
+  }
+
+  function canWarmNextPack() {
+    if (isOpeningPack || isPoolLoading) return false;
+    if (Math.max(0, Number(progress.rewardChoicesAvailable) || 0) > 0) return false;
+    if (activeRewardSelection) return false;
+    const themeKey = normalizeOwnedPackTheme(currentPackTheme || 'all');
+    const pool = getPackPool(themeKey);
+    return Array.isArray(pool) && pool.length >= PACK_SIZE;
+  }
+
+  function warmNextPackDraft() {
+    if (!canWarmNextPack()) {
+      invalidateQueuedNextPack();
+      return Promise.resolve(null);
+    }
+
+    const contextKey = nextPackDraftContextKey();
+    if (queuedNextPackStatus === 'ready' && queuedNextPackCards && queuedNextPackContextKey === contextKey) {
+      return Promise.resolve(queuedNextPackCards.slice());
+    }
+    if (queuedNextPackPromise && queuedNextPackContextKey === contextKey) {
+      return queuedNextPackPromise;
+    }
+
+    queuedNextPackCards = null;
+    queuedNextPackContextKey = contextKey;
+    queuedNextPackStatus = 'warming';
+    syncCarouselNextPackCta();
+
+    const themeKey = normalizeOwnedPackTheme(currentPackTheme || 'all');
+    const pool = getPackPool(themeKey);
+    const promise = buildDraftPack(pool, {
+      themeKey: themeKey,
+      forceRewardBehavior: false
+    }).then(function (draftedPack) {
+      if (queuedNextPackContextKey !== contextKey) return null;
+      if (Array.isArray(draftedPack) && draftedPack.length) {
+        queuedNextPackCards = draftedPack.slice();
+        queuedNextPackStatus = 'ready';
+        syncCarouselNextPackCta();
+        return queuedNextPackCards.slice();
+      }
+      queuedNextPackCards = null;
+      queuedNextPackStatus = 'idle';
+      syncCarouselNextPackCta();
+      return null;
+    }).catch(function () {
+      if (queuedNextPackContextKey === contextKey) {
+        queuedNextPackCards = null;
+        queuedNextPackStatus = 'idle';
+        syncCarouselNextPackCta();
+      }
+      return null;
+    }).finally(function () {
+      if (queuedNextPackContextKey === contextKey) {
+        queuedNextPackPromise = null;
+      }
+    });
+
+    queuedNextPackPromise = promise;
+    return promise;
+  }
+
+  function queueNextPackWarm() {
+    if (!canWarmNextPack()) {
+      invalidateQueuedNextPack();
+      return;
+    }
+    const startWarm = function () {
+      warmNextPackDraft().catch(function () { return null; });
+    };
+    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(startWarm, { timeout: performanceMode ? 260 : 160 });
+    } else {
+      setTimeout(startWarm, performanceMode ? 120 : 50);
+    }
+  }
+
+  function consumeQueuedNextPack() {
+    const currentContext = nextPackDraftContextKey();
+    if (queuedNextPackStatus !== 'ready' || !queuedNextPackCards || queuedNextPackContextKey !== currentContext) {
+      return null;
+    }
+    const draftedPack = queuedNextPackCards.slice();
+    invalidateQueuedNextPack();
+    return draftedPack;
+  }
+
+  function carouselNextPackState() {
+    if (Math.max(0, Number(progress.rewardChoicesAvailable) || 0) > 0 && !activeRewardSelection) {
+      return {
+        label: 'Choose Reward Pack',
+        note: 'A featured genre choice is ready.',
+        rewardReady: true,
+        isReady: false
+      };
+    }
+    if (queuedNextPackStatus === 'ready' && queuedNextPackCards && queuedNextPackContextKey === nextPackDraftContextKey()) {
+      return {
+        label: 'Next Pack Ready',
+        note: 'Fresh draw prepped while you browse.',
+        rewardReady: false,
+        isReady: true
+      };
+    }
+    if (queuedNextPackStatus === 'warming' && queuedNextPackContextKey === nextPackDraftContextKey()) {
+      return {
+        label: 'Prepping Next Pack...',
+        note: 'Loading ahead in the background.',
+        rewardReady: false,
+        isReady: false
+      };
+    }
+    return {
+      label: 'Open More Packs',
+      note: 'Keep the pull going.',
+      rewardReady: false,
+      isReady: false
+    };
+  }
+
+  function syncCarouselNextPackCta() {
+    const button = document.getElementById('backToPacksButton');
+    if (!button) return;
+    const note = pullArea ? pullArea.querySelector('.carousel-open-more-note') : null;
+    const nextPackState = carouselNextPackState();
+    button.textContent = nextPackState.label;
+    button.classList.toggle('is-ready', nextPackState.isReady);
+    if (note) note.textContent = nextPackState.note;
+  }
+
   function buildPackHookMarkup() {
     if (progress.rewardChoicesAvailable > 0) {
       const count = Math.max(0, Number(progress.rewardChoicesAvailable) || 0);
@@ -7904,7 +8255,8 @@ body.pack-opening-focus .pull-center-stage {
 
   function cardImageAttrs(priority) {
     const isPriority = priority === 'high';
-    return ' loading="' + (isPriority ? 'eager' : 'lazy') + '" decoding="async" fetchpriority="' + (isPriority ? 'high' : 'low') + '"';
+    const fetchPriority = isPriority ? 'high' : (performanceMode ? 'auto' : 'low');
+    return ' loading="' + (isPriority ? 'eager' : 'lazy') + '" decoding="async" fetchpriority="' + fetchPriority + '"';
   }
 
   function backendFetchOptions() {
@@ -8254,7 +8606,8 @@ body.pack-opening-focus .pull-center-stage {
       const current = Math.max(0, Math.min(source.length - 1, Number(activeIndex) || 0));
       preloadCardArt(source[current]);
       const order = [];
-      for (let offset = 1; offset < source.length; offset += 1) {
+      const maxOffset = performanceMode ? Math.min(source.length - 1, 4) : (source.length - 1);
+      for (let offset = 1; offset <= maxOffset; offset += 1) {
         order.push((current + offset) % source.length);
         order.push((current - offset + source.length) % source.length);
       }
@@ -8537,11 +8890,13 @@ body.pack-opening-focus .pull-center-stage {
     const grouped = aggregateCollectionEntries(collection);
     const byRarity = { Base: 0, Select: 0, Epic: 0, Legendary: 0 };
     let duplicateCards = 0;
+    let duplicateTitles = 0;
     let ticketValue = 0;
 
     grouped.forEach(function (entry) {
       const extraCount = Math.max(0, Number(entry && entry.count) - 1);
       if (!extraCount) return;
+      duplicateTitles += 1;
       const rarity = normalizeRarityLabel(entry && entry.card && entry.card.rarity);
       const valuePer = Number(DUPLICATE_TRADE_VALUES[rarity]) || 0;
       duplicateCards += extraCount;
@@ -8551,6 +8906,7 @@ body.pack-opening-focus .pull-center-stage {
 
     return {
       duplicateCards: duplicateCards,
+      duplicateTitles: duplicateTitles,
       ticketValue: ticketValue,
       byRarity: byRarity
     };
@@ -8611,8 +8967,13 @@ body.pack-opening-focus .pull-center-stage {
       + ' · S:' + String(tradeSummary.byRarity.Select || 0)
       + ' · E:' + String(tradeSummary.byRarity.Epic || 0)
       + ' · L:' + String(tradeSummary.byRarity.Legendary || 0);
-    tradeRow.innerHTML = '<div class="shop-trade-copy">Trade in duplicates for Tickets. Keeps one copy of each card. ' + escapeHtml(tradeBreakdown) + '</div>'
-      + '<button id="collectionTradeDuplicatesButton" class="shop-trade-btn" type="button"' + (tradeSummary.ticketValue > 0 ? '' : ' disabled') + '>Trade Duplicates · +' + String(tradeSummary.ticketValue) + ' Tickets</button>';
+    const duplicateCardLabel = tradeSummary.duplicateCards === 1 ? 'card' : 'cards';
+    const duplicateTitleLabel = tradeSummary.duplicateTitles === 1 ? 'title' : 'titles';
+    const tradeCopy = tradeSummary.duplicateCards > 0
+      ? (String(tradeSummary.duplicateCards) + ' duplicate ' + duplicateCardLabel + ' across ' + String(tradeSummary.duplicateTitles) + ' ' + duplicateTitleLabel + ' ready to trade. Keeps one copy of each card. ' + tradeBreakdown)
+      : ('No duplicates ready to trade. Keeps one copy of each card. ' + tradeBreakdown);
+    tradeRow.innerHTML = '<div class="shop-trade-copy">' + escapeHtml(tradeCopy) + '</div>'
+      + '<button id="collectionTradeDuplicatesButton" class="shop-trade-btn" type="button"' + (tradeSummary.ticketValue > 0 ? '' : ' disabled') + '>Trade ' + String(tradeSummary.duplicateCards) + ' Dupes · +' + String(tradeSummary.ticketValue) + ' Tickets</button>';
     const tradeButton = document.getElementById('collectionTradeDuplicatesButton');
     if (tradeButton) {
       tradeButton.addEventListener('click', tradeInDuplicates);
@@ -8786,6 +9147,11 @@ body.pack-opening-focus .pull-center-stage {
       + ' · S:' + String(tradeSummary.byRarity.Select || 0)
       + ' · E:' + String(tradeSummary.byRarity.Epic || 0)
       + ' · L:' + String(tradeSummary.byRarity.Legendary || 0);
+    const duplicateCardLabel = tradeSummary.duplicateCards === 1 ? 'card' : 'cards';
+    const duplicateTitleLabel = tradeSummary.duplicateTitles === 1 ? 'title' : 'titles';
+    const tradeCopy = tradeSummary.duplicateCards > 0
+      ? (String(tradeSummary.duplicateCards) + ' duplicate ' + duplicateCardLabel + ' across ' + String(tradeSummary.duplicateTitles) + ' ' + duplicateTitleLabel + ' ready to trade. Keeps one copy of each card. ' + tradeBreakdown)
+      : ('No duplicates ready to trade. Keeps one copy of each card. ' + tradeBreakdown);
     shopPanel.innerHTML = '<div class="collection-topbar">'
       + '<div class="collection-stats">'
       + '<div class="collection-stat"><div class="collection-stat-label">Tickets</div><div class="collection-stat-value">' + formatTickets(tickets) + '</div></div>'
@@ -8793,8 +9159,8 @@ body.pack-opening-focus .pull-center-stage {
       + '</div>'
       + '</div>'
       + '<div class="shop-trade-row">'
-      + '<div class="shop-trade-copy">Trade in duplicates for Tickets. Keeps one copy of each card. ' + escapeHtml(tradeBreakdown) + '</div>'
-      + '<button id="tradeDuplicatesButton" class="shop-trade-btn" type="button"' + (tradeSummary.ticketValue > 0 ? '' : ' disabled') + '>Trade Duplicates · +' + String(tradeSummary.ticketValue) + ' Tickets</button>'
+      + '<div class="shop-trade-copy">' + escapeHtml(tradeCopy) + '</div>'
+      + '<button id="tradeDuplicatesButton" class="shop-trade-btn" type="button"' + (tradeSummary.ticketValue > 0 ? '' : ' disabled') + '>Trade ' + String(tradeSummary.duplicateCards) + ' Dupes · +' + String(tradeSummary.ticketValue) + ' Tickets</button>'
       + '</div>'
       + '<div id="shopGrid" class="shop-grid"></div>';
 
@@ -9189,9 +9555,9 @@ body.pack-opening-focus .pull-center-stage {
     const filtered = getFilteredCollectionListAddCandidates();
     const total = collectionListAddCandidates.length;
     if (!append) {
-      collectionListAddRenderedCount = Math.min(filtered.length, COLLECTION_LIST_ADD_INITIAL_BATCH);
+      collectionListAddRenderedCount = Math.min(filtered.length, collectionListAddInitialBatchSize());
     } else {
-      collectionListAddRenderedCount = Math.min(filtered.length, collectionListAddRenderedCount + COLLECTION_LIST_ADD_BATCH_SIZE);
+      collectionListAddRenderedCount = Math.min(filtered.length, collectionListAddRenderedCount + collectionListAddBatchSize());
     }
     const visibleEntries = filtered.slice(0, collectionListAddRenderedCount);
     gridEl.innerHTML = visibleEntries.map(buildCollectionListAddCardMarkup).join('');
@@ -10452,6 +10818,10 @@ body.pack-opening-focus .pull-center-stage {
     return '<button class="bookmark-btn' + (isBookmarked(card) ? ' is-bookmarked' : '') + '" type="button" aria-label="Bookmark" data-bookmark-key="' + escapeHtml(cardKey(card)) + '">&#9733;</button>';
   }
 
+  function buildQuickListButtonMarkup(card) {
+    return '<button class="card-quick-list-btn" type="button" aria-label="Add to list" data-quick-list-key="' + escapeHtml(cardKey(card)) + '">+ List</button>';
+  }
+
   function rarityShortLabel(rarity) {
     return ({ Base: 'B', Select: 'S', Epic: 'E', Legendary: 'L' })[normalizeRarityLabel(rarity)] || 'B';
   }
@@ -10719,7 +11089,9 @@ body.pack-opening-focus .pull-center-stage {
   function buildCardMarkup(movie, options) {
     const config = options || {};
     const includeBookmark = config.includeBookmark !== false;
+    const includeQuickList = config.includeQuickList === true;
     const bookmarkMarkup = includeBookmark ? buildBookmarkButtonMarkup(movie) : '';
+    const quickListMarkup = includeQuickList ? buildQuickListButtonMarkup(movie) : '';
 
     if (movie.cardType === 'person') {
       const roleMeta = roleLabelForDisplay(movie) || 'Film Figure';
@@ -10727,7 +11099,7 @@ body.pack-opening-focus .pull-center-stage {
       return '<div class="card ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
         + '<div class="card-frame"></div>'
         + '<div class="card-header"><div class="card-title-meta"><div class="card-title">' + escapeHtml(movie.title) + '</div></div><div class="card-side-meta"><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div><div class="card-year">' + escapeHtml(roleMeta) + '</div></div></div>'
-        + '<div class="card-img-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait"' + cardImageAttrs('low') + ' data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(roleMeta) + '"></div>'
+        + '<div class="card-img-wrap">' + quickListMarkup + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait"' + cardImageAttrs('low') + ' data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(roleMeta) + '"></div>'
         + '<div class="card-body">' + (chips.length ? ('<div class="chips">' + chips.join('') + '</div>') : '') + '<div class="desc">' + escapeHtml(movie.desc) + '</div></div>'
         + '</div>';
     }
@@ -10738,7 +11110,7 @@ body.pack-opening-focus .pull-center-stage {
     return '<div class="card ' + movie.rarity.toLowerCase() + '" style="border-color:' + rarityColor(movie.rarity) + '; background:' + buildCardBackground(movie.rarity) + '">'
       + '<div class="card-frame"></div>'
       + '<div class="card-header"><div class="card-title-meta"><div class="card-title">' + escapeHtml(movie.title) + '</div></div><div class="card-side-meta"><div class="card-rarity">' + escapeHtml(movie.rarity) + '</div>' + (movie.year ? '<div class="card-year">' + escapeHtml(movie.year) + '</div>' : '') + '</div></div>'
-      + '<div class="card-img-wrap">' + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' artwork"' + cardImageAttrs('low') + ' data-poster="' + escapeHtml(movie.poster || '') + '" data-still="' + escapeHtml(movie.still || '') + '" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre) + '">' + (movie.directorName ? '<div class="card-director-overlay">Dir. ' + escapeHtml(movie.directorName) + '</div>' : '') + '</div>'
+      + '<div class="card-img-wrap">' + quickListMarkup + bookmarkMarkup + '<img class="card-img" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' artwork"' + cardImageAttrs('low') + ' data-poster="' + escapeHtml(movie.poster || '') + '" data-still="' + escapeHtml(movie.still || '') + '" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre) + '">' + (movie.directorName ? '<div class="card-director-overlay">Dir. ' + escapeHtml(movie.directorName) + '</div>' : '') + '</div>'
       + '<div class="card-body"><div class="chips">' + chips.join('') + '</div><div class="desc">' + escapeHtml(movie.desc) + '</div>' + quoteMarkup + '</div>'
       + '</div>';
   }
@@ -10781,6 +11153,23 @@ body.pack-opening-focus .pull-center-stage {
         if (collectionPage.classList.contains('active')) {
           renderCollection();
         }
+      });
+    });
+  }
+
+  function attachQuickListButtons(root, resolveCard) {
+    root.querySelectorAll('.card-quick-list-btn').forEach(function (button) {
+      if (button.dataset.bound === 'true') return;
+      button.dataset.bound = 'true';
+      button.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const card = resolveCard(button);
+        if (!card) return;
+        openCollectionModal(card, {
+          hideShowcaseAction: true,
+          autoOpenListPanel: true
+        });
       });
     });
   }
@@ -12690,6 +13079,7 @@ body.pack-opening-focus .pull-center-stage {
 
   function renderRewardChoicePrompt() {
     setPackOpeningFocus(false);
+    invalidateQueuedNextPack();
     const rewardThemes = ensureFeaturedRewardThemes(false);
     pullArea.innerHTML = buildRewardChoiceMarkup();
     pullArea.querySelectorAll('.reward-pack-option').forEach(function (button) {
@@ -12786,6 +13176,7 @@ body.pack-opening-focus .pull-center-stage {
   }
 
   async function restorePoolAfterReward() {
+    invalidateQueuedNextPack();
     const restoredFromSnapshot = restoreRewardPoolSnapshot();
     if (restoredFromSnapshot) {
       needsPoolRestoreAfterReward = false;
@@ -12827,6 +13218,7 @@ body.pack-opening-focus .pull-center-stage {
 
   async function chooseRewardPack(choiceKey, themeKey, selectedButton) {
     if (isOpeningPack || isPoolLoading) return;
+    invalidateQueuedNextPack();
     isOpeningPack = true;
     const lockedScrollTop = currentScrollTop();
     const keepViewport = function () {
@@ -12938,7 +13330,7 @@ body.pack-opening-focus .pull-center-stage {
         rewardOpenPackFace.classList.add('opening');
         rewardOpenPackFace.classList.add('is-shuffling');
       }
-      await new Promise(function (resolve) { setTimeout(resolve, PACK_OPEN_BURST_MS); });
+      await new Promise(function (resolve) { setTimeout(resolve, packOpenBurstMs()); });
       keepViewport();
       await finalizePackOpen(draftedPack, {
         themeKey: currentPackTheme,
@@ -13444,6 +13836,9 @@ body.pack-opening-focus .pull-center-stage {
     const forcedThemeKey = openOptions.themeKey ? normalizeOwnedPackTheme(openOptions.themeKey) : '';
     const forceRewardOpen = Boolean(openOptions.forceRewardOpen);
     const ignoreRewardChoiceGate = Boolean(openOptions.ignoreRewardChoiceGate);
+    const preDraftedPack = Array.isArray(openOptions.draftedPack) && openOptions.draftedPack.length
+      ? openOptions.draftedPack.slice()
+      : null;
     if (activeRewardSelection && !forceRewardOpen && !hasOwnedPack) {
       activeRewardSelection = null;
     }
@@ -13491,7 +13886,7 @@ body.pack-opening-focus .pull-center-stage {
           ? String(currentPackTheme || selectedPackMode || 'theme')
           : 'all-packs'));
       const isRewardPackOpen = forceRewardOpen;
-      const shouldRefreshReel = dataSourceLabel.indexOf('TMDB') !== -1 && (
+      const shouldRefreshReel = !preDraftedPack && dataSourceLabel.indexOf('TMDB') !== -1 && (
         isRewardPackOpen ||
         activeReelCycleKey == null ||
         activeReelCycleKey !== currentLiveDrawCycleKey() ||
@@ -13505,6 +13900,8 @@ body.pack-opening-focus .pull-center-stage {
             : (requestedTheme
               ? 'Pulling a fresh themed pack...'
               : 'Shuffling a fresh draw...');
+        } else if (statusLineTarget && preDraftedPack) {
+          statusLineTarget.textContent = 'Next pack ready. Cracking it...';
         } else if (statusLineTarget) {
           statusLineTarget.textContent = hasOwnedPack
             ? ('Opening owned ' + ownedPackLabel(ownedPack) + '...')
@@ -13518,11 +13915,11 @@ body.pack-opening-focus .pull-center-stage {
       }
 
       if (shouldRefreshReel) {
-        await new Promise(function (resolve) { setTimeout(resolve, PACK_OPEN_REEL_SETTLE_MS); });
+        await new Promise(function (resolve) { setTimeout(resolve, packOpenReelSettleMs()); });
       }
       let openPool = getPackPool(packThemeForOpen);
       let forcedRefreshOk = true;
-      if (dataSourceLabel.indexOf('TMDB') !== -1) {
+      if (!preDraftedPack && dataSourceLabel.indexOf('TMDB') !== -1) {
         const freshCandidatesAvailable = countFreshFilmCandidates(openPool);
         if (freshCandidatesAvailable < filmSlotsForCurrentTheme(packThemeForOpen)) {
           forcedRefreshOk = await refreshPoolForPackOpen(true, requestedTheme).catch(function () { return false; });
@@ -13539,7 +13936,7 @@ body.pack-opening-focus .pull-center-stage {
       }
       if (openPool.length < PACK_SIZE && !hasOwnedPack) resolvePackTheme(false);
       updatePackMeta();
-      const draftedPack = await buildDraftPack(getPackPool(packThemeForOpen), {
+      const draftedPack = preDraftedPack || await buildDraftPack(getPackPool(packThemeForOpen), {
         themeKey: packThemeForOpen,
         forceRewardBehavior: ownedGoldBoost || forceRewardOpen
       });
@@ -13569,7 +13966,7 @@ body.pack-opening-focus .pull-center-stage {
         currentPack.classList.add('is-shuffling');
       }
 
-      await new Promise(function (resolve) { setTimeout(resolve, PACK_OPEN_BURST_MS); });
+      await new Promise(function (resolve) { setTimeout(resolve, packOpenBurstMs()); });
 
       openedPackCards = await finalizePackOpen(draftedPack, {
         revealCarousel: revealCarousel,
@@ -13651,6 +14048,7 @@ body.pack-opening-focus .pull-center-stage {
     });
 
     if (isRewardPack) {
+      invalidateQueuedNextPack();
       progress.rewardChoicesAvailable = Math.max(0, progress.rewardChoicesAvailable - 1);
       progress.featuredRewardTheme = null;
       progress.featuredRewardThemes = [];
@@ -13669,6 +14067,7 @@ body.pack-opening-focus .pull-center-stage {
         progress.allPacksCinemaStreak = 0;
       }
       if (progress.standardPacksOpened % REEL_REFRESH_INTERVAL === 0) {
+        invalidateQueuedNextPack();
         progress.rewardChoicesAvailable += 1;
         ensureFeaturedRewardThemes(true);
         artworkStatus = 'Reward choice unlocked. Pick one of two featured packs.';
@@ -13713,6 +14112,7 @@ body.pack-opening-focus .pull-center-stage {
     const shouldFreshReveal = animateFreshReveal;
     animateFreshReveal = false;
     const current = pack[index];
+    const nextPackState = carouselNextPackState();
     const revealAccent = rarityColor(highestRarityInCards(pack));
     try {
       preloadPackCards(pack, index);
@@ -13741,20 +14141,36 @@ body.pack-opening-focus .pull-center-stage {
       + '<div class="overlap-stack">'
       + ghostMarkup
       + '<button id="prevArrow" type="button" class="arrow stack-arrow is-left" aria-label="Previous card">&#8592;</button>'
-      + '<div class="overlap-count">' + String(remainingAfter) + '</div><div class="peel-card-wrap rarity-' + escapeHtml(String((current.rarity || 'Base')).toLowerCase()) + '">' + buildCardMarkup(current) + '</div>'
+      + '<div class="overlap-count">' + String(remainingAfter) + '</div><div class="peel-card-wrap rarity-' + escapeHtml(String((current.rarity || 'Base')).toLowerCase()) + '">' + buildCardMarkup(current, { includeQuickList: true }) + '</div>'
       + '<button id="nextArrow" type="button" class="arrow stack-arrow is-right" aria-label="Next card">&#8594;</button>'
       + '</div>'
       + '</div>'
-      + '<button id="backToPacksButton" type="button" class="back-btn carousel-open-more-btn">Open More Packs</button>'
+      + '<button id="backToPacksButton" type="button" class="back-btn carousel-open-more-btn' + (nextPackState.isReady ? ' is-ready' : '') + '">' + escapeHtml(nextPackState.label) + '</button>'
+      + '<div class="carousel-open-more-note">' + escapeHtml(nextPackState.note) + '</div>'
       + '</div>';
 
     document.getElementById('prevArrow').addEventListener('click', prevCard);
     document.getElementById('nextArrow').addEventListener('click', nextCard);
     document.getElementById('backToPacksButton').addEventListener('click', function () {
+      if (nextPackState.rewardReady) {
+        restorePoolAfterReward();
+        return;
+      }
+      const draftedPack = consumeQueuedNextPack();
+      if (draftedPack && !isOpeningPack && !isPoolLoading) {
+        artworkStatus = 'Next pack ready. Cracking it...';
+        updatePackMeta();
+        backToPacks();
+        window.requestAnimationFrame(function () {
+          openPack({ draftedPack: draftedPack });
+        });
+        return;
+      }
       restorePoolAfterReward();
     });
     addImageFallbacks(pullArea);
     attachBookmarkButtons(pullArea, function () { return current; });
+    attachQuickListButtons(pullArea, function () { return current; });
 
     const peelWrap = pullArea.querySelector('.peel-card-wrap');
     attachPackCardInteractions(peelWrap, current);
@@ -13762,7 +14178,8 @@ body.pack-opening-focus .pull-center-stage {
     setTimeout(function () {
       peelWrap.classList.remove('is-peeling-in-next');
       peelWrap.classList.remove('is-peeling-in-prev');
-    }, CAROUSEL_PEEL_IN_CLEANUP_MS);
+    }, carouselPeelInCleanupMs());
+    queueNextPackWarm();
   }
 
   function animateToCard(direction) {
@@ -13780,18 +14197,20 @@ body.pack-opening-focus .pull-center-stage {
         ? (index + 1) % pack.length
         : (index - 1 + pack.length) % pack.length;
       renderCarousel();
-      setTimeout(function () { isAnimatingPeel = false; }, CAROUSEL_PEEL_UNLOCK_MS);
-    }, CAROUSEL_PEEL_OUT_SWITCH_MS);
+      setTimeout(function () { isAnimatingPeel = false; }, carouselPeelUnlockMs());
+    }, carouselPeelOutSwitchMs());
   }
 
   function nextCard() { animateToCard('next'); }
   function prevCard() { animateToCard('prev'); }
 
-  function buildModalActionsMarkup(movie) {
+  function buildModalActionsMarkup(movie, options) {
+    const config = options || {};
+    const hideShowcaseAction = Boolean(config.hideShowcaseAction);
     return '<div class="modal-action-panel">'
       + '<div class="modal-action-heading">Card Actions</div>'
       + '<div class="modal-actions">'
-      + '<button class="modal-button" type="button" id="modalShowcaseButton">' + (isInShowcase(movie) ? 'Remove Top 4' : 'Add Top 4') + '</button>'
+      + (hideShowcaseAction ? '' : '<button class="modal-button" type="button" id="modalShowcaseButton">' + (isInShowcase(movie) ? 'Remove Top 4' : 'Add Top 4') + '</button>')
       + '<button class="modal-button is-primary" type="button" id="modalListButton">Add To List</button>'
       + '<a class="modal-button is-link" href="' + escapeHtml(resolveCardLink(movie)) + '" target="_blank" rel="noopener noreferrer">Letterboxd</a>'
       + '</div>'
@@ -13868,30 +14287,39 @@ body.pack-opening-focus .pull-center-stage {
     }
   }
 
-  function bindModalListButton(movie) {
+  function bindModalListButton(movie, options) {
+    const config = options || {};
     const button = document.getElementById('modalListButton');
     const panel = document.getElementById('modalListPanel');
     if (!button || !panel) return;
-    button.addEventListener('click', function () {
-      panel.hidden = !panel.hidden;
+    function syncPanelState(nextHidden) {
+      panel.hidden = nextHidden;
       button.classList.toggle('is-active', !panel.hidden);
       if (!panel.hidden) {
         renderModalListPanel(movie);
       }
+    }
+    button.addEventListener('click', function () {
+      panel.hidden = !panel.hidden;
+      syncPanelState(panel.hidden);
     });
+    if (config.autoOpenListPanel) {
+      syncPanelState(false);
+    }
   }
 
-  function openCollectionModal(movie) {
+  function openCollectionModal(movie, options) {
+    const config = options || {};
     if (movie.cardType === 'person') {
       modalBody.innerHTML = '<div class="modal-grid">'
         + '<div class="modal-media"><img class="modal-poster" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
         + '<div class="modal-meta"><div><div class="modal-kicker">' + escapeHtml(roleLabelForDisplay(movie)) + ' Card</div><div class="modal-title">' + escapeHtml(movie.title) + '</div></div>'
       + '<div class="chips"><div class="chip">' + escapeHtml(movie.rarity) + '</div><div class="chip">' + escapeHtml(roleLabelForDisplay(movie)) + '</div></div>'
       + '<div class="modal-panel"><div class="modal-sub">' + escapeHtml(movie.desc) + '</div></div>'
-      + buildModalActionsMarkup(movie) + '</div></div>';
+      + buildModalActionsMarkup(movie, config) + '</div></div>';
       addImageFallbacks(modalBody);
-      bindModalShowcaseButton(movie);
-      bindModalListButton(movie);
+      if (!config.hideShowcaseAction) bindModalShowcaseButton(movie);
+      bindModalListButton(movie, config);
       cardModal.classList.add('open');
       cardModal.setAttribute('aria-hidden', 'false');
       return;
@@ -13905,10 +14333,10 @@ body.pack-opening-focus .pull-center-stage {
       + '<div class="modal-panel"><div class="modal-sub">' + escapeHtml(movie.desc) + '</div>'
       + (quote ? '<div class="quote">“' + escapeHtml(quote) + '”</div>' : '')
       + '</div>'
-      + buildModalActionsMarkup(movie) + '</div></div>';
+      + buildModalActionsMarkup(movie, config) + '</div></div>';
     addImageFallbacks(modalBody);
-    bindModalShowcaseButton(movie);
-    bindModalListButton(movie);
+    if (!config.hideShowcaseAction) bindModalShowcaseButton(movie);
+    bindModalListButton(movie, config);
     cardModal.classList.add('open');
     cardModal.setAttribute('aria-hidden', 'false');
   }
@@ -14096,6 +14524,14 @@ body.pack-opening-focus .pull-center-stage {
         showPage('about');
       });
     }
+    if (performanceModeButton) {
+      performanceModeButton.addEventListener('click', function () {
+        performanceMode = !performanceMode;
+        savePerformanceMode();
+        applyPerformanceMode();
+        showToast(performanceMode ? 'Performance mode on.' : 'Performance mode off.');
+      });
+    }
     pullTab.addEventListener('click', function () { showPage('pull'); });
     dailyTab.addEventListener('click', function () { showPage('daily'); });
     shopTab.addEventListener('click', function () { showPage('shop'); });
@@ -14126,6 +14562,7 @@ body.pack-opening-focus .pull-center-stage {
 
     packThemeEl.value = selectedPackMode;
     packThemeEl.addEventListener('change', async function (event) {
+      invalidateQueuedNextPack();
       selectedPackMode = event.target.value;
       resolvePackTheme(true);
       isPoolLoading = true;
@@ -14229,12 +14666,14 @@ body.pack-opening-focus .pull-center-stage {
     renderShop();
     isPoolLoading = false;
     resolvePackTheme(false);
+    applyPerformanceMode();
     updatePackMeta();
     backToPacks();
     bindDeferredUiControls();
   }
 
   function refreshUiAfterLivePoolReady() {
+    invalidateQueuedNextPack();
     resolvePackTheme(false);
     updatePackMeta();
     if (shopPage && shopPage.classList.contains('active')) {
@@ -14247,6 +14686,7 @@ body.pack-opening-focus .pull-center-stage {
   }
 
   async function init() {
+    applyPerformanceMode();
     resolvePackTheme(false);
     artworkStatus = 'Loading live film pool...';
     updatePackMeta();
