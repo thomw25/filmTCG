@@ -6435,7 +6435,6 @@ body.performance-mode .peel-card-wrap .card.canon {
   const DEBUG_STORY_PREVIEW = PAGE_PARAMS.get('debugStoryPreview') === '1';
   const DEBUG_STORY_SEED = PAGE_PARAMS.get('debugStorySeed') === '1';
   console.info('[filmTCG] build', BUILD_ID);
-  if (buildBadge) buildBadge.textContent = 'Build: ' + BUILD_ID;
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -6742,6 +6741,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   const shareHelperInstagram = document.getElementById('shareHelperInstagram');
   const shareHelperCaption = document.getElementById('shareHelperCaption');
   const buildBadge = document.getElementById('buildBadge');
+  if (buildBadge) buildBadge.textContent = 'Build: ' + BUILD_ID;
   const shopOpenOverlay = document.getElementById('shopOpenOverlay');
   const shopOpenShell = shopOpenOverlay ? shopOpenOverlay.querySelector('.shop-open-shell') : null;
   const shopOpenPackWrap = document.getElementById('shopOpenPackWrap');
