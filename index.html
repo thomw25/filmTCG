@@ -852,8 +852,8 @@ button, a, select { font: inherit; }
 }
 
 .reward-pack-option .pack.pack-theme-docs {
-  --pack-title-art-scale: 1.66;
-  --pack-title-art-y: -22px;
+  --pack-title-art-scale: 1.54;
+  --pack-title-art-y: -16px;
   --pack-copy-offset: -8px;
   --pack-tier-gap: 18px;
   --pack-count-gap: 11px;
@@ -3468,9 +3468,34 @@ body.performance-mode .peel-card-wrap .card.canon {
   min-width: 34px;
 }
 
+.collection-list-add-btn {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(9,11,16,.68);
+  color: rgba(255,255,255,.74);
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
 .showcase-btn:hover {
   transform: scale(1.04);
   color: #fff;
+}
+
+.collection-list-add-btn:hover {
+  transform: scale(1.04);
+  color: #fff;
+  border-color: rgba(189,208,255,.28);
+  background: rgba(26,35,52,.74);
 }
 
 .showcase-btn.is-active {
@@ -3517,6 +3542,13 @@ body.performance-mode .peel-card-wrap .card.canon {
   box-sizing: border-box;
 }
 
+.collection-card-actions-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .collection-card-actions-right {
   display: inline-flex;
   gap: 8px;
@@ -3527,7 +3559,9 @@ body.performance-mode .peel-card-wrap .card.canon {
 .collection-card-actions .bookmark-btn,
 .collection-list-item .bookmark-btn,
 .collection-card-actions .showcase-btn,
-.collection-list-item .showcase-btn {
+.collection-list-item .showcase-btn,
+.collection-card-actions .collection-list-add-btn,
+.collection-list-item .collection-list-add-btn {
   position: static;
   top: auto;
   right: auto;
@@ -4402,6 +4436,69 @@ body.performance-mode .peel-card-wrap .card.canon {
   gap: 10px;
 }
 
+.modal-list-preview {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 8px;
+}
+
+.modal-list-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modal-list-preview-kicker {
+  color: rgba(255,255,255,.52);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.modal-list-preview-title {
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.modal-list-preview-body {
+  display: grid;
+  place-items: center;
+  min-height: 252px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.modal-list-preview-card {
+  width: calc(300px * 0.54);
+  height: calc(430px * 0.54);
+}
+
+.modal-list-preview-card .card {
+  box-shadow: 0 20px 38px rgba(0,0,0,.32);
+}
+
+.modal-list-preview-card .bookmark-btn,
+.modal-list-preview-card .showcase-btn,
+.modal-list-preview-card .collection-list-add-btn {
+  display: none;
+}
+
+.modal-list-preview-poster {
+  width: min(100%, 190px);
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 14px;
+  display: block;
+  background: #222;
+  box-shadow: 0 18px 32px rgba(0,0,0,.26);
+}
+
 .modal-list-panel[hidden] {
   display: none;
 }
@@ -4522,6 +4619,36 @@ body.performance-mode .peel-card-wrap .card.canon {
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
   border: 1px solid rgba(255,255,255,.08);
+}
+
+.share-helper-shell {
+  width: min(100%, 560px);
+}
+
+.share-helper-title {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.share-helper-copy,
+.share-helper-note {
+  color: rgba(255,255,255,.72);
+  line-height: 1.5;
+  font-size: 0.92rem;
+}
+
+.share-helper-note {
+  color: rgba(255,255,255,.56);
+  font-size: 0.84rem;
+}
+
+.share-helper-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .modal-title {
@@ -5365,8 +5492,8 @@ body.performance-mode .peel-card-wrap .card.canon {
     --pack-cta-size: 0.62rem;
   }
   .reward-pack-option .pack.pack-theme-docs {
-    --pack-title-art-scale: 1.32;
-    --pack-title-art-y: -4px;
+    --pack-title-art-scale: 1.16;
+    --pack-title-art-y: -10px;
     --pack-copy-offset: 0px;
     --pack-tier-gap: 12px;
     --pack-count-gap: 8px;
@@ -5656,7 +5783,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub">Build: logic-sync-198</div>
+  <div class="sub" id="buildBadge">Build: logic-sync-200</div>
   <div class="header-side">
     <button id="aboutLink" class="header-about-link" type="button">About filmTCG</button>
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
@@ -5839,6 +5966,26 @@ body.performance-mode .peel-card-wrap .card.canon {
       <button id="modalClose" class="modal-close" type="button" aria-label="Close">✕</button>
     </div>
     <div id="modalBody"></div>
+  </div>
+</div>
+
+<div id="shareHelperModal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-shell share-helper-shell">
+    <div class="modal-topbar">
+      <div>
+        <div class="modal-sub">Share Top 4</div>
+        <div class="share-helper-title">Choose how you want to send it</div>
+      </div>
+      <button id="shareHelperClose" class="modal-close" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="share-helper-copy">Share works best for Messages, AirDrop, and sending the image around. Instagram Story saves the image, copies the caption, and helps hand you off to Instagram.</div>
+    <div class="share-helper-grid">
+      <button id="shareHelperGeneral" class="modal-button" type="button">Share</button>
+      <button id="shareHelperSave" class="showcase-edit-btn" type="button">Save Image</button>
+      <button id="shareHelperInstagram" class="modal-button" type="button">Instagram Story</button>
+      <button id="shareHelperCaption" class="showcase-edit-btn" type="button">Copy Caption</button>
+    </div>
+    <div class="share-helper-note">Instagram from the web still needs you to choose the saved image from Recents once the app opens.</div>
   </div>
 </div>
 
@@ -6283,11 +6430,12 @@ body.performance-mode .peel-card-wrap .card.canon {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-199';
+  const BUILD_ID = 'logic-sync-200';
   const PAGE_PARAMS = new URLSearchParams(window.location.search);
   const DEBUG_STORY_PREVIEW = PAGE_PARAMS.get('debugStoryPreview') === '1';
   const DEBUG_STORY_SEED = PAGE_PARAMS.get('debugStorySeed') === '1';
   console.info('[filmTCG] build', BUILD_ID);
+  if (buildBadge) buildBadge.textContent = 'Build: ' + BUILD_ID;
   const QUOTES = {
     'Jaws': 'You\'re gonna need a bigger boat.',
     'Scream': 'Do you like scary movies?',
@@ -6326,6 +6474,7 @@ body.performance-mode .peel-card-wrap .card.canon {
     'abbas kiarostami': 'Legendary',
     'billy wilder': 'Legendary',
     'david lynch': 'Legendary',
+    'nicolas cage': 'Legendary',
     'david cronenberg': 'Epic',
     'edward yang': 'Legendary',
     'francis ford coppola': 'Legendary',
@@ -6356,6 +6505,7 @@ body.performance-mode .peel-card-wrap .card.canon {
     'steven spielberg': 'Legendary',
     'krzysztof kieslowski': 'Epic',
     'lucrecia martel': 'Epic',
+    'matt damon': 'Epic',
     'mikio naruse': 'Epic',
     'michael haneke': 'Epic',
     'michael mann': 'Epic',
@@ -6555,6 +6705,8 @@ body.performance-mode .peel-card-wrap .card.canon {
   const preloadedCardArtUrls = new Set();
   const rewardThemePoolCache = new Map();
   const rewardThemePreloadPromises = new Map();
+  const rewardPackDraftCache = new Map();
+  const rewardPackDraftPromises = new Map();
   let queuedNextPackCards = null;
   let queuedNextPackPromise = null;
   let queuedNextPackContextKey = '';
@@ -6583,6 +6735,13 @@ body.performance-mode .peel-card-wrap .card.canon {
   const cardModal = document.getElementById('cardModal');
   const modalBody = document.getElementById('modalBody');
   const modalClose = document.getElementById('modalClose');
+  const shareHelperModal = document.getElementById('shareHelperModal');
+  const shareHelperClose = document.getElementById('shareHelperClose');
+  const shareHelperGeneral = document.getElementById('shareHelperGeneral');
+  const shareHelperSave = document.getElementById('shareHelperSave');
+  const shareHelperInstagram = document.getElementById('shareHelperInstagram');
+  const shareHelperCaption = document.getElementById('shareHelperCaption');
+  const buildBadge = document.getElementById('buildBadge');
   const shopOpenOverlay = document.getElementById('shopOpenOverlay');
   const shopOpenShell = shopOpenOverlay ? shopOpenOverlay.querySelector('.shop-open-shell') : null;
   const shopOpenPackWrap = document.getElementById('shopOpenPackWrap');
@@ -7829,7 +7988,9 @@ body.performance-mode .peel-card-wrap .card.canon {
     if (dataSourceLabel.indexOf('TMDB') === -1) return;
 
     if (progress.rewardChoicesAvailable > 0) {
-      warmRewardThemePools(ensureFeaturedRewardThemes(false));
+      const activeRewardThemes = ensureFeaturedRewardThemes(false);
+      warmRewardThemePools(activeRewardThemes);
+      warmRewardPackDrafts(activeRewardThemes);
       return;
     }
 
@@ -8331,6 +8492,63 @@ body.performance-mode .peel-card-wrap .card.canon {
     return snapshot;
   }
 
+  function rewardPackDraftContextKey(themeKey) {
+    const normalizedThemeKey = normalizeOwnedPackTheme(themeKey || 'all');
+    const rewardThemes = ensureFeaturedRewardThemes(false);
+    return [
+      normalizedThemeKey,
+      String(Math.max(0, Number(progress.rewardChoicesAvailable) || 0)),
+      String(progress.standardPacksOpened || 0),
+      String(currentReelCycleKey()),
+      rewardThemes.join(','),
+      String(dataSourceLabel || '')
+    ].join('|');
+  }
+
+  function invalidateRewardPackDrafts(themeKey) {
+    if (themeKey) {
+      const normalizedThemeKey = normalizeOwnedPackTheme(themeKey);
+      rewardPackDraftCache.delete(normalizedThemeKey);
+      rewardPackDraftPromises.delete(normalizedThemeKey);
+      return;
+    }
+    rewardPackDraftCache.clear();
+    rewardPackDraftPromises.clear();
+  }
+
+  function getRewardPackDraft(themeKey) {
+    const normalizedThemeKey = normalizeOwnedPackTheme(themeKey || 'all');
+    const contextKey = rewardPackDraftContextKey(normalizedThemeKey);
+    const cached = rewardPackDraftCache.get(normalizedThemeKey);
+    if (!cached || cached.contextKey !== contextKey || !Array.isArray(cached.cards) || !cached.cards.length) {
+      return null;
+    }
+    return cached.cards.slice();
+  }
+
+  function consumeRewardPackDraft(themeKey) {
+    const normalizedThemeKey = normalizeOwnedPackTheme(themeKey || 'all');
+    const draft = getRewardPackDraft(normalizedThemeKey);
+    if (!draft) return null;
+    rewardPackDraftCache.delete(normalizedThemeKey);
+    rewardPackDraftPromises.delete(normalizedThemeKey);
+    return draft;
+  }
+
+  function waitForRewardPackDraft(themeKey) {
+    const normalizedThemeKey = normalizeOwnedPackTheme(themeKey || 'all');
+    const contextKey = rewardPackDraftContextKey(normalizedThemeKey);
+    const inflight = rewardPackDraftPromises.get(normalizedThemeKey);
+    if (!inflight || inflight.contextKey !== contextKey) return Promise.resolve(null);
+    return inflight.promise.then(function (draftedPack) {
+      if (!Array.isArray(draftedPack) || !draftedPack.length) return null;
+      if (rewardPackDraftContextKey(normalizedThemeKey) !== contextKey) return null;
+      return draftedPack.slice();
+    }).catch(function () {
+      return null;
+    });
+  }
+
   async function fetchThemePoolSnapshot(themeKey, forceRefresh) {
     const params = '/api/card-pool?limit=' + THEME_POOL_LIMIT + backendThemeParam(themeKey) + (forceRefresh ? '&refresh=1' : '');
     const data = await fetchBackendJson(params);
@@ -8376,6 +8594,82 @@ body.performance-mode .peel-card-wrap .card.canon {
         window.requestIdleCallback(startWarm, { timeout: 300 });
       } else {
         setTimeout(startWarm, 40);
+      }
+    });
+  }
+
+  function warmRewardPackDraft(themeKey) {
+    const normalizedThemeKey = normalizeOwnedPackTheme(themeKey || 'all');
+    if (Math.max(0, Number(progress.rewardChoicesAvailable) || 0) <= 0) return Promise.resolve(null);
+    const contextKey = rewardPackDraftContextKey(normalizedThemeKey);
+    const cached = rewardPackDraftCache.get(normalizedThemeKey);
+    if (cached && cached.contextKey === contextKey && Array.isArray(cached.cards) && cached.cards.length) {
+      return Promise.resolve(cached.cards.slice());
+    }
+    const inflight = rewardPackDraftPromises.get(normalizedThemeKey);
+    if (inflight && inflight.contextKey === contextKey) {
+      return inflight.promise;
+    }
+
+    const promise = Promise.resolve()
+      .then(function () {
+        const cachedSnapshot = getRewardThemePoolSnapshot(normalizedThemeKey);
+        if (cachedSnapshot && cachedSnapshot.movies.length >= Math.max(PACK_SIZE * 10, 80)) {
+          return cachedSnapshot;
+        }
+        if (rewardThemePreloadPromises.has(normalizedThemeKey)) {
+          return rewardThemePreloadPromises.get(normalizedThemeKey);
+        }
+        return fetchThemePoolSnapshot(normalizedThemeKey, false);
+      })
+      .then(function (snapshot) {
+        if (!snapshot || !Array.isArray(snapshot.movies) || !snapshot.movies.length) return null;
+        rewardThemePoolCache.set(normalizedThemeKey, snapshot);
+        return buildDraftPack(snapshot.movies, {
+          themeKey: normalizedThemeKey,
+          forceRewardBehavior: true
+        });
+      })
+      .then(function (draftedPack) {
+        if (!Array.isArray(draftedPack) || !draftedPack.length) return null;
+        if (rewardPackDraftContextKey(normalizedThemeKey) !== contextKey) return null;
+        rewardPackDraftCache.set(normalizedThemeKey, {
+          contextKey: contextKey,
+          cards: draftedPack.slice()
+        });
+        return draftedPack.slice();
+      })
+      .catch(function () {
+        return null;
+      })
+      .finally(function () {
+        const current = rewardPackDraftPromises.get(normalizedThemeKey);
+        if (current && current.contextKey === contextKey) {
+          rewardPackDraftPromises.delete(normalizedThemeKey);
+        }
+      });
+
+    rewardPackDraftPromises.set(normalizedThemeKey, {
+      contextKey: contextKey,
+      promise: promise
+    });
+    return promise;
+  }
+
+  function warmRewardPackDrafts(themeKeys) {
+    if (Math.max(0, Number(progress.rewardChoicesAvailable) || 0) <= 0) return;
+    Array.from(new Set((Array.isArray(themeKeys) ? themeKeys : []).filter(Boolean))).forEach(function (themeKey) {
+      const normalizedThemeKey = normalizeOwnedPackTheme(themeKey);
+      if (getRewardPackDraft(normalizedThemeKey)) return;
+      const inflight = rewardPackDraftPromises.get(normalizedThemeKey);
+      if (inflight && inflight.contextKey === rewardPackDraftContextKey(normalizedThemeKey)) return;
+      const startWarm = function () {
+        warmRewardPackDraft(normalizedThemeKey).catch(function () { return null; });
+      };
+      if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(startWarm, { timeout: performanceMode ? 520 : 340 });
+      } else {
+        setTimeout(startWarm, performanceMode ? 120 : 60);
       }
     });
   }
@@ -10822,6 +11116,10 @@ body.performance-mode .peel-card-wrap .card.canon {
     return '<button class="card-quick-list-btn" type="button" aria-label="Add to list" data-quick-list-key="' + escapeHtml(cardKey(card)) + '">+ List</button>';
   }
 
+  function buildCollectionAddToListButtonMarkup(card) {
+    return '<button class="collection-list-add-btn" type="button" aria-label="Add to list" data-inline-list-key="' + escapeHtml(cardKey(card)) + '">+</button>';
+  }
+
   function rarityShortLabel(rarity) {
     return ({ Base: 'B', Select: 'S', Epic: 'E', Legendary: 'L' })[normalizeRarityLabel(rarity)] || 'B';
   }
@@ -11159,6 +11457,23 @@ body.performance-mode .peel-card-wrap .card.canon {
 
   function attachQuickListButtons(root, resolveCard) {
     root.querySelectorAll('.card-quick-list-btn').forEach(function (button) {
+      if (button.dataset.bound === 'true') return;
+      button.dataset.bound = 'true';
+      button.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const card = resolveCard(button);
+        if (!card) return;
+        openCollectionModal(card, {
+          hideShowcaseAction: true,
+          autoOpenListPanel: true
+        });
+      });
+    });
+  }
+
+  function attachInlineListButtons(root, resolveCard) {
+    root.querySelectorAll('.collection-list-add-btn').forEach(function (button) {
       if (button.dataset.bound === 'true') return;
       button.dataset.bound = 'true';
       button.addEventListener('click', function (event) {
@@ -12713,6 +13028,126 @@ body.performance-mode .peel-card-wrap .card.canon {
     }, 1000);
   }
 
+  function closeShareHelper() {
+    if (!shareHelperModal) return;
+    shareHelperModal.classList.remove('open');
+    shareHelperModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function openShareHelper() {
+    if (!shareHelperModal) return;
+    shareHelperModal.classList.add('open');
+    shareHelperModal.setAttribute('aria-hidden', 'false');
+  }
+
+  async function buildShowcaseShareAsset() {
+    const cards = getShowcaseCards();
+    if (!cards.length) return null;
+    const canvas = await buildShowcaseStoryCanvas(cards);
+    if (!canvas) return null;
+    const blob = await canvasToBlob(canvas);
+    if (!blob) return null;
+    const filename = 'filmtcg-top-4-story.png';
+    return {
+      canvas: canvas,
+      blob: blob,
+      file: typeof File === 'function'
+        ? new File([blob], filename, { type: 'image/png' })
+        : null,
+      filename: filename,
+      shareTitle: 'filmTCG Top 4',
+      shareText: 'Check out my filmTCG Top 4 pulls!'
+    };
+  }
+
+  async function copyShowcaseCaption(options) {
+    const config = options || {};
+    const text = 'Check out my filmTCG Top 4 pulls!';
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(text);
+      if (!config.silent) showToast('Caption copied.');
+      return true;
+    }
+    if (!config.silent) showToast('Copy caption is not available here.');
+    return false;
+  }
+
+  function openInstagramAppShortcut() {
+    const fallbackUrl = 'https://www.instagram.com/';
+    if (!IS_MOBILE_RUNTIME) {
+      window.open(fallbackUrl, '_blank', 'noopener');
+      return;
+    }
+    const fallbackTimer = setTimeout(function () {
+      window.location.href = fallbackUrl;
+    }, 900);
+    try {
+      window.location.href = 'instagram://app';
+    } catch (error) {
+      clearTimeout(fallbackTimer);
+      window.location.href = fallbackUrl;
+      return;
+    }
+    setTimeout(function () {
+      clearTimeout(fallbackTimer);
+    }, 1200);
+  }
+
+  async function shareShowcaseGeneral() {
+    const asset = await buildShowcaseShareAsset();
+    if (!asset) {
+      showToast('Could not build share image.');
+      return false;
+    }
+    if (asset.file && navigator.share && navigator.canShare && navigator.canShare({ files: [asset.file] })) {
+      try {
+        await navigator.share({
+          title: asset.shareTitle,
+          text: asset.shareText,
+          files: [asset.file]
+        });
+        closeShareHelper();
+        showToast('Top 4 ready to share.');
+        return true;
+      } catch (error) {
+        if (error && error.name === 'AbortError') return false;
+      }
+    }
+    closeShareHelper();
+    downloadBlob(asset.blob, asset.filename);
+    showToast('Top 4 image downloaded.');
+    return true;
+  }
+
+  async function saveShowcaseImage() {
+    const asset = await buildShowcaseShareAsset();
+    if (!asset) {
+      showToast('Could not build share image.');
+      return false;
+    }
+    closeShareHelper();
+    downloadBlob(asset.blob, asset.filename);
+    showToast('Top 4 image downloaded.');
+    return true;
+  }
+
+  async function shareShowcaseToInstagramStory() {
+    const asset = await buildShowcaseShareAsset();
+    if (!asset) {
+      showToast('Could not build share image.');
+      return false;
+    }
+    downloadBlob(asset.blob, asset.filename);
+    try {
+      await copyShowcaseCaption({ silent: true });
+    } catch (error) {
+    }
+    closeShareHelper();
+    openInstagramAppShortcut();
+    showToast('Image saved. Open Instagram Story and grab it from Recents.');
+    return true;
+  }
+
   async function maybeRenderStoryDebugPreview() {
     if (!DEBUG_STORY_PREVIEW || !collectionPage || !collectionPage.classList.contains('active')) return;
     const cards = getShowcaseCards();
@@ -12744,46 +13179,13 @@ body.performance-mode .peel-card-wrap .card.canon {
     if (image) image.src = canvas.toDataURL('image/png');
   }
 
-  async function shareShowcaseStory() {
+  function shareShowcaseStory() {
     const cards = getShowcaseCards();
     if (!cards.length) {
       showToast('Add a few favorites to Top 4 first.');
       return;
     }
-    const canvas = await buildShowcaseStoryCanvas(cards);
-    if (!canvas) {
-      showToast('Could not build story image.');
-      return;
-    }
-
-    const blob = await canvasToBlob(canvas);
-    if (!blob) {
-      showToast('Could not build story image.');
-      return;
-    }
-
-    const file = typeof File === 'function'
-      ? new File([blob], 'filmtcg-top-4-story.png', { type: 'image/png' })
-      : null;
-    const shareTitle = 'filmTCG Top 4';
-    const shareText = 'Check out my filmTCG Top 4 pulls!';
-
-    if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({
-          title: shareTitle,
-          text: shareText,
-          files: [file]
-        });
-        showToast('Top 4 ready to share.');
-        return;
-      } catch (error) {
-        if (error && error.name === 'AbortError') return;
-      }
-    }
-
-    downloadBlob(blob, 'filmtcg-top-4-story.png');
-    showToast('Story image downloaded.');
+    openShareHelper();
   }
 
   function renderShowcase() {
@@ -12848,9 +13250,7 @@ body.performance-mode .peel-card-wrap .card.canon {
     const showcaseShareButton = document.getElementById('showcaseShareButton');
     if (showcaseShareButton) {
       showcaseShareButton.addEventListener('click', function () {
-        shareShowcaseStory().catch(function () {
-          showToast('Could not build story image.');
-        });
+        shareShowcaseStory();
       });
     }
     const showcaseEditButton = document.getElementById('showcaseEditButton');
@@ -12998,6 +13398,34 @@ body.performance-mode .peel-card-wrap .card.canon {
     const leftTheme = PACK_THEMES[leftThemeKey] || PACK_THEMES.horror;
     const rightTheme = PACK_THEMES[rightThemeKey] || PACK_THEMES.animation;
 
+    function rewardChoicePackOptions(themeKey) {
+      const compact = typeof window !== 'undefined' && window.innerWidth <= 780;
+      if (themeKey === 'docs') {
+        return {
+          titleArtScale: compact ? '1.06' : '1.54',
+          titleArtY: compact ? '-6px' : '-16px',
+          copyOffset: compact ? '-4px' : '-8px',
+          tierGap: compact ? '12px' : '18px',
+          countGap: compact ? '8px' : '11px'
+        };
+      }
+      if (themeKey === 'animation') {
+        return {
+          titleArtScale: compact ? '1.34' : '1.42',
+          titleArtY: compact ? '-1px' : '-2px',
+          tierOffsetY: compact ? '-78px' : '-98px',
+          countOffsetY: compact ? '70px' : '82px'
+        };
+      }
+      if (themeKey === 'noir') {
+        return {
+          titleArtScale: compact ? '1.38' : '1.46',
+          titleArtY: compact ? '1px' : '0px'
+        };
+      }
+      return {};
+    }
+
     return '<div class="pull-open-shell pull-open-shell-reward is-stage">'
       + '<div class="pull-top-rail">'
       + buildPackHookMarkup()
@@ -13007,11 +13435,11 @@ body.performance-mode .peel-card-wrap .card.canon {
       + '<div class="reward-choice-copy">Choose your reward genre pack.</div>'
       + '<div class="reward-choice-grid">'
       + '<button class="reward-pack-option is-left" type="button" data-reward-theme="' + escapeHtml(leftThemeKey) + '">'
-      + buildPackFaceMarkup(leftThemeKey)
+      + buildPackFaceMarkup(leftThemeKey, rewardChoicePackOptions(leftThemeKey))
       + '<div class="reward-pack-caption">' + escapeHtml(leftTheme.label) + '</div>'
       + '</button>'
       + '<button class="reward-pack-option is-right" type="button" data-reward-theme="' + escapeHtml(rightThemeKey) + '">'
-      + buildPackFaceMarkup(rightThemeKey)
+      + buildPackFaceMarkup(rightThemeKey, rewardChoicePackOptions(rightThemeKey))
       + '<div class="reward-pack-caption">' + escapeHtml(rightTheme.label) + '</div>'
       + '</button>'
       + '</div>'
@@ -13090,6 +13518,7 @@ body.performance-mode .peel-card-wrap .card.canon {
       });
     });
     warmRewardThemePools(rewardThemes);
+    warmRewardPackDrafts(rewardThemes);
   }
 
   function renderRewardOpeningShell(themeKey, statusText, sourcePackElement) {
@@ -13310,13 +13739,24 @@ body.performance-mode .peel-card-wrap .card.canon {
 
       updatePackMeta();
       keepViewport();
+      let draftedPack = consumeRewardPackDraft(currentPackTheme);
       if (statusLine) {
+        statusLine.textContent = draftedPack
+          ? 'Reward pack ready. Opening now...'
+          : 'Shuffling reward pack...';
+      }
+      if (!draftedPack) {
+        draftedPack = await waitForRewardPackDraft(currentPackTheme);
+      }
+      if (!draftedPack && statusLine) {
         statusLine.textContent = 'Shuffling reward pack...';
       }
-      const draftedPack = await buildDraftPack(getPackPool(currentPackTheme), {
-        themeKey: currentPackTheme,
-        forceRewardBehavior: true
-      });
+      if (!draftedPack) {
+        draftedPack = await buildDraftPack(getPackPool(currentPackTheme), {
+          themeKey: currentPackTheme,
+          forceRewardBehavior: true
+        });
+      }
       if (rewardOpenMotion) {
         setPackOpeningFocus(true);
         rewardOpenMotion.classList.remove('is-loading');
@@ -14049,6 +14489,7 @@ body.performance-mode .peel-card-wrap .card.canon {
 
     if (isRewardPack) {
       invalidateQueuedNextPack();
+      invalidateRewardPackDrafts();
       progress.rewardChoicesAvailable = Math.max(0, progress.rewardChoicesAvailable - 1);
       progress.featuredRewardTheme = null;
       progress.featuredRewardThemes = [];
@@ -14068,6 +14509,7 @@ body.performance-mode .peel-card-wrap .card.canon {
       }
       if (progress.standardPacksOpened % REEL_REFRESH_INTERVAL === 0) {
         invalidateQueuedNextPack();
+        invalidateRewardPackDrafts();
         progress.rewardChoicesAvailable += 1;
         ensureFeaturedRewardThemes(true);
         artworkStatus = 'Reward choice unlocked. Pick one of two featured packs.';
@@ -14222,6 +14664,10 @@ body.performance-mode .peel-card-wrap .card.canon {
     const panel = document.getElementById('modalListPanel');
     if (!panel) return;
     const key = cardKey(movie);
+    const previewMode = panel.dataset.previewMode === 'poster' ? 'poster' : 'card';
+    const previewMarkup = previewMode === 'poster'
+      ? '<div class="modal-list-preview-body"><img class="modal-list-preview-poster" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' artwork" data-poster="' + escapeHtml(movie.poster || '') + '" data-still="' + escapeHtml(movie.still || '') + '" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
+      : '<div class="modal-list-preview-body"><div class="modal-list-preview-card">' + buildShelfCardMarkup(movie) + '</div></div>';
     const rows = collectionLists.length
       ? collectionLists.map(function (list) {
         const isAdded = list.cardKeys.indexOf(key) !== -1;
@@ -14232,11 +14678,26 @@ body.performance-mode .peel-card-wrap .card.canon {
       }).join('')
       : '<div class="modal-list-row"><div class="modal-list-name">No lists yet. Make the first one here.</div></div>';
 
-    panel.innerHTML = rows
+    panel.innerHTML = '<div class="modal-list-preview">'
+      + '<div class="modal-list-preview-head"><div><div class="modal-list-preview-kicker">Adding card</div><div class="modal-list-preview-title">' + escapeHtml(movie.title) + '</div></div><button id="modalListPreviewToggle" class="showcase-edit-btn" type="button">' + (previewMode === 'card' ? 'Show Poster' : 'Show Card') + '</button></div>'
+      + previewMarkup
+      + '</div>'
+      + rows
       + '<div class="modal-list-form">'
       + '<input id="modalNewListName" class="modal-list-input" type="text" maxlength="42" placeholder="New list name">'
       + '<button id="modalCreateListButton" class="showcase-edit-btn" type="button">Create + Add</button>'
       + '</div>';
+
+    panel.dataset.previewMode = previewMode;
+    addImageFallbacks(panel);
+
+    const previewToggle = document.getElementById('modalListPreviewToggle');
+    if (previewToggle) {
+      previewToggle.addEventListener('click', function () {
+        panel.dataset.previewMode = previewMode === 'card' ? 'poster' : 'card';
+        renderModalListPanel(movie);
+      });
+    }
 
     panel.querySelectorAll('[data-modal-list-toggle]').forEach(function (button) {
       button.addEventListener('click', function () {
@@ -14428,7 +14889,7 @@ body.performance-mode .peel-card-wrap .card.canon {
           return '<div class="collection-list-item is-person" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
             + buildCollectionKindMarkup(movie, entry.count)
             + '<div class="collection-list-role">' + escapeHtml(roleLabelForDisplay(movie)) + '</div>'
-            + '<span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>'
+            + '<span class="collection-card-actions-left"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>' + buildCollectionAddToListButtonMarkup(movie) + '</span>'
             + buildBookmarkButtonMarkup(movie)
             + buildShowcaseButtonMarkup(movie)
             + '</div>';
@@ -14437,7 +14898,7 @@ body.performance-mode .peel-card-wrap .card.canon {
         return '<div class="collection-list-item is-film" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
           + buildCollectionKindMarkup(movie, entry.count)
           + '<div class="collection-list-secondary">' + escapeHtml(collectionSecondaryLabel(movie)) + '</div>'
-          + '<span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>'
+          + '<span class="collection-card-actions-left"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>' + buildCollectionAddToListButtonMarkup(movie) + '</span>'
           + buildBookmarkButtonMarkup(movie)
           + buildShowcaseButtonMarkup(movie)
           + '</div>';
@@ -14455,7 +14916,7 @@ body.performance-mode .peel-card-wrap .card.canon {
         const movie = entry.card;
         return '<div class="collection-card" role="button" tabindex="0" data-index="' + filteredIndex + '" style="' + escapeHtml(collectionShellStyle(movie)) + '">'
           + '<div class="collection-card-preview">' + buildShelfCardMarkup(movie) + buildCollectionPreviewFlags(movie, entry.count) + '</div>'
-          + '<div class="collection-card-actions"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>' + buildDuplicateCountMarkup(entry.count) + '<span class="collection-card-actions-right">' + buildShowcaseButtonMarkup(movie) + buildBookmarkButtonMarkup(movie) + '</span></div>'
+          + '<div class="collection-card-actions"><span class="collection-card-actions-left"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(movie.rarity)) + '; border-color:' + escapeHtml(rarityColor(movie.rarity)) + ';">' + escapeHtml(rarityShortLabel(movie.rarity)) + '</span>' + buildDuplicateCountMarkup(entry.count) + buildCollectionAddToListButtonMarkup(movie) + '</span><span class="collection-card-actions-right">' + buildShowcaseButtonMarkup(movie) + buildBookmarkButtonMarkup(movie) + '</span></div>'
           + '</div>';
       }).join('');
     }
@@ -14468,6 +14929,11 @@ body.performance-mode .peel-card-wrap .card.canon {
       return entry ? entry.card : null;
     });
     attachShowcaseButtons(collectionGrid, function (button) {
+      const target = button.closest('[data-index]');
+      const entry = filtered[Number(target && target.dataset.index)];
+      return entry ? entry.card : null;
+    });
+    attachInlineListButtons(collectionGrid, function (button) {
       const target = button.closest('[data-index]');
       const entry = filtered[Number(target && target.dataset.index)];
       return entry ? entry.card : null;
@@ -14491,6 +14957,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   }
 
   function showPage(id) {
+    closeShareHelper();
     pullPage.classList.toggle('active', id === 'pull');
     dailyPage.classList.toggle('active', id === 'daily');
     shopPage.classList.toggle('active', id === 'shop');
@@ -14556,8 +15023,47 @@ body.performance-mode .peel-card-wrap .card.canon {
     cardModal.addEventListener('click', function (event) {
       if (event.target === cardModal) closeCollectionModal();
     });
+    if (shareHelperClose) {
+      shareHelperClose.addEventListener('click', closeShareHelper);
+    }
+    if (shareHelperModal) {
+      shareHelperModal.addEventListener('click', function (event) {
+        if (event.target === shareHelperModal) closeShareHelper();
+      });
+    }
+    if (shareHelperGeneral) {
+      shareHelperGeneral.addEventListener('click', function () {
+        shareShowcaseGeneral().catch(function () {
+          showToast('Could not build share image.');
+        });
+      });
+    }
+    if (shareHelperSave) {
+      shareHelperSave.addEventListener('click', function () {
+        saveShowcaseImage().catch(function () {
+          showToast('Could not build share image.');
+        });
+      });
+    }
+    if (shareHelperInstagram) {
+      shareHelperInstagram.addEventListener('click', function () {
+        shareShowcaseToInstagramStory().catch(function () {
+          showToast('Could not build share image.');
+        });
+      });
+    }
+    if (shareHelperCaption) {
+      shareHelperCaption.addEventListener('click', function () {
+        copyShowcaseCaption().catch(function () {
+          showToast('Copy caption is not available here.');
+        });
+      });
+    }
     document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') closeCollectionModal();
+      if (event.key === 'Escape') {
+        closeCollectionModal();
+        closeShareHelper();
+      }
     });
 
     packThemeEl.value = selectedPackMode;
