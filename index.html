@@ -2417,6 +2417,12 @@ body.performance-mode .peel-card-wrap .card.canon {
   box-shadow: 0 12px 26px rgba(0,0,0,.28);
 }
 
+.stack-arrow::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+}
+
 .stack-arrow.is-left {
   left: var(--stack-arrow-offset);
   transform: translateY(-50%);
@@ -5607,8 +5613,9 @@ body.performance-mode .peel-card-wrap .card.canon {
     --pack-cta-size: 0.62rem;
   }
   .reward-pack-option .pack.pack-theme-docs {
-    --pack-title-art-scale: 1.16;
-    --pack-title-art-y: -10px;
+    --pack-title-art-scale: 0.84;
+    --pack-title-art-x: -2px;
+    --pack-title-art-y: 8px;
     --pack-copy-offset: 0px;
     --pack-tier-gap: 12px;
     --pack-count-gap: 8px;
@@ -5902,7 +5909,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub" id="buildBadge">Build: logic-sync-203</div>
+  <div class="sub" id="buildBadge">Build: logic-sync-205</div>
   <div class="header-side">
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
   </div>
@@ -6244,14 +6251,14 @@ body.performance-mode .peel-card-wrap .card.canon {
       </div>
       <button id="shareHelperClose" class="modal-close" type="button" aria-label="Close">✕</button>
     </div>
-    <div class="share-helper-copy">Share works best for Messages, AirDrop, and sending the image around. Instagram Story saves the image, copies the caption, and helps hand you off to Instagram.</div>
+    <div class="share-helper-copy">Share works best for Messages, AirDrop, and texting people. Instagram Story saves the image, copies the caption, and then hands you off to Instagram.</div>
     <div class="share-helper-grid">
-      <button id="shareHelperGeneral" class="modal-button" type="button">Share</button>
+      <button id="shareHelperGeneral" class="modal-button" type="button">Share / Send</button>
       <button id="shareHelperSave" class="showcase-edit-btn" type="button">Save Image</button>
       <button id="shareHelperInstagram" class="modal-button" type="button">Instagram Story</button>
       <button id="shareHelperCaption" class="showcase-edit-btn" type="button">Copy Caption</button>
     </div>
-    <div class="share-helper-note">Instagram from the web still needs you to choose the saved image from Recents once the app opens.</div>
+    <div class="share-helper-note">Instagram still needs you to choose the saved image from Recents once the app opens.</div>
   </div>
 </div>
 
@@ -6696,7 +6703,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-203';
+  const BUILD_ID = 'logic-sync-205';
   const PAGE_PARAMS = new URLSearchParams(window.location.search);
   const DEBUG_STORY_PREVIEW = PAGE_PARAMS.get('debugStoryPreview') === '1';
   const DEBUG_STORY_SEED = PAGE_PARAMS.get('debugStorySeed') === '1';
@@ -8345,6 +8352,9 @@ body.performance-mode .peel-card-wrap .card.canon {
     const rewardThemes = ensureFeaturedRewardThemes(false);
     if (rewardThemes.length) {
       warmRewardThemePools(rewardThemes);
+      if (force || packsUntilReward() <= 3) {
+        warmRewardPackDrafts(rewardThemes);
+      }
     }
   }
 
@@ -8414,6 +8424,7 @@ body.performance-mode .peel-card-wrap .card.canon {
     if (isOpeningPack || isPoolLoading) return false;
     if (Math.max(0, Number(progress.rewardChoicesAvailable) || 0) > 0) return false;
     if (activeRewardSelection) return false;
+    if (needsPoolRestoreAfterReward) return false;
     const themeKey = normalizeOwnedPackTheme(currentPackTheme || 'all');
     const pool = getPackPool(themeKey);
     return Array.isArray(pool) && pool.length >= PACK_SIZE;
@@ -8518,6 +8529,14 @@ body.performance-mode .peel-card-wrap .card.canon {
       return {
         label: 'Prepping Next Pack...',
         note: 'Loading ahead in the background.',
+        rewardReady: false,
+        isReady: false
+      };
+    }
+    if (needsPoolRestoreAfterReward) {
+      return {
+        label: 'Back to Main Packs',
+        note: 'Return to the full shelf before opening another pack.',
         rewardReady: false,
         isReady: false
       };
@@ -9731,6 +9750,12 @@ body.performance-mode .peel-card-wrap .card.canon {
     }
 
     shopOverlayOpening = true;
+    trackAction('shop_pack_purchase_started', {
+      pack: packDef.id,
+      theme: packDef.theme,
+      source: String(config.source || 'shop'),
+      price: String(price)
+    });
     progress.tickets = balance - price;
     saveProgress();
     updatePackMeta();
@@ -9744,12 +9769,24 @@ body.performance-mode .peel-card-wrap .card.canon {
     });
     if (!opened) {
       shopOverlayOpening = false;
+      trackClientError('shop_pack_open_failed', 'Shop pack open failed', {
+        pack: packDef.id,
+        theme: packDef.theme,
+        source: String(config.source || 'shop')
+      });
       progress.tickets = balance;
       saveProgress();
       updatePackMeta();
       renderShop();
       showToast('Open failed. Tickets refunded.');
+      return;
     }
+    trackAction('shop_pack_opened', {
+      pack: packDef.id,
+      theme: packDef.theme,
+      source: String(config.source || 'shop'),
+      price: String(price)
+    });
   }
 
   function buildShopFallbackPreview(packDef) {
@@ -13543,7 +13580,7 @@ body.performance-mode .peel-card-wrap .card.canon {
     trackAction('share_top4_general', { mode: 'download_fallback' });
     closeShareHelper();
     downloadBlob(asset.blob, asset.filename);
-    showToast('Top 4 image downloaded.');
+    showToast('Top 4 image downloaded. Send it from Photos or Files.');
     return true;
   }
 
@@ -13835,11 +13872,11 @@ body.performance-mode .peel-card-wrap .card.canon {
       const compact = typeof window !== 'undefined' && window.innerWidth <= 780;
       if (themeKey === 'docs') {
         return {
-          titleArtScale: compact ? '1.06' : '1.54',
-          titleArtY: compact ? '-6px' : '-16px',
-          copyOffset: compact ? '-4px' : '-8px',
-          tierGap: compact ? '12px' : '18px',
-          countGap: compact ? '8px' : '11px'
+          titleArtScale: compact ? '0.92' : '1.54',
+          titleArtY: compact ? '8px' : '-16px',
+          copyOffset: compact ? '4px' : '-8px',
+          tierGap: compact ? '18px' : '18px',
+          countGap: compact ? '12px' : '11px'
         };
       }
       if (themeKey === 'animation') {
