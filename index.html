@@ -6059,6 +6059,7 @@ body.performance-mode .peel-card-wrap .card.canon {
         <div class="info-list">
           <div><strong>On your device:</strong> collection progress, stars, lists, Top 4, and interface preferences.</div>
           <div><strong>On the server:</strong> requests needed to load card pools, TMDB-backed art, and related gameplay data.</div>
+          <div><strong>Basic telemetry:</strong> page views, a few product actions, and client-side errors may be logged to help improve stability during alpha.</div>
           <div><strong>Third-party data:</strong> movie, actor, and director metadata and artwork may come from TMDB.</div>
         </div>
       </div>
@@ -6985,6 +6986,8 @@ body.performance-mode .peel-card-wrap .card.canon {
   const shopOpenReveal = document.getElementById('shopOpenReveal');
   const appToast = document.getElementById('appToast');
   let toastTimer = null;
+  let activePageId = 'pull';
+  let lastTrackedPageId = '';
   let shopOverlayPack = [];
   let shopOverlayIndex = 0;
 
@@ -7027,6 +7030,75 @@ body.performance-mode .peel-card-wrap .card.canon {
     }
 
     return resolved;
+  }
+
+  function telemetryEndpoint() {
+    return normalizeBackendBase(TMDB_BACKEND_BASE || DEFAULT_BACKEND_BASE) + '/api/telemetry';
+  }
+
+  function telemetryEnabled() {
+    return /^https?:$/.test(window.location.protocol) || Boolean(TMDB_BACKEND_BASE);
+  }
+
+  function getTelemetrySessionId() {
+    const key = 'filmtcg.telemetrySessionId';
+    try {
+      const existing = String(sessionStorage.getItem(key) || '').trim();
+      if (existing) return existing;
+      const created = 'sess-' + Math.random().toString(36).slice(2, 10) + '-' + Date.now().toString(36);
+      sessionStorage.setItem(key, created);
+      return created;
+    } catch (error) {
+      return 'sess-' + Math.random().toString(36).slice(2, 10);
+    }
+  }
+
+  function sendTelemetry(type, name, detail, message) {
+    if (!telemetryEnabled()) return false;
+    const payload = {
+      type: String(type || 'event'),
+      name: String(name || 'unknown'),
+      page: activePageId || '',
+      sessionId: getTelemetrySessionId(),
+      buildId: BUILD_ID,
+      message: message ? String(message) : '',
+      detail: detail && typeof detail === 'object' ? detail : {}
+    };
+    const body = JSON.stringify(payload);
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([body], { type: 'application/json' });
+        return navigator.sendBeacon(telemetryEndpoint(), blob);
+      }
+    } catch (error) {
+    }
+    fetch(telemetryEndpoint(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: body,
+      keepalive: true
+    }).catch(function () { return false; });
+    return true;
+  }
+
+  function trackPageView(pageId) {
+    const normalizedPage = String(pageId || '').trim().toLowerCase();
+    if (!normalizedPage || normalizedPage === lastTrackedPageId) return;
+    lastTrackedPageId = normalizedPage;
+    sendTelemetry('page_view', normalizedPage, {
+      mobile: IS_MOBILE_RUNTIME ? '1' : '0',
+      performanceMode: performanceMode ? '1' : '0'
+    });
+  }
+
+  function trackAction(name, detail) {
+    sendTelemetry('action', name, detail || {});
+  }
+
+  function trackClientError(name, message, detail) {
+    sendTelemetry('client_error', name, detail || {}, message || '');
   }
 
   function loadCollection() {
@@ -13301,6 +13373,7 @@ body.performance-mode .peel-card-wrap .card.canon {
     const text = 'Check out my filmTCG Top 4 pulls!';
     if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
       await navigator.clipboard.writeText(text);
+      trackAction('share_top4_caption_copied');
       if (!config.silent) showToast('Caption copied.');
       return true;
     }
@@ -13342,6 +13415,7 @@ body.performance-mode .peel-card-wrap .card.canon {
           text: asset.shareText,
           files: [asset.file]
         });
+        trackAction('share_top4_general', { mode: 'native_share' });
         closeShareHelper();
         showToast('Top 4 ready to share.');
         return true;
@@ -13349,6 +13423,7 @@ body.performance-mode .peel-card-wrap .card.canon {
         if (error && error.name === 'AbortError') return false;
       }
     }
+    trackAction('share_top4_general', { mode: 'download_fallback' });
     closeShareHelper();
     downloadBlob(asset.blob, asset.filename);
     showToast('Top 4 image downloaded.');
@@ -13361,6 +13436,7 @@ body.performance-mode .peel-card-wrap .card.canon {
       showToast('Could not build share image.');
       return false;
     }
+    trackAction('share_top4_save_image', { mode: 'download' });
     closeShareHelper();
     downloadBlob(asset.blob, asset.filename);
     showToast('Top 4 image downloaded.');
@@ -13373,6 +13449,7 @@ body.performance-mode .peel-card-wrap .card.canon {
       showToast('Could not build share image.');
       return false;
     }
+    trackAction('share_top4_instagram', { mode: 'guided_handoff' });
     downloadBlob(asset.blob, asset.filename);
     try {
       await copyShowcaseCaption({ silent: true });
@@ -13421,6 +13498,9 @@ body.performance-mode .peel-card-wrap .card.canon {
       showToast('Add a few favorites to Top 4 first.');
       return;
     }
+    trackAction('share_helper_opened', {
+      showcaseCount: String(cards.length)
+    });
     openShareHelper();
   }
 
@@ -13883,6 +13963,9 @@ body.performance-mode .peel-card-wrap .card.canon {
 
   async function chooseRewardPack(choiceKey, themeKey, selectedButton) {
     if (isOpeningPack || isPoolLoading) return;
+    trackAction('reward_choice_selected', {
+      theme: normalizeOwnedPackTheme(themeKey || 'all')
+    });
     invalidateQueuedNextPack();
     isOpeningPack = true;
     const lockedScrollTop = currentScrollTop();
@@ -14015,6 +14098,9 @@ body.performance-mode .peel-card-wrap .card.canon {
       keepViewport();
     } catch (error) {
       console.error('[filmTCG] chooseRewardPack failed', error);
+      trackClientError('reward_pack_open_failed', String(error && error.message || error || 'Reward pack open failed'), {
+        theme: currentPackTheme || ''
+      });
       setPackOpeningFocus(false);
       activeRewardSelection = null;
       progress.featuredRewardTheme = null;
@@ -14652,6 +14738,11 @@ body.performance-mode .peel-card-wrap .card.canon {
       openedSuccessfully = true;
     } catch (error) {
       console.error('[filmTCG] openPack failed', error);
+      trackClientError('pack_open_failed', String(error && error.message || error || 'Pack open failed'), {
+        theme: packThemeForOpen || currentPackTheme || '',
+        ownedPack: hasOwnedPack ? '1' : '0',
+        reward: forceRewardOpen ? '1' : '0'
+      });
       setPackOpeningFocus(false);
       const errorMessage = String(error && error.message || error || '').toLowerCase();
       if (errorMessage.indexOf('all cinema deck') !== -1) {
@@ -14753,6 +14844,14 @@ body.performance-mode .peel-card-wrap .card.canon {
         artworkStatus = 'People insert found in the sixth slot.';
       }
     }
+
+    trackAction('pack_opened', {
+      reward: isRewardPack ? '1' : '0',
+      theme: finalizeOptions.themeKey || currentPackTheme || 'all',
+      peopleInsert: hasPersonCards ? '1' : '0',
+      highestRarity: highestRarityInCards(resolvedPack),
+      size: String(resolvedPack.length)
+    });
 
     rememberPulledTitles(resolvedPack);
     saveCollection();
@@ -15194,34 +15293,38 @@ body.performance-mode .peel-card-wrap .card.canon {
 
   function showPage(id) {
     const infoPageIds = ['about', 'privacy', 'terms', 'contact', 'attribution'];
-    const isInfoPage = infoPageIds.indexOf(id) !== -1;
+    const normalizedId = String(id || 'pull');
+    const isInfoPage = infoPageIds.indexOf(normalizedId) !== -1;
+    activePageId = normalizedId;
     closeShareHelper();
-    pullPage.classList.toggle('active', id === 'pull');
-    dailyPage.classList.toggle('active', id === 'daily');
-    shopPage.classList.toggle('active', id === 'shop');
-    if (aboutPage) aboutPage.classList.toggle('active', id === 'about');
-    if (privacyPage) privacyPage.classList.toggle('active', id === 'privacy');
-    if (termsPage) termsPage.classList.toggle('active', id === 'terms');
-    if (contactPage) contactPage.classList.toggle('active', id === 'contact');
-    if (attributionPage) attributionPage.classList.toggle('active', id === 'attribution');
-    collectionPage.classList.toggle('active', id === 'collection');
-    pullTab.classList.toggle('active', id === 'pull');
-    dailyTab.classList.toggle('active', id === 'daily');
-    shopTab.classList.toggle('active', id === 'shop');
-    collectionTab.classList.toggle('active', id === 'collection');
+    pullPage.classList.toggle('active', normalizedId === 'pull');
+    dailyPage.classList.toggle('active', normalizedId === 'daily');
+    shopPage.classList.toggle('active', normalizedId === 'shop');
+    if (aboutPage) aboutPage.classList.toggle('active', normalizedId === 'about');
+    if (privacyPage) privacyPage.classList.toggle('active', normalizedId === 'privacy');
+    if (termsPage) termsPage.classList.toggle('active', normalizedId === 'terms');
+    if (contactPage) contactPage.classList.toggle('active', normalizedId === 'contact');
+    if (attributionPage) attributionPage.classList.toggle('active', normalizedId === 'attribution');
+    collectionPage.classList.toggle('active', normalizedId === 'collection');
+    pullTab.classList.toggle('active', normalizedId === 'pull');
+    dailyTab.classList.toggle('active', normalizedId === 'daily');
+    shopTab.classList.toggle('active', normalizedId === 'shop');
+    collectionTab.classList.toggle('active', normalizedId === 'collection');
     footerInfoLinks.forEach(function (button) {
-      button.classList.toggle('is-active', button.getAttribute('data-info-page') === id);
+      button.classList.toggle('is-active', button.getAttribute('data-info-page') === normalizedId);
     });
-    if (id !== 'collection') {
+    if (normalizedId !== 'collection') {
       const existingStoryDebugPreview = document.getElementById('storyDebugPreviewHost');
       if (existingStoryDebugPreview) existingStoryDebugPreview.remove();
     }
-    if (id === 'collection') renderCollection();
-    if (id === 'daily') renderDailyHunts();
-    if (id === 'shop') renderShop();
+    if (normalizedId === 'collection') renderCollection();
+    if (normalizedId === 'daily') renderDailyHunts();
+    if (normalizedId === 'shop') renderShop();
+    trackPageView(normalizedId);
   }
 
   let didBindPrimaryTabs = false;
+  let didBindTelemetryListeners = false;
   function bindPrimaryTabs() {
     if (didBindPrimaryTabs) return;
     didBindPrimaryTabs = true;
@@ -15241,6 +15344,9 @@ body.performance-mode .peel-card-wrap .card.canon {
         performanceMode = !performanceMode;
         savePerformanceMode();
         applyPerformanceMode();
+        trackAction('performance_mode_toggled', {
+          enabled: performanceMode ? '1' : '0'
+        });
         showToast(performanceMode ? 'Performance mode on.' : 'Performance mode off.');
       });
     }
@@ -15248,6 +15354,27 @@ body.performance-mode .peel-card-wrap .card.canon {
     dailyTab.addEventListener('click', function () { showPage('daily'); });
     shopTab.addEventListener('click', function () { showPage('shop'); });
     collectionTab.addEventListener('click', function () { showPage('collection'); });
+  }
+
+  function bindTelemetryListeners() {
+    if (didBindTelemetryListeners) return;
+    didBindTelemetryListeners = true;
+    window.addEventListener('error', function (event) {
+      trackClientError('window_error', event && event.message ? event.message : 'Unknown error', {
+        source: event && event.filename ? event.filename : '',
+        line: event && event.lineno ? String(event.lineno) : '',
+        column: event && event.colno ? String(event.colno) : ''
+      });
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      const reason = event && event.reason;
+      const message = reason && reason.message
+        ? reason.message
+        : (typeof reason === 'string' ? reason : 'Unhandled promise rejection');
+      trackClientError('unhandled_rejection', message, {
+        page: activePageId || ''
+      });
+    });
   }
 
   let didBindDeferredUiControls = false;
@@ -15442,7 +15569,9 @@ body.performance-mode .peel-card-wrap .card.canon {
     artworkStatus = 'Loading live film pool...';
     updatePackMeta();
     backToPacks();
+    bindTelemetryListeners();
     bindPrimaryTabs();
+    trackPageView('pull');
     const initUnlockTimer = setTimeout(function () {
       if (didFinalizeStartupUi) return;
       replaceMoviePool(SAMPLE_MOVIES, 'Sample Set');

@@ -13,7 +13,7 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const POOL_SNAPSHOT_TTL_MS = CACHE_TTL_MS;
 const POOL_STALE_FALLBACK_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-const LOGIC_VERSION = 'logic-2026-04-03-1';
+const LOGIC_VERSION = 'logic-2026-04-03-2';
 const POOL_SNAPSHOT_VERSION = 'server-rotation-26';
 const SNAPSHOT_ROOT = IS_VERCEL ? path.join('/tmp', 'filmtcg-cache') : path.join(STATIC_ROOT, '.cache');
 const STARTUP_PREWARM_THEMES = ['horror', 'animation', 'eighties', 'noir', 'romcom', 'docs', 'actors'];
@@ -28,7 +28,8 @@ const MAX_MOVIE_CREDITS_CACHE = 180;
 const MAX_PERSON_CREDITS_CACHE = 120;
 const MAX_PERSON_DETAILS_CACHE = 120;
 const PERSON_CANDIDATE_SHORTLIST_LIMIT = 34;
-const PERSON_CANDIDATE_MIN_DIRECTORS = 2;
+const PERSON_CANDIDATE_MIN_DIRECTORS = 3;
+const MAX_TELEMETRY_BODY_BYTES = 12 * 1024;
 const TV_MOVIE_GENRE_ID = 10770;
 const GENRE_NAME_BY_ID = {
   12: ['adventure'],
@@ -442,6 +443,10 @@ function rarityByRank(rank) {
   }[Math.max(1, Math.min(4, Number(rank) || 1))] || 'Base';
 }
 
+function rarityRank(value) {
+  return RARITY_ORDER[normalizeRarityLabel(value)] || 1;
+}
+
 function normalizeRarityLabel(value) {
   return rarityByRank(RARITY_ORDER[value] || 1);
 }
@@ -762,7 +767,7 @@ function writeJson(res, statusCode, payload) {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Accept, ngrok-skip-browser-warning',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Cache-Control': 'no-store'
   });
   if (res.req && res.req.method === 'HEAD') {
@@ -781,6 +786,72 @@ function writeText(res, statusCode, body, headers) {
     return;
   }
   res.end(body);
+}
+
+function readJsonBody(req, maxBytes) {
+  return new Promise(function (resolve, reject) {
+    const limit = Math.max(1024, Number(maxBytes) || MAX_TELEMETRY_BODY_BYTES);
+    let raw = '';
+    req.setEncoding('utf8');
+    req.on('data', function (chunk) {
+      raw += chunk;
+      if (raw.length > limit) {
+        reject(new Error('Request body too large.'));
+        req.destroy();
+      }
+    });
+    req.on('end', function () {
+      if (!raw.trim()) {
+        resolve({});
+        return;
+      }
+      try {
+        resolve(JSON.parse(raw));
+      } catch (error) {
+        reject(new Error('Invalid JSON body.'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+function telemetryText(value, maxLength) {
+  const text = String(value == null ? '' : value).trim();
+  if (!text) return '';
+  return text.length > maxLength ? text.slice(0, maxLength - 1) + '…' : text;
+}
+
+function normalizeTelemetryPayload(payload, req) {
+  const body = payload && typeof payload === 'object' ? payload : {};
+  const type = telemetryText(body.type || 'event', 32).toLowerCase() || 'event';
+  const name = telemetryText(body.name || body.event || 'unknown', 64).toLowerCase() || 'unknown';
+  const page = telemetryText(body.page || '', 32).toLowerCase();
+  const sessionId = telemetryText(body.sessionId || '', 64);
+  const message = telemetryText(body.message || '', 220);
+  const detail = body.detail && typeof body.detail === 'object' ? body.detail : {};
+  const normalizedDetail = {};
+  Object.keys(detail).slice(0, 8).forEach(function (key) {
+    normalizedDetail[telemetryText(key, 40)] = telemetryText(detail[key], 180);
+  });
+  return {
+    type: type,
+    name: name,
+    page: page,
+    sessionId: sessionId,
+    message: message,
+    detail: normalizedDetail,
+    buildId: telemetryText(body.buildId || '', 40),
+    logicVersion: telemetryText(body.logicVersion || '', 40),
+    path: telemetryText(req && req.url || '', 120),
+    method: telemetryText(req && req.method || '', 12),
+    ua: telemetryText(req && req.headers && req.headers['user-agent'] || '', 180),
+    referrer: telemetryText(req && req.headers && req.headers.referer || '', 180),
+    ipHint: telemetryText(
+      (req && req.headers && (req.headers['x-forwarded-for'] || req.socket && req.socket.remoteAddress)) || '',
+      80
+    ),
+    ts: new Date().toISOString()
+  };
 }
 
 function sendStatic(req, res, pathname) {
@@ -1075,7 +1146,7 @@ async function getMoviePeople(movieIds) {
   const seededCandidates = shuffledCopy(Array.from(byPerson.values())).map(function (candidate) {
     const popularity = Number(candidate && candidate.popularity) || 0;
     const castOrder = Number(candidate && candidate.castOrder);
-    const roleBaseBoost = candidate && candidate.roleKey === 'director' ? 430 : 350;
+    const roleBaseBoost = candidate && candidate.roleKey === 'director' ? 500 : 350;
     const billingBonus = candidate && candidate.roleKey === 'actor'
       ? (Number.isFinite(castOrder)
         ? (castOrder >= 5 && castOrder <= 18
@@ -1157,8 +1228,8 @@ async function getMoviePeople(movieIds) {
     const bCharacterLaneBonus = (b && b.roleKey === 'actor' && Number.isFinite(bOrder))
       ? (bOrder >= 5 && bOrder <= 20 ? 85 : (bOrder >= 21 && bOrder <= 42 ? 55 : 0))
       : 0;
-    const aDirectorLaneBonus = (a && a.roleKey === 'director') ? 34 : 0;
-    const bDirectorLaneBonus = (b && b.roleKey === 'director') ? 34 : 0;
+    const aDirectorLaneBonus = (a && a.roleKey === 'director') ? 48 : 0;
+    const bDirectorLaneBonus = (b && b.roleKey === 'director') ? 48 : 0;
     const aPopScore = Math.min(26, aPopularity) - (aPopularity > 30 ? (aPopularity - 30) * 2.2 : 0);
     const bPopScore = Math.min(26, bPopularity) - (bPopularity > 30 ? (bPopularity - 30) * 2.2 : 0);
     return ((bTitles * 110) + (bPeak * 38) + (bDepth * 22) + bPopScore + bCharacterLaneBonus + bDirectorLaneBonus)
@@ -2677,7 +2748,7 @@ async function routeApi(req, res, url) {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Accept, ngrok-skip-browser-warning'
     });
     res.end();
@@ -2695,6 +2766,24 @@ async function routeApi(req, res, url) {
       tmdbConfigured: hasTmdbToken(),
       logicVersion: LOGIC_VERSION,
       snapshotVersion: POOL_SNAPSHOT_VERSION
+    });
+    return;
+  }
+
+  if (url.pathname === '/api/telemetry') {
+    if (req.method !== 'POST') {
+      writeText(res, 405, 'Method Not Allowed', {
+        'Allow': 'POST, OPTIONS'
+      });
+      return;
+    }
+
+    const payload = await readJsonBody(req, MAX_TELEMETRY_BODY_BYTES);
+    const event = normalizeTelemetryPayload(payload, req);
+    console.log('[filmTCG:telemetry]', JSON.stringify(event));
+    writeJson(res, 200, {
+      ok: true,
+      accepted: true
     });
     return;
   }
