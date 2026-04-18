@@ -583,6 +583,115 @@ button, a, select { font: inherit; }
   background: rgba(24,31,46,.82);
 }
 
+.site-footer {
+  width: min(1160px, calc(100% - 32px));
+  margin: 18px auto 28px;
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  color: rgba(255,255,255,.46);
+  font-size: 0.82rem;
+}
+
+.site-footer-copy {
+  color: rgba(255,255,255,.42);
+}
+
+.site-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.site-footer-link {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,.56);
+  font: inherit;
+  cursor: pointer;
+  transition: color 160ms ease, opacity 160ms ease;
+}
+
+.site-footer-link:hover,
+.site-footer-link.is-active {
+  color: rgba(255,255,255,.82);
+}
+
+.info-page {
+  gap: 20px;
+}
+
+.info-page .about-hero {
+  max-width: 880px;
+}
+
+.info-page .about-sub {
+  max-width: 760px;
+}
+
+.info-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.info-copy {
+  color: rgba(255,255,255,.82);
+  line-height: 1.65;
+  font-size: 0.96rem;
+}
+
+.info-copy p {
+  margin: 0 0 12px;
+}
+
+.info-copy p:last-child {
+  margin-bottom: 0;
+}
+
+.info-list {
+  display: grid;
+  gap: 10px;
+  color: rgba(255,255,255,.82);
+  line-height: 1.58;
+  font-size: 0.94rem;
+}
+
+.info-list strong {
+  color: rgba(255,255,255,.96);
+}
+
+.info-note {
+  color: rgba(255,255,255,.58);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.tmdb-attrib {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tmdb-mark {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #01d277, #01b4e4);
+  color: #041016;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+}
+
 .about-toggle-btn.is-active {
   border-color: rgba(189,208,255,.52);
   background: linear-gradient(135deg, rgba(143,134,233,.18), rgba(106,140,247,.14));
@@ -5959,6 +6068,153 @@ body.performance-mode .peel-card-wrap .card.canon {
   </div>
 </div>
 
+<div id="privacy" class="page">
+  <div class="collection-shell about-page info-page">
+    <div class="about-hero">
+      <div class="about-kicker">Privacy</div>
+      <div class="about-title-row">
+        <h2>How filmTCG handles your data.</h2>
+      </div>
+      <div class="about-sub">filmTCG is currently a lightweight web app. Most of your collection state, lists, Top 4, and preferences are stored in your browser on your device.</div>
+    </div>
+    <div class="info-stack">
+      <div class="about-panel">
+        <h3>What is stored</h3>
+        <div class="info-list">
+          <div><strong>On your device:</strong> collection progress, stars, lists, Top 4, and interface preferences.</div>
+          <div><strong>On the server:</strong> requests needed to load card pools, TMDB-backed art, and related gameplay data.</div>
+          <div><strong>Third-party data:</strong> movie, actor, and director metadata and artwork may come from TMDB.</div>
+        </div>
+      </div>
+      <div class="about-panel">
+        <h3>What filmTCG does not currently do</h3>
+        <div class="info-list">
+          <div>No account system yet.</div>
+          <div>No built-in cloud save yet.</div>
+          <div>No sale of personal information.</div>
+        </div>
+      </div>
+      <div class="about-panel">
+        <h3>Important note</h3>
+        <div class="info-copy">
+          <p>If you clear your browser storage, switch devices, or use private browsing, your saved collection data may be lost until cloud save exists.</p>
+          <p>As the app evolves, this page should be updated to reflect analytics, ads, accounts, or any other new systems.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="terms" class="page">
+  <div class="collection-shell about-page info-page">
+    <div class="about-hero">
+      <div class="about-kicker">Terms</div>
+      <div class="about-title-row">
+        <h2>Basic terms for using filmTCG.</h2>
+      </div>
+      <div class="about-sub">This is a public-facing prototype and game experience. Use it respectfully, and expect the experience to keep evolving.</div>
+    </div>
+    <div class="info-stack">
+      <div class="about-panel">
+        <h3>Use of the site</h3>
+        <div class="info-list">
+          <div><strong>Personal use only for now:</strong> filmTCG is intended for normal play, sharing, and feedback.</div>
+          <div><strong>No abuse:</strong> please do not scrape, spam, overload, reverse engineer, or interfere with the service.</div>
+          <div><strong>No guarantees:</strong> rarity rules, pack balance, visuals, and features may change as the project develops.</div>
+        </div>
+      </div>
+      <div class="about-panel">
+        <h3>Content and ownership</h3>
+        <div class="info-copy">
+          <p>filmTCG’s original interface, game logic, and presentation belong to the project. Third-party metadata and imagery belong to their respective owners and providers.</p>
+          <p>External film data and imagery may be governed by separate source terms, including TMDB.</p>
+        </div>
+      </div>
+      <div class="about-panel">
+        <h3>Prototype status</h3>
+        <div class="info-copy">
+          <p>The app may change, go offline, or reset systems as features are improved. Using the site means understanding that this is still an evolving product.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="contact" class="page">
+  <div class="collection-shell about-page info-page">
+    <div class="about-hero">
+      <div class="about-kicker">Contact</div>
+      <div class="about-title-row">
+        <h2>Get in touch about filmTCG.</h2>
+      </div>
+      <div class="about-sub">For feedback, bugs, partnerships, or launch questions, this is the place to point people.</div>
+    </div>
+    <div class="info-stack">
+      <div class="about-panel">
+        <h3>Current contact setup</h3>
+        <div class="info-copy">
+          <p>Add a dedicated email before going properly public. Something simple like <strong>hello@yourdomain.com</strong> or <strong>filmtcg@yourdomain.com</strong> is enough to start.</p>
+          <p>Until that exists, this page can act as a placeholder so the site structure is ready.</p>
+        </div>
+      </div>
+      <div class="about-panel">
+        <h3>What people should use it for</h3>
+        <div class="info-list">
+          <div>Bug reports and broken links</div>
+          <div>Feedback on rarity, UX, and pack design</div>
+          <div>Partnership, sponsorship, or press inquiries</div>
+          <div>Questions about data, attribution, or terms</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="attribution" class="page">
+  <div class="collection-shell about-page info-page">
+    <div class="about-hero">
+      <div class="about-kicker">Attribution</div>
+      <div class="about-title-row">
+        <h2>Data and image sources.</h2>
+      </div>
+      <div class="about-sub">filmTCG uses third-party film metadata and imagery to power pack pulls, artwork, and links.</div>
+    </div>
+    <div class="info-stack">
+      <div class="about-panel">
+        <h3>TMDB</h3>
+        <div class="tmdb-attrib">
+          <div class="tmdb-mark" aria-hidden="true">TM</div>
+          <div class="info-copy">
+            <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+            <p><a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">Visit TMDB</a></p>
+          </div>
+        </div>
+      </div>
+      <div class="about-panel">
+        <h3>Letterboxd links</h3>
+        <div class="info-copy">
+          <p>filmTCG may link out to Letterboxd pages for individual films. Those links are provided as a convenience and are not affiliated endorsements.</p>
+        </div>
+      </div>
+      <div class="about-panel">
+        <h3>Project note</h3>
+        <div class="info-note">If filmTCG becomes commercial, this section should be revisited alongside TMDB’s current commercial-use requirements.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-copy">filmTCG beta</div>
+  <div class="site-footer-links">
+    <button class="site-footer-link" type="button" data-info-page="about">About</button>
+    <button class="site-footer-link" type="button" data-info-page="privacy">Privacy</button>
+    <button class="site-footer-link" type="button" data-info-page="terms">Terms</button>
+    <button class="site-footer-link" type="button" data-info-page="contact">Contact</button>
+    <button class="site-footer-link" type="button" data-info-page="attribution">Attribution</button>
+  </div>
+</footer>
+
 <div id="cardModal" class="modal-overlay" aria-hidden="true">
   <div class="modal-shell">
     <div class="modal-topbar">
@@ -6715,9 +6971,14 @@ body.performance-mode .peel-card-wrap .card.canon {
   const dailyPage = document.getElementById('daily');
   const shopPage = document.getElementById('shop');
   const aboutPage = document.getElementById('about');
+  const privacyPage = document.getElementById('privacy');
+  const termsPage = document.getElementById('terms');
+  const contactPage = document.getElementById('contact');
+  const attributionPage = document.getElementById('attribution');
   const collectionPage = document.getElementById('collection');
   const homeLogo = document.getElementById('homeLogo');
   const aboutLink = document.getElementById('aboutLink');
+  const footerInfoLinks = Array.from(document.querySelectorAll('[data-info-page]'));
   const pullArea = document.getElementById('pullArea');
   const dailyHuntsPanel = document.getElementById('dailyHuntsPanel');
   const shopPanel = document.getElementById('shopPanel');
@@ -14957,17 +15218,26 @@ body.performance-mode .peel-card-wrap .card.canon {
   }
 
   function showPage(id) {
+    const infoPageIds = ['about', 'privacy', 'terms', 'contact', 'attribution'];
+    const isInfoPage = infoPageIds.indexOf(id) !== -1;
     closeShareHelper();
     pullPage.classList.toggle('active', id === 'pull');
     dailyPage.classList.toggle('active', id === 'daily');
     shopPage.classList.toggle('active', id === 'shop');
     if (aboutPage) aboutPage.classList.toggle('active', id === 'about');
+    if (privacyPage) privacyPage.classList.toggle('active', id === 'privacy');
+    if (termsPage) termsPage.classList.toggle('active', id === 'terms');
+    if (contactPage) contactPage.classList.toggle('active', id === 'contact');
+    if (attributionPage) attributionPage.classList.toggle('active', id === 'attribution');
     collectionPage.classList.toggle('active', id === 'collection');
     pullTab.classList.toggle('active', id === 'pull');
     dailyTab.classList.toggle('active', id === 'daily');
     shopTab.classList.toggle('active', id === 'shop');
     collectionTab.classList.toggle('active', id === 'collection');
-    if (aboutLink) aboutLink.classList.toggle('is-active', id === 'about');
+    if (aboutLink) aboutLink.classList.toggle('is-active', isInfoPage);
+    footerInfoLinks.forEach(function (button) {
+      button.classList.toggle('is-active', button.getAttribute('data-info-page') === id);
+    });
     if (id !== 'collection') {
       const existingStoryDebugPreview = document.getElementById('storyDebugPreviewHost');
       if (existingStoryDebugPreview) existingStoryDebugPreview.remove();
@@ -14991,6 +15261,12 @@ body.performance-mode .peel-card-wrap .card.canon {
         showPage('about');
       });
     }
+    footerInfoLinks.forEach(function (button) {
+      button.addEventListener('click', function () {
+        const target = button.getAttribute('data-info-page');
+        if (target) showPage(target);
+      });
+    });
     if (performanceModeButton) {
       performanceModeButton.addEventListener('click', function () {
         performanceMode = !performanceMode;
