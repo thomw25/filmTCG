@@ -114,27 +114,7 @@ button, a, select { font: inherit; }
   right: 20px;
   display: grid;
   justify-items: end;
-  gap: 8px;
-}
-
-.header-about-link {
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: rgba(255,255,255,.52);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  transition: color 160ms ease, opacity 160ms ease, transform 160ms ease;
-}
-
-.header-about-link:hover {
-  color: rgba(255,255,255,.72);
-}
-
-.header-about-link.is-active {
-  color: rgba(255,255,255,.82);
+  gap: 6px;
 }
 
 .ticket-badge {
@@ -5812,9 +5792,6 @@ body.performance-mode .peel-card-wrap .card.canon {
     right: 12px;
     gap: 6px;
   }
-  .header-about-link {
-    font-size: 0.7rem;
-  }
   .ticket-badge {
     padding: 6px 9px;
     gap: 6px;
@@ -5894,7 +5871,6 @@ body.performance-mode .peel-card-wrap .card.canon {
   <div class="sub">Backend-aware artwork mode</div>
   <div class="sub" id="buildBadge">Build: logic-sync-200</div>
   <div class="header-side">
-    <button id="aboutLink" class="header-about-link" type="button">About filmTCG</button>
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
   </div>
 </div>
@@ -6977,7 +6953,6 @@ body.performance-mode .peel-card-wrap .card.canon {
   const attributionPage = document.getElementById('attribution');
   const collectionPage = document.getElementById('collection');
   const homeLogo = document.getElementById('homeLogo');
-  const aboutLink = document.getElementById('aboutLink');
   const footerInfoLinks = Array.from(document.querySelectorAll('[data-info-page]'));
   const pullArea = document.getElementById('pullArea');
   const dailyHuntsPanel = document.getElementById('dailyHuntsPanel');
@@ -15234,7 +15209,6 @@ body.performance-mode .peel-card-wrap .card.canon {
     dailyTab.classList.toggle('active', id === 'daily');
     shopTab.classList.toggle('active', id === 'shop');
     collectionTab.classList.toggle('active', id === 'collection');
-    if (aboutLink) aboutLink.classList.toggle('is-active', isInfoPage);
     footerInfoLinks.forEach(function (button) {
       button.classList.toggle('is-active', button.getAttribute('data-info-page') === id);
     });
@@ -15254,11 +15228,6 @@ body.performance-mode .peel-card-wrap .card.canon {
     if (homeLogo) {
       homeLogo.addEventListener('click', function () {
         showPage('pull');
-      });
-    }
-    if (aboutLink) {
-      aboutLink.addEventListener('click', function () {
-        showPage('about');
       });
     }
     footerInfoLinks.forEach(function (button) {
