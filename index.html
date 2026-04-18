@@ -4836,12 +4836,12 @@ body.performance-mode .peel-card-wrap .card.canon {
 .shop-open-shell {
   display: grid;
   justify-items: center;
-  gap: 14px;
-  width: min(100%, 420px);
+  gap: 16px;
+  width: min(100%, 520px);
 }
 
 .shop-open-shell.is-revealed {
-  width: min(100%, 460px);
+  width: min(100%, 620px);
 }
 
 .shop-open-pack-wrap {
@@ -4865,7 +4865,7 @@ body.performance-mode .peel-card-wrap .card.canon {
 .shop-open-reveal {
   width: 100%;
   display: grid;
-  gap: 12px;
+  gap: 14px;
   justify-items: center;
 }
 
@@ -4877,25 +4877,51 @@ body.performance-mode .peel-card-wrap .card.canon {
 
 .shop-open-card-wrap {
   width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
 }
 
-.shop-open-card-wrap .peel-card-wrap {
-  width: min(300px, calc(100vw - 122px));
-  height: calc(min(300px, calc(100vw - 122px)) * 1.4333);
+.shop-open-card-wrap .overlap-stack {
+  min-height: 476px;
+  width: 100%;
+}
+
+.shop-open-card-wrap .peel-card-wrap,
+.shop-open-card-wrap .overlap-ghost {
+  width: min(300px, calc(100vw - 132px));
+  height: calc(min(300px, calc(100vw - 132px)) * 1.4333);
 }
 
 .shop-open-card-wrap .stack-arrow {
-  position: static;
-  transform: none;
+  width: 46px;
+  height: 46px;
+}
+
+.shop-open-actions {
+  width: min(360px, 100%);
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.shop-open-actions-row {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.shop-open-repeat-btn {
+  min-width: 0;
+  flex: 1 1 190px;
+  justify-content: center;
 }
 
 .shop-open-close-btn {
   width: min(300px, calc(100vw - 72px));
-  margin-top: 4px;
+  margin-top: 0;
 }
 
 .empty-state {
@@ -5769,14 +5795,21 @@ body.performance-mode .peel-card-wrap .card.canon {
     height: calc(min(286px, calc(100vw - 44px)) * 1.4333);
   }
   .shop-open-card-wrap {
-    gap: 6px;
+    gap: 8px;
   }
-  .shop-open-card-wrap .peel-card-wrap {
-    width: min(286px, calc(100vw - 116px));
-    height: calc(min(286px, calc(100vw - 116px)) * 1.4333);
+  .shop-open-card-wrap .overlap-stack {
+    min-height: 430px;
+  }
+  .shop-open-card-wrap .peel-card-wrap,
+  .shop-open-card-wrap .overlap-ghost {
+    width: min(286px, calc(100vw - 124px));
+    height: calc(min(286px, calc(100vw - 124px)) * 1.4333);
   }
   .shop-open-close-btn {
     width: min(286px, calc(100vw - 56px));
+  }
+  .shop-open-actions {
+    width: min(320px, calc(100vw - 36px));
   }
 }
 
@@ -5869,7 +5902,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub" id="buildBadge">Build: logic-sync-200</div>
+  <div class="sub" id="buildBadge">Build: logic-sync-203</div>
   <div class="header-side">
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
   </div>
@@ -6441,7 +6474,7 @@ body.performance-mode .peel-card-wrap .card.canon {
       label: 'Gold Pack',
       ribbon: 'REWARD',
       title: 'Gold Pack',
-      blurb: 'Guaranteed purple or gold.',
+      blurb: 'All Epic or Legendary pulls.',
       colors: ['#fbbf24', '#f59e0b', '#92400e'],
       tier: 'Reward Pack',
       ink: '#23160a',
@@ -6663,7 +6696,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-200';
+  const BUILD_ID = 'logic-sync-203';
   const PAGE_PARAMS = new URLSearchParams(window.location.search);
   const DEBUG_STORY_PREVIEW = PAGE_PARAMS.get('debugStoryPreview') === '1';
   const DEBUG_STORY_SEED = PAGE_PARAMS.get('debugStorySeed') === '1';
@@ -6861,7 +6894,7 @@ body.performance-mode .peel-card-wrap .card.canon {
     { id: 'romcom', theme: 'romcom', label: "Rom-Com's Pack", blurb: 'Meet-cutes and memory plays.', price: 90 },
     { id: 'docs', theme: 'docs', label: 'Documentary Pack', blurb: 'Truth in card form.', price: 110 },
     { id: 'actors', theme: 'actors', label: 'Actors Pack', blurb: 'People-heavy pulls.', price: 110 },
-    { id: 'gold', theme: 'gold', label: 'Gold Pack', blurb: 'Guaranteed Epic or Legendary hit.', price: 500 }
+    { id: 'gold', theme: 'gold', label: 'Gold Pack', blurb: 'All Epic or Legendary pulls.', price: 500 }
   ];
   const SAMPLE_MOVIES = [
     { title: 'Jaws', rarity: 'Base', genre: 'Thriller', desc: 'Shark terrorizes a beach town.', packs: ['all', 'horror'] },
@@ -6990,6 +7023,10 @@ body.performance-mode .peel-card-wrap .card.canon {
   let lastTrackedPageId = '';
   let shopOverlayPack = [];
   let shopOverlayIndex = 0;
+  let shopOverlayPackSourceId = '';
+  let shopOverlayPackDef = null;
+  let shopOverlayOpening = false;
+  let shopOverlayAnimating = false;
 
   function normalizeBackendBase(value) {
     return typeof value === 'string' ? value.trim().replace(/\/+$/, '') : '';
@@ -9385,13 +9422,16 @@ body.performance-mode .peel-card-wrap .card.canon {
     return removed;
   }
 
-  function openShopPackOverlay(themeKey, label) {
+  function openShopPackOverlay(themeKey, label, packDef) {
     if (!shopOpenOverlay || !shopOpenPackWrap || !shopOpenStatus) return null;
     const resolvedTheme = normalizeOwnedPackTheme(themeKey || 'all');
+    shopOverlayPackDef = packDef || null;
+    shopOverlayOpening = true;
     if (shopOpenShell) shopOpenShell.classList.remove('is-revealed');
     if (shopOpenReveal) shopOpenReveal.innerHTML = '';
     shopOverlayPack = [];
     shopOverlayIndex = 0;
+    shopOverlayAnimating = false;
     shopOpenPackWrap.style.display = '';
     shopOpenStatus.style.display = '';
     shopOpenStatus.classList.remove('is-loading');
@@ -9421,7 +9461,15 @@ body.performance-mode .peel-card-wrap .card.canon {
     if (shopOpenReveal) shopOpenReveal.innerHTML = '';
     shopOverlayPack = [];
     shopOverlayIndex = 0;
+    shopOverlayPackDef = null;
+    shopOverlayOpening = false;
+    shopOverlayAnimating = false;
     document.body.classList.remove('overlay-open');
+  }
+
+  function shopOverlayProgressLabel() {
+    if (!Array.isArray(shopOverlayPack) || !shopOverlayPack.length) return '';
+    return 'Card ' + String(shopOverlayIndex + 1) + ' of ' + String(shopOverlayPack.length);
   }
 
   function renderShopOverlayCards() {
@@ -9431,45 +9479,82 @@ body.performance-mode .peel-card-wrap .card.canon {
       return;
     }
     const current = shopOverlayPack[shopOverlayIndex];
+    const prevOne = shopOverlayIndex > 0 ? shopOverlayPack[shopOverlayIndex - 1] : null;
+    const prevTwo = shopOverlayIndex > 1 ? shopOverlayPack[shopOverlayIndex - 2] : null;
+    const nextOne = shopOverlayIndex < shopOverlayPack.length - 1 ? shopOverlayPack[shopOverlayIndex + 1] : null;
+    const nextTwo = shopOverlayIndex < shopOverlayPack.length - 2 ? shopOverlayPack[shopOverlayIndex + 2] : null;
+    const remainingAfter = Math.max(0, shopOverlayPack.length - shopOverlayIndex - 1);
+    const seenBefore = Math.max(0, shopOverlayIndex);
+    const canRepeat = Boolean(shopOverlayPackDef)
+      && !shopOverlayOpening
+      && Math.max(0, Number(progress.tickets) || 0) >= Math.max(0, Number(shopOverlayPackDef.price) || 0);
+    let ghostMarkup = '';
+
+    if (seenBefore > 1 && prevTwo) ghostMarkup += buildGhostMarkup('is-left-2', prevTwo);
+    if (seenBefore > 0 && prevOne) ghostMarkup += buildGhostMarkup('is-left-1', prevOne);
+    if (remainingAfter > 1 && nextTwo) ghostMarkup += buildGhostMarkup('is-right-2', nextTwo);
+    if (remainingAfter > 0 && nextOne) ghostMarkup += buildGhostMarkup('is-right-1', nextOne);
     try {
       preloadPackCards(shopOverlayPack, shopOverlayIndex);
     } catch (error) {
       console.warn('[filmTCG] shop preload skipped', error);
     }
-    shopOpenReveal.innerHTML = '<div class="shop-open-progress">Card '
-      + String(shopOverlayIndex + 1)
-      + ' of '
-      + String(shopOverlayPack.length)
-      + '</div>'
+    shopOpenReveal.innerHTML = '<div class="shop-open-progress">' + shopOverlayProgressLabel() + '</div>'
       + '<div class="shop-open-card-wrap">'
+      + '<div class="overlap-stack">'
+      + ghostMarkup
       + '<button id="shopOverlayPrev" type="button" class="arrow stack-arrow is-left" aria-label="Previous card">&#8592;</button>'
-      + '<div class="peel-card-wrap rarity-' + escapeHtml(String((current.rarity || 'Base')).toLowerCase()) + '">' + buildCardMarkup(current) + '</div>'
+      + '<div class="overlap-count">' + String(remainingAfter) + '</div>'
+      + '<div class="peel-card-wrap rarity-' + escapeHtml(String((current.rarity || 'Base')).toLowerCase()) + '">' + buildCardMarkup(current, { includeQuickList: true }) + '</div>'
       + '<button id="shopOverlayNext" type="button" class="arrow stack-arrow is-right" aria-label="Next card">&#8594;</button>'
       + '</div>'
-      + '<button id="shopOverlayClose" type="button" class="back-btn shop-open-close-btn">Close</button>';
+      + '</div>'
+      + '<div class="shop-open-actions">'
+      + '<div class="carousel-open-more-note">Bought packs open here so you can browse the hits without losing your place in the shop.</div>'
+      + '<div class="shop-open-actions-row">'
+      + (shopOverlayPackDef
+        ? '<button id="shopOverlayRepeat" type="button" class="back-btn shop-open-repeat-btn' + (canRepeat ? '' : ' is-disabled') + '"' + (canRepeat ? '' : ' disabled') + '>Buy Another · ' + String(Math.max(0, Number(shopOverlayPackDef.price) || 0)) + ' Tickets</button>'
+        : '')
+      + '<button id="shopOverlayClose" type="button" class="back-btn shop-open-close-btn">Back to Shop</button>'
+      + '</div>'
+      + '</div>';
     addImageFallbacks(shopOpenReveal);
     attachBookmarkButtons(shopOpenReveal, function () { return current; });
+    attachQuickListButtons(shopOpenReveal, function () { return current; });
     const peelWrap = shopOpenReveal.querySelector('.peel-card-wrap');
     attachPackCardInteractions(peelWrap, current);
+    if (peelWrap) {
+      peelWrap.classList.add(lastPeelDirection === 'prev' ? 'is-peeling-in-prev' : 'is-peeling-in-next');
+      setTimeout(function () {
+        peelWrap.classList.remove('is-peeling-in-next');
+        peelWrap.classList.remove('is-peeling-in-prev');
+      }, carouselPeelInCleanupMs());
+    }
     const prevButton = document.getElementById('shopOverlayPrev');
     const nextButton = document.getElementById('shopOverlayNext');
     const closeButton = document.getElementById('shopOverlayClose');
+    const repeatButton = document.getElementById('shopOverlayRepeat');
     if (prevButton) {
       prevButton.addEventListener('click', function () {
-        if (!shopOverlayPack.length) return;
-        shopOverlayIndex = (shopOverlayIndex - 1 + shopOverlayPack.length) % shopOverlayPack.length;
-        renderShopOverlayCards();
+        animateShopOverlayToCard('prev');
       });
     }
     if (nextButton) {
       nextButton.addEventListener('click', function () {
-        if (!shopOverlayPack.length) return;
-        shopOverlayIndex = (shopOverlayIndex + 1) % shopOverlayPack.length;
-        renderShopOverlayCards();
+        animateShopOverlayToCard('next');
       });
     }
     if (closeButton) {
       closeButton.addEventListener('click', closeShopPackOverlay);
+    }
+    if (repeatButton && shopOverlayPackDef) {
+      repeatButton.addEventListener('click', function () {
+        if (shopOverlayOpening) return;
+        buyShopPack(shopOverlayPackDef.id, {
+          skipToast: true,
+          source: 'overlay-repeat'
+        });
+      });
     }
   }
 
@@ -9485,7 +9570,31 @@ body.performance-mode .peel-card-wrap .card.canon {
     shopOpenStatus.style.display = 'none';
     shopOverlayPack = sortPackForReveal(sourceCards);
     shopOverlayIndex = 0;
+    shopOverlayOpening = false;
+    shopOverlayAnimating = false;
+    lastPeelDirection = 'next';
     renderShopOverlayCards();
+  }
+
+  function animateShopOverlayToCard(direction) {
+    if (!shopOverlayPack.length || shopOverlayAnimating) return;
+    shopOverlayAnimating = true;
+    lastPeelDirection = direction === 'prev' ? 'prev' : 'next';
+    const wrap = shopOpenReveal ? shopOpenReveal.querySelector('.peel-card-wrap') : null;
+    if (wrap) {
+      wrap.classList.remove('is-peeling-in-next');
+      wrap.classList.remove('is-peeling-in-prev');
+      wrap.classList.add(direction === 'prev' ? 'is-peeling-out-prev' : 'is-peeling-out-next');
+    }
+    setTimeout(function () {
+      shopOverlayIndex = direction === 'next'
+        ? (shopOverlayIndex + 1) % shopOverlayPack.length
+        : (shopOverlayIndex - 1 + shopOverlayPack.length) % shopOverlayPack.length;
+      renderShopOverlayCards();
+      setTimeout(function () {
+        shopOverlayAnimating = false;
+      }, carouselPeelUnlockMs());
+    }, carouselPeelOutSwitchMs());
   }
 
   function duplicateTradeSummary() {
@@ -9584,11 +9693,12 @@ body.performance-mode .peel-card-wrap .card.canon {
 
   async function openThemedPackInShop(themeKey, label, openOptions) {
     const config = openOptions || {};
-    const overlayUi = openShopPackOverlay(themeKey, label);
+    const resolvedThemeKey = normalizeOwnedPackTheme(themeKey || 'all');
+    const overlayUi = openShopPackOverlay(themeKey, label, config.packDef || null);
     try {
       const openedPack = await openPack({
-        themeKey: normalizeOwnedPackTheme(themeKey || 'all'),
-        forceRewardOpen: Boolean(config.forceRewardOpen),
+        themeKey: resolvedThemeKey,
+        forceRewardOpen: Boolean(config.forceRewardOpen) || resolvedThemeKey === 'gold',
         ignoreRewardChoiceGate: true,
         revealCarousel: false,
         openingElement: overlayUi && overlayUi.packElement ? overlayUi.packElement : null,
@@ -9606,11 +9716,13 @@ body.performance-mode .peel-card-wrap .card.canon {
     }
   }
 
-  async function buyShopPack(packId) {
+  async function buyShopPack(packId, options) {
+    const config = options || {};
     const packDef = SHOP_PACKS.find(function (item) {
       return item && item.id === packId;
     });
     if (!packDef) return;
+    if (shopOverlayOpening) return;
     const price = Math.max(0, Number(packDef.price) || 0);
     const balance = Math.max(0, Number(progress.tickets) || 0);
     if (balance < price) {
@@ -9618,15 +9730,20 @@ body.performance-mode .peel-card-wrap .card.canon {
       return;
     }
 
+    shopOverlayOpening = true;
     progress.tickets = balance - price;
     saveProgress();
     updatePackMeta();
     renderShop();
-    showToast('Bought ' + packDef.label + '. Opening now...');
+    if (!config.skipToast) {
+      showToast('Bought ' + packDef.label + '. Opening now...');
+    }
     const opened = await openThemedPackInShop(packDef.theme, packDef.label, {
-      forceRewardOpen: false
+      forceRewardOpen: false,
+      packDef: packDef
     });
     if (!opened) {
+      shopOverlayOpening = false;
       progress.tickets = balance;
       saveProgress();
       updatePackMeta();
@@ -14461,12 +14578,19 @@ body.performance-mode .peel-card-wrap .card.canon {
     const forceRewardBehavior = Boolean(config.forceRewardBehavior);
     const sourcePool = Array.isArray(pool) ? pool : [];
     if (!sourcePool.length) return Promise.resolve([]);
+    const isGoldPack = packThemeKey === 'gold';
+    const premiumFilmPool = isGoldPack
+      ? sourcePool.filter(function (movie) {
+        return movie && movie.cardType !== 'person' && rarityRank(movie.rarity) >= 3;
+      })
+      : [];
+    const workingPool = premiumFilmPool.length ? premiumFilmPool : sourcePool;
     const drafted = [];
     const seenTitles = new Set();
     const ownedTitles = buildOwnedFilmTitleSet();
     const isRewardPack = forceRewardBehavior;
     const isBoostedRewardPack = isRewardPack;
-    const shouldTryPersonInsert = sourcePool.some(function (movie) {
+    const shouldTryPersonInsert = !isGoldPack && sourcePool.some(function (movie) {
       return movie && movie.cardType !== 'person' && Number(movie.tmdbId) > 0;
     });
     const actorPackPersonSlots = packThemeKey === 'actors' && shouldTryPersonInsert ? 4 : 0;
@@ -14474,7 +14598,7 @@ body.performance-mode .peel-card-wrap .card.canon {
     const filmSlots = Math.max(0, PACK_SIZE - personSlots);
 
     for (let i = 0; i < filmSlots; i += 1) {
-      const movie = chooseMovieForPack(sourcePool, seenTitles, isBoostedRewardPack && i === 0, ownedTitles, {
+      const movie = chooseMovieForPack(workingPool, seenTitles, isGoldPack || (isBoostedRewardPack && i === 0), ownedTitles, {
         draftedCards: drafted,
         isRewardPack: isBoostedRewardPack,
         remainingSlots: filmSlots - i,
@@ -14482,13 +14606,13 @@ body.performance-mode .peel-card-wrap .card.canon {
       });
       drafted.push(movie);
       const movieKey = filmIdentityKey(movie);
-      if (sourcePool.length > PACK_SIZE && movieKey) seenTitles.add(movieKey);
+      if (workingPool.length > PACK_SIZE && movieKey) seenTitles.add(movieKey);
     }
 
     const fillFallbacks = function () {
       while (drafted.length < PACK_SIZE) {
         const remainingFilmSlots = Math.max(1, PACK_SIZE - drafted.length);
-        const fallbackMovie = chooseMovieForPack(sourcePool, seenTitles, false, ownedTitles, {
+        const fallbackMovie = chooseMovieForPack(workingPool, seenTitles, isGoldPack, ownedTitles, {
           draftedCards: drafted,
           isRewardPack: isBoostedRewardPack,
           remainingSlots: remainingFilmSlots,
@@ -14496,7 +14620,7 @@ body.performance-mode .peel-card-wrap .card.canon {
         });
         drafted.push(fallbackMovie);
         const fallbackKey = filmIdentityKey(fallbackMovie);
-        if (sourcePool.length > PACK_SIZE && fallbackKey) seenTitles.add(fallbackKey);
+        if (workingPool.length > PACK_SIZE && fallbackKey) seenTitles.add(fallbackKey);
       }
       return drafted;
     };
