@@ -4862,8 +4862,8 @@ body.performance-mode .peel-card-wrap .card.canon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: fit-content;
-  height: fit-content;
+  width: 100%;
+  height: calc(min(300px, calc(100vw - 64px)) * 1.4333);
   overflow: visible;
   will-change: transform;
   transform-origin: center 62%;
@@ -5879,6 +5879,9 @@ body.performance-mode .peel-card-wrap .card.canon {
   .shop-open-pack-wrap .pack {
     height: calc(min(286px, calc(100vw - 44px)) * 1.4333);
   }
+  .shop-open-pack-idle {
+    height: calc(min(286px, calc(100vw - 44px)) * 1.4333);
+  }
   .shop-open-status {
     min-height: 3.2em;
     max-width: 28ch;
@@ -5994,7 +5997,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub" id="buildBadge">Build: logic-sync-206</div>
+  <div class="sub" id="buildBadge">Build: logic-sync-207</div>
   <div class="header-side">
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
   </div>
@@ -6788,7 +6791,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-206';
+  const BUILD_ID = 'logic-sync-207';
   const PAGE_PARAMS = new URLSearchParams(window.location.search);
   const DEBUG_STORY_PREVIEW = PAGE_PARAMS.get('debugStoryPreview') === '1';
   const DEBUG_STORY_SEED = PAGE_PARAMS.get('debugStorySeed') === '1';
@@ -9731,7 +9734,6 @@ body.performance-mode .peel-card-wrap .card.canon {
   function renderShopOverlayPreview(packDef) {
     if (!packDef || !shopOpenReveal || !shopOpenStatus) return;
     const canAfford = Math.max(0, Number(progress.tickets) || 0) >= Math.max(0, Number(packDef.price) || 0);
-    const draftReady = Boolean(getShopPackDraft(packDef.id));
     shopOverlayMode = 'preview';
     shopOverlayOpening = false;
     shopOpenPackWrap.classList.add('is-floating');
@@ -9743,7 +9745,7 @@ body.performance-mode .peel-card-wrap .card.canon {
       + escapeHtml(packDef.blurb || '')
       + '</div>'
       + '<div class="shop-open-inline-hint">'
-      + escapeHtml(draftReady ? 'Tap the pack or button below to open it.' : 'Tap the pack to open once it is ready, or use the button below.')
+      + 'Tap the pack or button below to open it.'
       + '</div>'
       + '<div class="shop-open-actions">'
       + '<div class="shop-open-actions-row">'
@@ -9789,11 +9791,6 @@ body.performance-mode .peel-card-wrap .card.canon {
     });
     openShopPackOverlay(packDef.theme, packDef.label, packDef);
     renderShopOverlayPreview(packDef);
-    warmShopPackDraft(packDef).then(function () {
-      if (shopOverlayMode === 'preview' && shopOverlayPackDef && shopOverlayPackDef.id === packDef.id) {
-        renderShopOverlayPreview(packDef);
-      }
-    }).catch(function () { return null; });
   }
 
   function shopOverlayProgressLabel() {
@@ -10080,14 +10077,10 @@ body.performance-mode .peel-card-wrap .card.canon {
     if (!config.skipToast) {
       showToast('Bought ' + packDef.label + '. Opening now...');
     }
-    let draftedPack = consumeShopPackDraft(packDef.id);
-    if (!draftedPack) {
-      draftedPack = await waitForShopPackDraft(packDef.id);
-    }
     const opened = await openThemedPackInShop(packDef.theme, packDef.label, {
       forceRewardOpen: false,
       packDef: packDef,
-      draftedPack: draftedPack
+      draftedPack: null
     });
     if (!opened) {
       shopOverlayOpening = false;
@@ -10271,7 +10264,6 @@ body.performance-mode .peel-card-wrap .card.canon {
         }).join('');
       }
       bindShopActions(shopGrid);
-      warmShopPackDrafts();
     }, 0);
   }
 
