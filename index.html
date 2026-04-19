@@ -4842,7 +4842,7 @@ body.performance-mode .peel-card-wrap .card.canon {
 .shop-open-shell {
   display: grid;
   justify-items: center;
-  gap: 16px;
+  gap: 20px;
   width: min(100%, 520px);
 }
 
@@ -4854,6 +4854,41 @@ body.performance-mode .peel-card-wrap .card.canon {
   width: min(300px, calc(100vw - 64px));
   display: grid;
   justify-items: center;
+  min-height: calc(min(300px, calc(100vw - 64px)) * 1.4333);
+  cursor: default;
+}
+
+.shop-open-pack-idle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  height: fit-content;
+  overflow: visible;
+  will-change: transform;
+  transform-origin: center 62%;
+}
+
+.shop-open-pack-wrap.is-floating .shop-open-pack-idle {
+  animation: packHover 4.6s ease-in-out infinite;
+}
+
+.shop-open-pack-wrap.is-previewable {
+  cursor: pointer;
+}
+
+.shop-open-pack-wrap.is-previewable .pack {
+  transition: transform .24s ease, filter .24s ease;
+}
+
+.shop-open-pack-wrap.is-previewable:hover .pack,
+.shop-open-pack-wrap.is-previewable:focus-visible .pack {
+  transform: translateY(-4px) scale(1.01);
+  filter: saturate(1.03) brightness(1.018);
+}
+
+.shop-open-pack-wrap.is-previewable:focus-visible {
+  outline: none;
 }
 
 .shop-open-pack-wrap .pack {
@@ -4866,6 +4901,12 @@ body.performance-mode .peel-card-wrap .card.canon {
   color: #e8f1ff;
   font-size: 0.88rem;
   text-align: center;
+  max-width: 32ch;
+  min-height: 2.8em;
+  display: grid;
+  align-items: center;
+  align-content: center;
+  order: -1;
 }
 
 .shop-open-reveal {
@@ -4879,6 +4920,20 @@ body.performance-mode .peel-card-wrap .card.canon {
   font-size: 0.84rem;
   color: rgba(232,241,255,.9);
   text-align: center;
+}
+
+.shop-open-preview-note {
+  font-size: 0.84rem;
+  color: rgba(232,241,255,.76);
+  text-align: center;
+  max-width: 30ch;
+}
+
+.shop-open-inline-hint {
+  font-size: 0.79rem;
+  color: rgba(232,241,255,.62);
+  text-align: center;
+  margin-top: -6px;
 }
 
 .shop-open-card-wrap {
@@ -4928,6 +4983,26 @@ body.performance-mode .peel-card-wrap .card.canon {
 .shop-open-close-btn {
   width: min(300px, calc(100vw - 72px));
   margin-top: 0;
+}
+
+.shop-pack-preview {
+  border: none;
+  background: transparent;
+  padding: 0;
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  cursor: pointer;
+}
+
+.shop-pack-preview:hover .pack,
+.shop-pack-preview:focus-visible .pack {
+  transform: translateY(-3px) scale(1.01);
+  filter: saturate(1.03) brightness(1.012);
+}
+
+.shop-pack-preview:focus-visible {
+  outline: none;
 }
 
 .empty-state {
@@ -5798,8 +5873,18 @@ body.performance-mode .peel-card-wrap .card.canon {
   .shop-open-pack-wrap {
     width: min(286px, calc(100vw - 44px));
   }
+  .shop-open-pack-wrap {
+    min-height: calc(min(286px, calc(100vw - 44px)) * 1.4333);
+  }
   .shop-open-pack-wrap .pack {
     height: calc(min(286px, calc(100vw - 44px)) * 1.4333);
+  }
+  .shop-open-status {
+    min-height: 3.2em;
+    max-width: 28ch;
+  }
+  .shop-open-inline-hint {
+    margin-top: -2px;
   }
   .shop-open-card-wrap {
     gap: 8px;
@@ -5909,7 +5994,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub" id="buildBadge">Build: logic-sync-205</div>
+  <div class="sub" id="buildBadge">Build: logic-sync-206</div>
   <div class="header-side">
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
   </div>
@@ -6703,7 +6788,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-205';
+  const BUILD_ID = 'logic-sync-206';
   const PAGE_PARAMS = new URLSearchParams(window.location.search);
   const DEBUG_STORY_PREVIEW = PAGE_PARAMS.get('debugStoryPreview') === '1';
   const DEBUG_STORY_SEED = PAGE_PARAMS.get('debugStorySeed') === '1';
@@ -6979,6 +7064,8 @@ body.performance-mode .peel-card-wrap .card.canon {
   const rewardThemePreloadPromises = new Map();
   const rewardPackDraftCache = new Map();
   const rewardPackDraftPromises = new Map();
+  const shopPackDraftCache = new Map();
+  const shopPackDraftPromises = new Map();
   let queuedNextPackCards = null;
   let queuedNextPackPromise = null;
   let queuedNextPackContextKey = '';
@@ -7034,6 +7121,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   let shopOverlayPackDef = null;
   let shopOverlayOpening = false;
   let shopOverlayAnimating = false;
+  let shopOverlayMode = 'closed';
 
   function normalizeBackendBase(value) {
     return typeof value === 'string' ? value.trim().replace(/\/+$/, '') : '';
@@ -8869,6 +8957,18 @@ body.performance-mode .peel-card-wrap .card.canon {
     ].join('|');
   }
 
+  function shopPackDraftContextKey(packId) {
+    return [
+      String(packId || ''),
+      String(currentLiveDrawCycleKey()),
+      String(currentReelCycleKey()),
+      String(dataSourceLabel || ''),
+      String(Math.max(0, Number(progress.standardPacksOpened) || 0)),
+      String(Math.max(0, Number(progress.rewardChoicesAvailable) || 0)),
+      String(Boolean(needsPoolRestoreAfterReward))
+    ].join('|');
+  }
+
   function invalidateRewardPackDrafts(themeKey) {
     if (themeKey) {
       const normalizedThemeKey = normalizeOwnedPackTheme(themeKey);
@@ -8878,6 +8978,17 @@ body.performance-mode .peel-card-wrap .card.canon {
     }
     rewardPackDraftCache.clear();
     rewardPackDraftPromises.clear();
+  }
+
+  function invalidateShopPackDrafts(packId) {
+    if (packId) {
+      const key = String(packId || '');
+      shopPackDraftCache.delete(key);
+      shopPackDraftPromises.delete(key);
+      return;
+    }
+    shopPackDraftCache.clear();
+    shopPackDraftPromises.clear();
   }
 
   function getRewardPackDraft(themeKey) {
@@ -8910,6 +9021,125 @@ body.performance-mode .peel-card-wrap .card.canon {
       return draftedPack.slice();
     }).catch(function () {
       return null;
+    });
+  }
+
+  function getShopPackDraft(packId) {
+    const key = String(packId || '');
+    const contextKey = shopPackDraftContextKey(key);
+    const cached = shopPackDraftCache.get(key);
+    if (!cached || cached.contextKey !== contextKey || !Array.isArray(cached.cards) || !cached.cards.length) {
+      return null;
+    }
+    return cached.cards.slice();
+  }
+
+  function consumeShopPackDraft(packId) {
+    const key = String(packId || '');
+    const draft = getShopPackDraft(key);
+    if (!draft) return null;
+    shopPackDraftCache.delete(key);
+    shopPackDraftPromises.delete(key);
+    return draft;
+  }
+
+  function waitForShopPackDraft(packId) {
+    const key = String(packId || '');
+    const contextKey = shopPackDraftContextKey(key);
+    const inflight = shopPackDraftPromises.get(key);
+    if (!inflight || inflight.contextKey !== contextKey) return Promise.resolve(null);
+    return inflight.promise.then(function (draftedPack) {
+      if (!Array.isArray(draftedPack) || !draftedPack.length) return null;
+      if (shopPackDraftContextKey(key) !== contextKey) return null;
+      return draftedPack.slice();
+    }).catch(function () {
+      return null;
+    });
+  }
+
+  function fetchShopPackPoolSnapshot(packDef) {
+    if (!packDef) return Promise.resolve(null);
+    const poolThemeKey = packDef.theme === 'gold' ? 'all' : normalizeOwnedPackTheme(packDef.theme || 'all');
+    if (dataSourceLabel.indexOf('TMDB') === -1) {
+      return Promise.resolve({
+        themeKey: poolThemeKey,
+        movies: getPackPool(poolThemeKey).map(cloneMovie),
+        sourceLabel: dataSourceLabel || 'Local'
+      });
+    }
+    const cachedSnapshot = getRewardThemePoolSnapshot(poolThemeKey);
+    if (cachedSnapshot && cachedSnapshot.movies.length >= 50) {
+      return Promise.resolve(cachedSnapshot);
+    }
+    if (rewardThemePreloadPromises.has(poolThemeKey)) {
+      return rewardThemePreloadPromises.get(poolThemeKey);
+    }
+    return fetchThemePoolSnapshot(poolThemeKey, false);
+  }
+
+  function warmShopPackDraft(packDef) {
+    if (!packDef) return Promise.resolve(null);
+    const key = String(packDef.id || '');
+    const contextKey = shopPackDraftContextKey(key);
+    const cached = shopPackDraftCache.get(key);
+    if (cached && cached.contextKey === contextKey && Array.isArray(cached.cards) && cached.cards.length) {
+      return Promise.resolve(cached.cards.slice());
+    }
+    const inflight = shopPackDraftPromises.get(key);
+    if (inflight && inflight.contextKey === contextKey) {
+      return inflight.promise;
+    }
+
+    const promise = fetchShopPackPoolSnapshot(packDef)
+      .then(function (snapshot) {
+        if (!snapshot || !Array.isArray(snapshot.movies) || !snapshot.movies.length) return null;
+        if (snapshot.themeKey) rewardThemePoolCache.set(String(snapshot.themeKey), snapshot);
+        return buildDraftPack(snapshot.movies, {
+          themeKey: packDef.theme,
+          forceRewardBehavior: packDef.theme === 'gold'
+        });
+      })
+      .then(function (draftedPack) {
+        if (!Array.isArray(draftedPack) || !draftedPack.length) return null;
+        if (shopPackDraftContextKey(key) !== contextKey) return null;
+        shopPackDraftCache.set(key, {
+          contextKey: contextKey,
+          cards: draftedPack.slice()
+        });
+        return draftedPack.slice();
+      })
+      .catch(function () {
+        return null;
+      })
+      .finally(function () {
+        const current = shopPackDraftPromises.get(key);
+        if (current && current.contextKey === contextKey) {
+          shopPackDraftPromises.delete(key);
+        }
+      });
+
+    shopPackDraftPromises.set(key, {
+      contextKey: contextKey,
+      promise: promise
+    });
+    return promise;
+  }
+
+  function warmShopPackDrafts() {
+    if (!shopPage || !shopPage.classList.contains('active')) return;
+    const queue = SHOP_PACKS.slice();
+    queue.forEach(function (packDef, index) {
+      const startWarm = function () {
+        warmShopPackDraft(packDef).catch(function () { return null; });
+      };
+      const delay = (performanceMode ? 100 : 60) * index;
+      if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(function () {
+          setTimeout(startWarm, delay);
+        }, { timeout: performanceMode ? 700 + delay : 420 + delay });
+      } else {
+        setTimeout(startWarm, delay);
+      }
     });
   }
 
@@ -9446,18 +9676,26 @@ body.performance-mode .peel-card-wrap .card.canon {
     const resolvedTheme = normalizeOwnedPackTheme(themeKey || 'all');
     shopOverlayPackDef = packDef || null;
     shopOverlayOpening = true;
+    shopOverlayMode = 'opening';
     if (shopOpenShell) shopOpenShell.classList.remove('is-revealed');
     if (shopOpenReveal) shopOpenReveal.innerHTML = '';
     shopOverlayPack = [];
     shopOverlayIndex = 0;
     shopOverlayAnimating = false;
+    shopOpenPackWrap.classList.add('is-floating');
+    shopOpenPackWrap.classList.remove('is-previewable');
+    shopOpenPackWrap.removeAttribute('tabindex');
+    shopOpenPackWrap.onclick = null;
+    shopOpenPackWrap.onkeydown = null;
     shopOpenPackWrap.style.display = '';
     shopOpenStatus.style.display = '';
     shopOpenStatus.classList.remove('is-loading');
     shopOpenStatus.classList.remove('is-fading');
-    shopOpenPackWrap.innerHTML = buildPackFaceMarkup(resolvedTheme, {
-      id: 'shopOverlayPackFace'
-    });
+    shopOpenPackWrap.innerHTML = '<div class="shop-open-pack-idle">'
+      + buildPackFaceMarkup(resolvedTheme, {
+        id: 'shopOverlayPackFace'
+      })
+      + '</div>';
     shopOpenStatus.textContent = label
       ? ('Opening ' + label + '...')
       : 'Opening pack...';
@@ -9477,13 +9715,85 @@ body.performance-mode .peel-card-wrap .card.canon {
     shopOpenOverlay.setAttribute('aria-hidden', 'true');
     if (shopOpenShell) shopOpenShell.classList.remove('is-revealed');
     if (shopOpenPackWrap) shopOpenPackWrap.innerHTML = '';
+    if (shopOpenPackWrap) shopOpenPackWrap.classList.remove('is-floating');
+    if (shopOpenPackWrap) shopOpenPackWrap.classList.remove('is-previewable');
+    if (shopOpenPackWrap) shopOpenPackWrap.removeAttribute('tabindex');
     if (shopOpenReveal) shopOpenReveal.innerHTML = '';
     shopOverlayPack = [];
     shopOverlayIndex = 0;
     shopOverlayPackDef = null;
     shopOverlayOpening = false;
     shopOverlayAnimating = false;
+    shopOverlayMode = 'closed';
     document.body.classList.remove('overlay-open');
+  }
+
+  function renderShopOverlayPreview(packDef) {
+    if (!packDef || !shopOpenReveal || !shopOpenStatus) return;
+    const canAfford = Math.max(0, Number(progress.tickets) || 0) >= Math.max(0, Number(packDef.price) || 0);
+    const draftReady = Boolean(getShopPackDraft(packDef.id));
+    shopOverlayMode = 'preview';
+    shopOverlayOpening = false;
+    shopOpenPackWrap.classList.add('is-floating');
+    shopOpenPackWrap.classList.add('is-previewable');
+    shopOpenPackWrap.setAttribute('tabindex', '0');
+    shopOpenStatus.textContent = 'Previewing ' + packDef.label + '.';
+    shopOpenStatus.classList.add('is-live');
+    shopOpenReveal.innerHTML = '<div class="shop-open-preview-note">'
+      + escapeHtml(packDef.blurb || '')
+      + '</div>'
+      + '<div class="shop-open-inline-hint">'
+      + escapeHtml(draftReady ? 'Tap the pack or button below to open it.' : 'Tap the pack to open once it is ready, or use the button below.')
+      + '</div>'
+      + '<div class="shop-open-actions">'
+      + '<div class="shop-open-actions-row">'
+      + '<button id="shopOverlayBuyPreview" type="button" class="back-btn shop-open-repeat-btn"' + (canAfford ? '' : ' disabled') + '>Buy + Open · ' + String(Math.max(0, Number(packDef.price) || 0)) + ' Tickets</button>'
+      + '<button id="shopOverlayClose" type="button" class="back-btn shop-open-close-btn">Back to Shop</button>'
+      + '</div>'
+      + '</div>';
+    const buyButton = document.getElementById('shopOverlayBuyPreview');
+    const closeButton = document.getElementById('shopOverlayClose');
+    const openPreviewPack = function () {
+      if (!canAfford || shopOverlayOpening) return;
+      buyShopPack(packDef.id, {
+        skipToast: true,
+        source: 'overlay-pack-tap'
+      });
+    };
+    if (shopOpenPackWrap) {
+      shopOpenPackWrap.onclick = openPreviewPack;
+      shopOpenPackWrap.onkeydown = function (event) {
+        if (!event) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openPreviewPack();
+        }
+      };
+    }
+    if (buyButton) {
+      buyButton.addEventListener('click', openPreviewPack);
+    }
+    if (closeButton) {
+      closeButton.addEventListener('click', closeShopPackOverlay);
+    }
+  }
+
+  function previewShopPack(packId) {
+    const packDef = SHOP_PACKS.find(function (item) {
+      return item && item.id === packId;
+    });
+    if (!packDef) return;
+    trackAction('shop_pack_preview_opened', {
+      pack: packDef.id,
+      theme: packDef.theme
+    });
+    openShopPackOverlay(packDef.theme, packDef.label, packDef);
+    renderShopOverlayPreview(packDef);
+    warmShopPackDraft(packDef).then(function () {
+      if (shopOverlayMode === 'preview' && shopOverlayPackDef && shopOverlayPackDef.id === packDef.id) {
+        renderShopOverlayPreview(packDef);
+      }
+    }).catch(function () { return null; });
   }
 
   function shopOverlayProgressLabel() {
@@ -9585,6 +9895,12 @@ body.performance-mode .peel-card-wrap .card.canon {
       return;
     }
     if (shopOpenShell) shopOpenShell.classList.add('is-revealed');
+    shopOverlayMode = 'reveal';
+    shopOpenPackWrap.classList.remove('is-floating');
+    shopOpenPackWrap.classList.remove('is-previewable');
+    shopOpenPackWrap.removeAttribute('tabindex');
+    shopOpenPackWrap.onclick = null;
+    shopOpenPackWrap.onkeydown = null;
     shopOpenPackWrap.style.display = 'none';
     shopOpenStatus.style.display = 'none';
     shopOverlayPack = sortPackForReveal(sourceCards);
@@ -9720,6 +10036,7 @@ body.performance-mode .peel-card-wrap .card.canon {
         forceRewardOpen: Boolean(config.forceRewardOpen) || resolvedThemeKey === 'gold',
         ignoreRewardChoiceGate: true,
         revealCarousel: false,
+        draftedPack: Array.isArray(config.draftedPack) ? config.draftedPack : null,
         openingElement: overlayUi && overlayUi.packElement ? overlayUi.packElement : null,
         statusElement: overlayUi && overlayUi.statusElement ? overlayUi.statusElement : null
       });
@@ -9763,9 +10080,14 @@ body.performance-mode .peel-card-wrap .card.canon {
     if (!config.skipToast) {
       showToast('Bought ' + packDef.label + '. Opening now...');
     }
+    let draftedPack = consumeShopPackDraft(packDef.id);
+    if (!draftedPack) {
+      draftedPack = await waitForShopPackDraft(packDef.id);
+    }
     const opened = await openThemedPackInShop(packDef.theme, packDef.label, {
       forceRewardOpen: false,
-      packDef: packDef
+      packDef: packDef,
+      draftedPack: draftedPack
     });
     if (!opened) {
       shopOverlayOpening = false;
@@ -9872,7 +10194,7 @@ body.performance-mode .peel-card-wrap .card.canon {
       previewMarkup = buildShopFallbackPreview(packDef);
     }
     return '<div class="shop-item' + (isGoldPack ? ' is-gold' : '') + '">'
-      + '<div class="shop-pack-preview">' + previewMarkup + '</div>'
+      + '<button class="shop-pack-preview" type="button" data-preview-shop-pack="' + escapeHtml(packDef.id) + '" aria-label="Preview ' + escapeHtml(packDef.label) + '">' + previewMarkup + '</button>'
       + '<div class="shop-item-title">' + escapeHtml(packDef.label) + '</div>'
       + (isGoldPack && packDef.blurb ? '<div class="shop-item-meta">' + escapeHtml(packDef.blurb || '') + '</div>' : '')
       + '<div class="shop-action-row">'
@@ -9883,6 +10205,11 @@ body.performance-mode .peel-card-wrap .card.canon {
 
   function bindShopActions(root) {
     if (!root) return;
+    root.querySelectorAll('[data-preview-shop-pack]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        previewShopPack(button.getAttribute('data-preview-shop-pack'));
+      });
+    });
     root.querySelectorAll('[data-buy-open-pack]').forEach(function (button) {
       button.addEventListener('click', function () {
         buyShopPack(button.getAttribute('data-buy-open-pack'));
@@ -9934,16 +10261,17 @@ body.performance-mode .peel-card-wrap .card.canon {
         shopGrid.innerHTML = SHOP_PACKS.map(function (packDef) {
           const isGoldPack = packDef && packDef.theme === 'gold';
           return '<div class="shop-item' + (isGoldPack ? ' is-gold' : '') + '">'
-            + '<div class="shop-pack-preview">' + buildShopFallbackPreview(packDef) + '</div>'
+            + '<button class="shop-pack-preview" type="button" data-preview-shop-pack="' + escapeHtml(packDef.id) + '" aria-label="Preview ' + escapeHtml(packDef.label) + '">' + buildShopFallbackPreview(packDef) + '</button>'
             + '<div class="shop-item-title">' + escapeHtml(packDef.label) + '</div>'
             + (isGoldPack && packDef.blurb ? '<div class="shop-item-meta">' + escapeHtml(packDef.blurb || '') + '</div>' : '')
             + '<div class="shop-action-row">'
             + '<button class="shop-buy-open-btn" type="button" data-buy-open-pack="' + escapeHtml(packDef.id) + '"' + (tickets >= Number(packDef.price) ? '' : ' disabled') + '>Buy + Open · ' + String(packDef.price) + ' Tickets</button>'
             + '</div>'
-            + '</div>';
+          + '</div>';
         }).join('');
       }
       bindShopActions(shopGrid);
+      warmShopPackDrafts();
     }, 0);
   }
 
