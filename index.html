@@ -6000,7 +6000,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub" id="buildBadge">Build: logic-sync-207</div>
+  <div class="sub" id="buildBadge">Build: logic-sync-208</div>
   <div class="header-side">
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
   </div>
@@ -6794,7 +6794,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-207';
+  const BUILD_ID = 'logic-sync-208';
   const PAGE_PARAMS = new URLSearchParams(window.location.search);
   const DEBUG_STORY_PREVIEW = PAGE_PARAMS.get('debugStoryPreview') === '1';
   const DEBUG_STORY_SEED = PAGE_PARAMS.get('debugStorySeed') === '1';
@@ -9724,6 +9724,8 @@ body.performance-mode .peel-card-wrap .card.canon {
     if (shopOpenPackWrap) shopOpenPackWrap.classList.remove('is-floating');
     if (shopOpenPackWrap) shopOpenPackWrap.classList.remove('is-previewable');
     if (shopOpenPackWrap) shopOpenPackWrap.removeAttribute('tabindex');
+    if (shopOpenPackWrap) shopOpenPackWrap.onclick = null;
+    if (shopOpenPackWrap) shopOpenPackWrap.onkeydown = null;
     if (shopOpenReveal) shopOpenReveal.innerHTML = '';
     shopOverlayPack = [];
     shopOverlayIndex = 0;
@@ -13885,7 +13887,8 @@ body.performance-mode .peel-card-wrap .card.canon {
       showToast('Could not build share image.');
       return false;
     }
-    if (asset.file && navigator.share && navigator.canShare && navigator.canShare({ files: [asset.file] })) {
+    const canAttemptNativeShare = Boolean(asset.file && navigator.share && (!navigator.canShare || navigator.canShare({ files: [asset.file] })));
+    if (canAttemptNativeShare) {
       try {
         await navigator.share({
           title: asset.shareTitle,
