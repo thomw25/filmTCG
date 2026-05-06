@@ -30,6 +30,8 @@ const MAX_PERSON_DETAILS_CACHE = 120;
 const PERSON_CANDIDATE_SHORTLIST_LIMIT = 34;
 const PERSON_CANDIDATE_MIN_DIRECTORS = 3;
 const MAX_TELEMETRY_BODY_BYTES = 12 * 1024;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_RATE_LIMIT_ENTRIES = 1200;
 const TV_MOVIE_GENRE_ID = 10770;
 const GENRE_NAME_BY_ID = {
   12: ['adventure'],
@@ -67,6 +69,8 @@ const cache = {
   personCombinedCredits: new Map(),
   personDetails: new Map()
 };
+
+const apiRateLimitBuckets = new Map();
 
 const DISCOVER_RECIPES = [
   { key: 'popular', pages: 3, params: { sort_by: 'popularity.desc', 'primary_release_date.lte': '2022-12-31' } },
@@ -852,6 +856,75 @@ function normalizeTelemetryPayload(payload, req) {
     ),
     ts: new Date().toISOString()
   };
+}
+
+function clientIpHint(req) {
+  const forwarded = String(req && req.headers && req.headers['x-forwarded-for'] || '').trim();
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  return String(req && req.socket && req.socket.remoteAddress || '').trim();
+}
+
+function rateLimitPolicy(pathname) {
+  if (!pathname || pathname === '/api/health' || pathname.indexOf('/api/assets/') === 0) return null;
+  if (pathname === '/api/image-proxy') return { limit: 320, windowMs: RATE_LIMIT_WINDOW_MS };
+  if (pathname === '/api/card-pool') return { limit: 90, windowMs: RATE_LIMIT_WINDOW_MS };
+  if (pathname === '/api/telemetry') return { limit: 180, windowMs: RATE_LIMIT_WINDOW_MS };
+  if (
+    pathname === '/api/movie-art'
+    || pathname === '/api/movie-people'
+    || pathname === '/api/person-known-for'
+    || pathname === '/api/person-profile'
+  ) {
+    return { limit: 140, windowMs: RATE_LIMIT_WINDOW_MS };
+  }
+  return { limit: 120, windowMs: RATE_LIMIT_WINDOW_MS };
+}
+
+function cleanupRateLimitBuckets(now) {
+  if (apiRateLimitBuckets.size <= MAX_RATE_LIMIT_ENTRIES) return;
+  apiRateLimitBuckets.forEach(function (entry, key) {
+    if (!entry || Number(entry.resetAt || 0) <= now) {
+      apiRateLimitBuckets.delete(key);
+    }
+  });
+  if (apiRateLimitBuckets.size <= MAX_RATE_LIMIT_ENTRIES) return;
+  const oldestKeys = Array.from(apiRateLimitBuckets.entries())
+    .sort(function (left, right) {
+      return Number(left[1] && left[1].resetAt || 0) - Number(right[1] && right[1].resetAt || 0);
+    })
+    .slice(0, apiRateLimitBuckets.size - MAX_RATE_LIMIT_ENTRIES)
+    .map(function (entry) { return entry[0]; });
+  oldestKeys.forEach(function (key) {
+    apiRateLimitBuckets.delete(key);
+  });
+}
+
+function enforceApiRateLimit(req, res, url) {
+  const policy = rateLimitPolicy(url && url.pathname);
+  if (!policy) return false;
+  const now = Date.now();
+  const ip = clientIpHint(req) || 'unknown';
+  const bucketKey = ip + '|' + String(url.pathname || '');
+  let bucket = apiRateLimitBuckets.get(bucketKey);
+  if (!bucket || Number(bucket.resetAt || 0) <= now) {
+    bucket = {
+      count: 0,
+      resetAt: now + policy.windowMs
+    };
+  }
+  bucket.count += 1;
+  apiRateLimitBuckets.set(bucketKey, bucket);
+  cleanupRateLimitBuckets(now);
+  if (bucket.count <= policy.limit) return false;
+  const retryAfterSeconds = Math.max(1, Math.ceil((bucket.resetAt - now) / 1000));
+  writeJson(res, 429, {
+    error: 'Too many requests. Please try again shortly.'
+  }, {
+    'Retry-After': String(retryAfterSeconds)
+  });
+  return true;
 }
 
 function sendStatic(req, res, pathname) {
@@ -2767,6 +2840,10 @@ async function routeApi(req, res, url) {
       logicVersion: LOGIC_VERSION,
       snapshotVersion: POOL_SNAPSHOT_VERSION
     });
+    return;
+  }
+
+  if (enforceApiRateLimit(req, res, url)) {
     return;
   }
 
