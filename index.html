@@ -6059,7 +6059,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub" id="buildBadge">Build: logic-sync-209</div>
+  <div class="sub" id="buildBadge">Build: logic-sync-210</div>
   <div class="header-side">
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
   </div>
@@ -6853,7 +6853,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-209';
+  const BUILD_ID = 'logic-sync-210';
   const PAGE_PARAMS = new URLSearchParams(window.location.search);
   const DEBUG_STORY_PREVIEW = PAGE_PARAMS.get('debugStoryPreview') === '1';
   const DEBUG_STORY_SEED = PAGE_PARAMS.get('debugStorySeed') === '1';
@@ -15686,7 +15686,7 @@ body.performance-mode .peel-card-wrap .card.canon {
     const config = options || {};
     if (movie.cardType === 'person') {
       modalBody.innerHTML = '<div class="modal-grid">'
-        + '<div class="modal-media"><img class="modal-poster" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' portrait" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
+        + '<div class="modal-media is-card-preview">' + buildModalListMediaCardMarkup(movie) + '</div>'
         + '<div class="modal-meta"><div><div class="modal-kicker">' + escapeHtml(roleLabelForDisplay(movie)) + ' Card</div><div class="modal-title">' + escapeHtml(movie.title) + '</div></div>'
       + '<div class="chips"><div class="chip">' + escapeHtml(movie.rarity) + '</div><div class="chip">' + escapeHtml(roleLabelForDisplay(movie)) + '</div></div>'
       + '<div class="modal-panel"><div class="modal-sub">' + escapeHtml(movie.desc) + '</div></div>'
@@ -15701,7 +15701,7 @@ body.performance-mode .peel-card-wrap .card.canon {
 
     const quote = QUOTES[movie.title] || '';
     modalBody.innerHTML = '<div class="modal-grid">'
-      + '<div class="modal-media"><img class="modal-poster" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' artwork" data-poster="' + escapeHtml(movie.poster || '') + '" data-still="' + escapeHtml(movie.still || '') + '" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre) + '"></div>'
+      + '<div class="modal-media is-card-preview">' + buildModalListMediaCardMarkup(movie) + '</div>'
       + '<div class="modal-meta"><div><div class="modal-kicker">Film Card</div><div class="modal-title">' + escapeHtml(movie.title) + '</div></div>'
       + '<div class="chips"><div class="chip">' + escapeHtml(movie.rarity) + '</div><div class="chip">' + escapeHtml(movie.genre) + '</div>' + (movie.year ? '<div class="chip">' + escapeHtml(movie.year) + '</div>' : '') + (movie.directorName ? '<div class="chip is-director">Dir. ' + escapeHtml(movie.directorName) + '</div>' : '') + '</div>'
       + '<div class="modal-panel"><div class="modal-sub">' + escapeHtml(movie.desc) + '</div>'
