@@ -4404,7 +4404,7 @@ body.performance-mode .peel-card-wrap .card.canon {
 .collection-list-add-card {
   position: relative;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   justify-items: center;
   color: inherit;
   font: inherit;
@@ -4446,6 +4446,46 @@ body.performance-mode .peel-card-wrap .card.canon {
 
 .collection-list-add-card-preview .card {
   box-shadow: 0 18px 34px rgba(0,0,0,.28);
+}
+
+.collection-list-add-card-meta {
+  width: min(100%, 156px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.028));
+  border: 1px solid rgba(255,255,255,.08);
+  box-sizing: border-box;
+}
+
+.collection-list-add-card-meta-left,
+.collection-list-add-card-meta-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.collection-list-add-card-detail {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 88px;
+  padding: 0 10px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  color: rgba(255,255,255,.74);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .collection-list-add-card.is-selected .collection-list-add-preview::after {
@@ -4581,6 +4621,25 @@ body.performance-mode .peel-card-wrap .card.canon {
 .modal-list-preview-card .bookmark-btn,
 .modal-list-preview-card .showcase-btn,
 .modal-list-preview-card .collection-list-add-btn {
+  display: none;
+}
+
+.modal-media.is-card-preview {
+  display: grid;
+  place-items: center;
+}
+
+.modal-media-card {
+  width: min(100%, 300px);
+}
+
+.modal-media-card .card {
+  box-shadow: 0 24px 42px rgba(0,0,0,.34);
+}
+
+.modal-media-card .bookmark-btn,
+.modal-media-card .showcase-btn,
+.modal-media-card .collection-list-add-btn {
   display: none;
 }
 
@@ -6000,7 +6059,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   <button id="homeLogo" class="title brand-home" type="button" aria-label="Go to Pull">filmTCG</button>
   <div class="sub">the movie trading card game</div>
   <div class="sub">Backend-aware artwork mode</div>
-  <div class="sub" id="buildBadge">Build: logic-sync-208</div>
+  <div class="sub" id="buildBadge">Build: logic-sync-209</div>
   <div class="header-side">
     <div class="ticket-badge"><span class="ticket-badge-icon">🎟</span><span id="ticketBadgeValue">0</span></div>
   </div>
@@ -6055,6 +6114,7 @@ body.performance-mode .peel-card-wrap .card.canon {
         <button id="collectionModeLists" type="button">Lists</button>
       </div>
     </div>
+    <div id="showcasePanel" class="showcase-panel"></div>
     <div id="collectionSummaryBar" class="collection-topbar">
       <div class="collection-stats">
         <div class="collection-stat">
@@ -6101,7 +6161,6 @@ body.performance-mode .peel-card-wrap .card.canon {
         </select>
       </div>
     </div>
-    <div id="showcasePanel" class="showcase-panel"></div>
     <div class="collection-search-row">
       <input id="collectionSearch" class="collection-search" type="search" placeholder="Search title, director, role, or year">
     </div>
@@ -6794,7 +6853,7 @@ body.performance-mode .peel-card-wrap .card.canon {
   };
   const FALLBACK_POSTER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect width="300" height="450" rx="24" fill="#1f2937"/><text x="150" y="220" text-anchor="middle" fill="#f5f5f5" font-size="26" font-family="Arial, sans-serif">No Image</text></svg>');
   const MAX_SHOWCASE_SIZE = 4;
-  const BUILD_ID = 'logic-sync-208';
+  const BUILD_ID = 'logic-sync-209';
   const PAGE_PARAMS = new URLSearchParams(window.location.search);
   const DEBUG_STORY_PREVIEW = PAGE_PARAMS.get('debugStoryPreview') === '1';
   const DEBUG_STORY_SEED = PAGE_PARAMS.get('debugStorySeed') === '1';
@@ -10577,6 +10636,26 @@ body.performance-mode .peel-card-wrap .card.canon {
     return '<div class="collection-list-add-preview"><div class="collection-card-preview collection-list-add-card-preview">' + buildShelfCardMarkup(card) + '</div></div>';
   }
 
+  function collectionListAddDetailLabel(card) {
+    if (!card) return '';
+    if (card.cardType === 'person') {
+      const tags = cardChipLabels(card);
+      return tags[0] || roleLabelForDisplay(card) || 'Person Card';
+    }
+    return collectionSecondaryLabel(card) || card.genre || 'Film Card';
+  }
+
+  function buildCollectionListAddMetaMarkup(entry) {
+    const card = entry && entry.card ? entry.card : {};
+    const detail = collectionListAddDetailLabel(card);
+    return '<div class="collection-list-add-card-meta">'
+      + '<span class="collection-list-add-card-meta-left"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(card.rarity)) + '; border-color:' + escapeHtml(rarityColor(card.rarity)) + ';">' + escapeHtml(rarityShortLabel(card.rarity)) + '</span>'
+      + (detail ? '<span class="collection-list-add-card-detail">' + escapeHtml(detail) + '</span>' : '')
+      + '</span>'
+      + '<span class="collection-list-add-card-meta-right">' + buildDuplicateCountMarkup(entry && entry.count) + '</span>'
+      + '</div>';
+  }
+
   function collectionListAddMatches(entry, query, filter) {
     const card = entry && entry.card ? entry.card : {};
     const haystack = collectionListAddSearchText(entry);
@@ -10610,7 +10689,7 @@ body.performance-mode .peel-card-wrap .card.canon {
     return '<div class="collection-list-add-card" role="button" tabindex="0" aria-pressed="false" data-list-add-key="' + escapeHtml(entry && entry.key || '') + '" data-add-search="' + escapeHtml(collectionListAddSearchText(entry)) + '" data-add-card-type="' + escapeHtml(card.cardType || 'film') + '" data-add-role="' + escapeHtml(card.roleKey || '') + '" data-add-rarity="' + escapeHtml(normalizeRarityLabel(card.rarity).toLowerCase()) + '" data-add-bookmarked="' + (isBookmarked(card) ? 'true' : 'false') + '" style="' + escapeHtml(collectionShellStyle(card)) + '">'
       + '<span class="collection-list-add-check" aria-hidden="true">+</span>'
       + buildCollectionListAddPreviewMarkup(card)
-      + '<div class="collection-card-actions"><span class="lb-badge is-rarity" style="background:' + escapeHtml(rarityColor(card.rarity)) + '; border-color:' + escapeHtml(rarityColor(card.rarity)) + ';">' + escapeHtml(rarityShortLabel(card.rarity)) + '</span>' + buildDuplicateCountMarkup(entry.count) + '</div>'
+      + buildCollectionListAddMetaMarkup(entry)
       + '</div>';
   }
 
@@ -15482,14 +15561,33 @@ body.performance-mode .peel-card-wrap .card.canon {
       + '</div>'
   }
 
+  function buildModalListMediaCardMarkup(movie) {
+    return '<div class="modal-media-card">' + buildShelfCardMarkup(movie) + '</div>';
+  }
+
+  function syncModalListMediaPreview(movie, useCardPreview) {
+    const media = modalBody.querySelector('.modal-media');
+    if (!media) return;
+    if (!media.dataset.originalMarkup) {
+      media.dataset.originalMarkup = media.innerHTML;
+    }
+    if (useCardPreview) {
+      media.classList.add('is-card-preview');
+      media.innerHTML = buildModalListMediaCardMarkup(movie);
+      addImageFallbacks(media);
+      return;
+    }
+    media.classList.remove('is-card-preview');
+    if (media.dataset.originalMarkup) {
+      media.innerHTML = media.dataset.originalMarkup;
+      addImageFallbacks(media);
+    }
+  }
+
   function renderModalListPanel(movie) {
     const panel = document.getElementById('modalListPanel');
     if (!panel) return;
     const key = cardKey(movie);
-    const previewMode = panel.dataset.previewMode === 'poster' ? 'poster' : 'card';
-    const previewMarkup = previewMode === 'poster'
-      ? '<div class="modal-list-preview-body"><img class="modal-list-preview-poster" src="' + escapeHtml(resolveArt(movie)) + '" alt="' + escapeHtml(movie.title) + ' artwork" data-poster="' + escapeHtml(movie.poster || '') + '" data-still="' + escapeHtml(movie.still || '') + '" data-title="' + escapeHtml(movie.title) + '" data-rarity="' + escapeHtml(movie.rarity) + '" data-genre="' + escapeHtml(movie.genre || roleLabelForDisplay(movie)) + '"></div>'
-      : '<div class="modal-list-preview-body"><div class="modal-list-preview-card">' + buildShelfCardMarkup(movie) + '</div></div>';
     const rows = collectionLists.length
       ? collectionLists.map(function (list) {
         const isAdded = list.cardKeys.indexOf(key) !== -1;
@@ -15501,8 +15599,7 @@ body.performance-mode .peel-card-wrap .card.canon {
       : '<div class="modal-list-row"><div class="modal-list-name">No lists yet. Make the first one here.</div></div>';
 
     panel.innerHTML = '<div class="modal-list-preview">'
-      + '<div class="modal-list-preview-head"><div><div class="modal-list-preview-kicker">Adding card</div><div class="modal-list-preview-title">' + escapeHtml(movie.title) + '</div></div><button id="modalListPreviewToggle" class="showcase-edit-btn" type="button">' + (previewMode === 'card' ? 'Show Poster' : 'Show Card') + '</button></div>'
-      + previewMarkup
+      + '<div class="modal-list-preview-head"><div><div class="modal-list-preview-kicker">Card preview</div><div class="modal-list-preview-title">Using the pulled card view for ' + escapeHtml(movie.title) + '.</div></div></div>'
       + '</div>'
       + rows
       + '<div class="modal-list-form">'
@@ -15510,16 +15607,7 @@ body.performance-mode .peel-card-wrap .card.canon {
       + '<button id="modalCreateListButton" class="showcase-edit-btn" type="button">Create + Add</button>'
       + '</div>';
 
-    panel.dataset.previewMode = previewMode;
     addImageFallbacks(panel);
-
-    const previewToggle = document.getElementById('modalListPreviewToggle');
-    if (previewToggle) {
-      previewToggle.addEventListener('click', function () {
-        panel.dataset.previewMode = previewMode === 'card' ? 'poster' : 'card';
-        renderModalListPanel(movie);
-      });
-    }
 
     panel.querySelectorAll('[data-modal-list-toggle]').forEach(function (button) {
       button.addEventListener('click', function () {
@@ -15579,7 +15667,10 @@ body.performance-mode .peel-card-wrap .card.canon {
       panel.hidden = nextHidden;
       button.classList.toggle('is-active', !panel.hidden);
       if (!panel.hidden) {
+        syncModalListMediaPreview(movie, true);
         renderModalListPanel(movie);
+      } else {
+        syncModalListMediaPreview(movie, false);
       }
     }
     button.addEventListener('click', function () {
